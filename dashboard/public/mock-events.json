@@ -1,0 +1,3002 @@
+[
+  {
+    "ID": 35714,
+    "device_id": 5730,
+    "event": "replace device",
+    "service-ticket#": 411116,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-18 17:00:17"
+  },
+  {
+    "ID": 35070,
+    "device_id": 4255,
+    "event": "patch",
+    "service-ticket#": 716647,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-02 10:15:17"
+  },
+  {
+    "ID": 87867,
+    "device_id": 6444,
+    "event": "replace device",
+    "service-ticket#": 151575,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-25 14:27:17"
+  },
+  {
+    "ID": 50513,
+    "device_id": 5035,
+    "event": "new install",
+    "service-ticket#": 905191,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-24 10:06:17"
+  },
+  {
+    "ID": 35140,
+    "device_id": 1763,
+    "event": "new install",
+    "service-ticket#": 740798,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-27 15:21:17"
+  },
+  {
+    "ID": 68634,
+    "device_id": 2063,
+    "event": "new install",
+    "service-ticket#": 126999,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-17 03:33:17"
+  },
+  {
+    "ID": 33711,
+    "device_id": 2615,
+    "event": "patch",
+    "service-ticket#": 266159,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-31 03:34:17"
+  },
+  {
+    "ID": 53652,
+    "device_id": 4276,
+    "event": "replace device",
+    "service-ticket#": 752895,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-11 05:39:17"
+  },
+  {
+    "ID": 97269,
+    "device_id": 5890,
+    "event": "patch",
+    "service-ticket#": 940472,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-19 15:41:17"
+  },
+  {
+    "ID": 31138,
+    "device_id": 6869,
+    "event": "patch",
+    "service-ticket#": 441611,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-13 03:46:17"
+  },
+  {
+    "ID": 15179,
+    "device_id": 8111,
+    "event": "patch",
+    "service-ticket#": 205449,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-02 21:45:17"
+  },
+  {
+    "ID": 41899,
+    "device_id": 8111,
+    "event": "patch",
+    "service-ticket#": 143292,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-13 12:04:17"
+  },
+  {
+    "ID": 55538,
+    "device_id": 1267,
+    "event": "patch",
+    "service-ticket#": 325994,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-08 02:00:17"
+  },
+  {
+    "ID": 20953,
+    "device_id": 5035,
+    "event": "replace device",
+    "service-ticket#": 283242,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-20 17:54:17"
+  },
+  {
+    "ID": 70533,
+    "device_id": 2063,
+    "event": "new install",
+    "service-ticket#": 556264,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-02 03:48:17"
+  },
+  {
+    "ID": 32549,
+    "device_id": 2023,
+    "event": "patch",
+    "service-ticket#": 199094,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-30 15:22:17"
+  },
+  {
+    "ID": 82910,
+    "device_id": 2846,
+    "event": "new install",
+    "service-ticket#": 649646,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-30 05:07:17"
+  },
+  {
+    "ID": 16648,
+    "device_id": 6869,
+    "event": "patch",
+    "service-ticket#": 735488,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-17 01:45:17"
+  },
+  {
+    "ID": 96123,
+    "device_id": 1233,
+    "event": "new install",
+    "service-ticket#": 348561,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-02 00:34:17"
+  },
+  {
+    "ID": 95781,
+    "device_id": 5890,
+    "event": "new install",
+    "service-ticket#": 206979,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-21 11:51:17"
+  },
+  {
+    "ID": 64322,
+    "device_id": 4918,
+    "event": "patch",
+    "service-ticket#": 263339,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-21 00:33:17"
+  },
+  {
+    "ID": 41131,
+    "device_id": 8728,
+    "event": "new install",
+    "service-ticket#": 804540,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-01 14:04:17"
+  },
+  {
+    "ID": 50220,
+    "device_id": 9331,
+    "event": "replace device",
+    "service-ticket#": 279124,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-08 12:41:17"
+  },
+  {
+    "ID": 69056,
+    "device_id": 2110,
+    "event": "new install",
+    "service-ticket#": 901986,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-21 01:31:17"
+  },
+  {
+    "ID": 26757,
+    "device_id": 9689,
+    "event": "replace device",
+    "service-ticket#": 710167,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-12 22:39:17"
+  },
+  {
+    "ID": 58338,
+    "device_id": 9752,
+    "event": "patch",
+    "service-ticket#": 873744,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-31 23:13:17"
+  },
+  {
+    "ID": 62404,
+    "device_id": 3519,
+    "event": "new install",
+    "service-ticket#": 123641,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-25 21:34:17"
+  },
+  {
+    "ID": 90672,
+    "device_id": 6869,
+    "event": "new install",
+    "service-ticket#": 611169,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-25 01:34:17"
+  },
+  {
+    "ID": 50752,
+    "device_id": 2983,
+    "event": "new install",
+    "service-ticket#": 554247,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-02 14:12:17"
+  },
+  {
+    "ID": 66606,
+    "device_id": 2023,
+    "event": "new install",
+    "service-ticket#": 860768,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-06 07:54:17"
+  },
+  {
+    "ID": 88776,
+    "device_id": 3519,
+    "event": "new install",
+    "service-ticket#": 267483,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-10 07:38:17"
+  },
+  {
+    "ID": 84645,
+    "device_id": 9331,
+    "event": "new install",
+    "service-ticket#": 250690,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-04 21:45:17"
+  },
+  {
+    "ID": 35223,
+    "device_id": 3020,
+    "event": "replace device",
+    "service-ticket#": 339942,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-29 08:08:17"
+  },
+  {
+    "ID": 49238,
+    "device_id": 2615,
+    "event": "patch",
+    "service-ticket#": 880147,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-27 08:55:17"
+  },
+  {
+    "ID": 98083,
+    "device_id": 9296,
+    "event": "replace device",
+    "service-ticket#": 929015,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-04 18:19:17"
+  },
+  {
+    "ID": 67807,
+    "device_id": 1857,
+    "event": "replace device",
+    "service-ticket#": 630338,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-12 16:17:17"
+  },
+  {
+    "ID": 29170,
+    "device_id": 9752,
+    "event": "patch",
+    "service-ticket#": 812489,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-06 05:25:17"
+  },
+  {
+    "ID": 87010,
+    "device_id": 6420,
+    "event": "new install",
+    "service-ticket#": 836478,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-21 07:59:17"
+  },
+  {
+    "ID": 35865,
+    "device_id": 9101,
+    "event": "patch",
+    "service-ticket#": 266574,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-21 08:07:17"
+  },
+  {
+    "ID": 79393,
+    "device_id": 5947,
+    "event": "new install",
+    "service-ticket#": 276860,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-26 20:17:17"
+  },
+  {
+    "ID": 40460,
+    "device_id": 8147,
+    "event": "new install",
+    "service-ticket#": 622835,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-16 01:55:17"
+  },
+  {
+    "ID": 25558,
+    "device_id": 6444,
+    "event": "new install",
+    "service-ticket#": 199033,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-02 02:40:17"
+  },
+  {
+    "ID": 49668,
+    "device_id": 8964,
+    "event": "patch",
+    "service-ticket#": 758662,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-29 15:58:17"
+  },
+  {
+    "ID": 33228,
+    "device_id": 3354,
+    "event": "replace device",
+    "service-ticket#": 834833,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2024-12-13 11:56:17"
+  },
+  {
+    "ID": 12137,
+    "device_id": 9141,
+    "event": "replace device",
+    "service-ticket#": 623079,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-09 22:03:17"
+  },
+  {
+    "ID": 92188,
+    "device_id": 3519,
+    "event": "patch",
+    "service-ticket#": 800934,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-02 07:52:17"
+  },
+  {
+    "ID": 63105,
+    "device_id": 5770,
+    "event": "patch",
+    "service-ticket#": 342538,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-02 04:12:17"
+  },
+  {
+    "ID": 82419,
+    "device_id": 9296,
+    "event": "new install",
+    "service-ticket#": 768684,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-15 20:37:17"
+  },
+  {
+    "ID": 40374,
+    "device_id": 6276,
+    "event": "patch",
+    "service-ticket#": 931429,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-27 01:13:17"
+  },
+  {
+    "ID": 91318,
+    "device_id": 5035,
+    "event": "patch",
+    "service-ticket#": 552777,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2024-12-20 07:29:17"
+  },
+  {
+    "ID": 20223,
+    "device_id": 6444,
+    "event": "patch",
+    "service-ticket#": 928979,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-31 11:13:17"
+  },
+  {
+    "ID": 45160,
+    "device_id": 1233,
+    "event": "new install",
+    "service-ticket#": 363716,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-15 19:07:17"
+  },
+  {
+    "ID": 83618,
+    "device_id": 9101,
+    "event": "new install",
+    "service-ticket#": 411507,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-21 15:59:17"
+  },
+  {
+    "ID": 44866,
+    "device_id": 8391,
+    "event": "replace device",
+    "service-ticket#": 347537,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-12 21:06:17"
+  },
+  {
+    "ID": 29853,
+    "device_id": 1267,
+    "event": "replace device",
+    "service-ticket#": 747319,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-19 10:18:17"
+  },
+  {
+    "ID": 36779,
+    "device_id": 6869,
+    "event": "replace device",
+    "service-ticket#": 299372,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-13 22:58:17"
+  },
+  {
+    "ID": 11160,
+    "device_id": 2661,
+    "event": "replace device",
+    "service-ticket#": 792239,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-05 04:50:17"
+  },
+  {
+    "ID": 21865,
+    "device_id": 7548,
+    "event": "new install",
+    "service-ticket#": 529974,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-20 15:12:17"
+  },
+  {
+    "ID": 77231,
+    "device_id": 8728,
+    "event": "patch",
+    "service-ticket#": 417187,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-19 07:38:17"
+  },
+  {
+    "ID": 73999,
+    "device_id": 6869,
+    "event": "replace device",
+    "service-ticket#": 174452,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-11 03:50:17"
+  },
+  {
+    "ID": 34315,
+    "device_id": 8391,
+    "event": "replace device",
+    "service-ticket#": 587498,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-28 12:37:17"
+  },
+  {
+    "ID": 52362,
+    "device_id": 6444,
+    "event": "patch",
+    "service-ticket#": 629275,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-16 12:09:17"
+  },
+  {
+    "ID": 19442,
+    "device_id": 1233,
+    "event": "new install",
+    "service-ticket#": 557245,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-19 09:21:17"
+  },
+  {
+    "ID": 81373,
+    "device_id": 2629,
+    "event": "replace device",
+    "service-ticket#": 425190,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-23 11:33:17"
+  },
+  {
+    "ID": 22562,
+    "device_id": 8147,
+    "event": "patch",
+    "service-ticket#": 897614,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-26 08:16:17"
+  },
+  {
+    "ID": 69098,
+    "device_id": 2110,
+    "event": "replace device",
+    "service-ticket#": 768057,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-13 00:01:17"
+  },
+  {
+    "ID": 13198,
+    "device_id": 2609,
+    "event": "replace device",
+    "service-ticket#": 248293,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-27 17:15:17"
+  },
+  {
+    "ID": 44742,
+    "device_id": 9296,
+    "event": "new install",
+    "service-ticket#": 450372,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-03 10:39:17"
+  },
+  {
+    "ID": 26678,
+    "device_id": 5770,
+    "event": "replace device",
+    "service-ticket#": 562477,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-28 12:15:17"
+  },
+  {
+    "ID": 71311,
+    "device_id": 5890,
+    "event": "patch",
+    "service-ticket#": 992021,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2024-12-29 08:09:17"
+  },
+  {
+    "ID": 49636,
+    "device_id": 9296,
+    "event": "patch",
+    "service-ticket#": 222007,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-17 21:57:17"
+  },
+  {
+    "ID": 74888,
+    "device_id": 8728,
+    "event": "new install",
+    "service-ticket#": 603138,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-28 03:55:17"
+  },
+  {
+    "ID": 55978,
+    "device_id": 8391,
+    "event": "replace device",
+    "service-ticket#": 490853,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-17 11:07:17"
+  },
+  {
+    "ID": 26308,
+    "device_id": 3020,
+    "event": "patch",
+    "service-ticket#": 341995,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-02 00:46:17"
+  },
+  {
+    "ID": 56977,
+    "device_id": 9331,
+    "event": "replace device",
+    "service-ticket#": 836284,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-06 02:36:17"
+  },
+  {
+    "ID": 43357,
+    "device_id": 6420,
+    "event": "patch",
+    "service-ticket#": 380386,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-20 08:36:17"
+  },
+  {
+    "ID": 85256,
+    "device_id": 9296,
+    "event": "patch",
+    "service-ticket#": 652652,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-04 04:56:17"
+  },
+  {
+    "ID": 22093,
+    "device_id": 8813,
+    "event": "patch",
+    "service-ticket#": 208524,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-11 21:19:17"
+  },
+  {
+    "ID": 11204,
+    "device_id": 5947,
+    "event": "replace device",
+    "service-ticket#": 775201,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-02 06:42:17"
+  },
+  {
+    "ID": 55449,
+    "device_id": 1233,
+    "event": "new install",
+    "service-ticket#": 492363,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-30 08:35:17"
+  },
+  {
+    "ID": 69009,
+    "device_id": 9101,
+    "event": "patch",
+    "service-ticket#": 569168,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-21 04:41:17"
+  },
+  {
+    "ID": 60777,
+    "device_id": 2829,
+    "event": "patch",
+    "service-ticket#": 257895,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-13 19:20:17"
+  },
+  {
+    "ID": 33381,
+    "device_id": 1267,
+    "event": "new install",
+    "service-ticket#": 351944,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-02 11:55:17"
+  },
+  {
+    "ID": 33519,
+    "device_id": 8111,
+    "event": "replace device",
+    "service-ticket#": 780149,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-19 06:32:17"
+  },
+  {
+    "ID": 98500,
+    "device_id": 1267,
+    "event": "patch",
+    "service-ticket#": 448482,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-09 06:37:17"
+  },
+  {
+    "ID": 37130,
+    "device_id": 6420,
+    "event": "new install",
+    "service-ticket#": 856156,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-14 17:31:17"
+  },
+  {
+    "ID": 69390,
+    "device_id": 4918,
+    "event": "new install",
+    "service-ticket#": 892526,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-10 06:56:17"
+  },
+  {
+    "ID": 28827,
+    "device_id": 2609,
+    "event": "new install",
+    "service-ticket#": 955641,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-16 15:11:17"
+  },
+  {
+    "ID": 98507,
+    "device_id": 2829,
+    "event": "patch",
+    "service-ticket#": 675042,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-07 07:01:17"
+  },
+  {
+    "ID": 41962,
+    "device_id": 9296,
+    "event": "new install",
+    "service-ticket#": 872604,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-23 16:39:17"
+  },
+  {
+    "ID": 66139,
+    "device_id": 8728,
+    "event": "patch",
+    "service-ticket#": 489967,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-08 09:52:17"
+  },
+  {
+    "ID": 59492,
+    "device_id": 6485,
+    "event": "patch",
+    "service-ticket#": 268806,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-24 19:01:17"
+  },
+  {
+    "ID": 43865,
+    "device_id": 2023,
+    "event": "patch",
+    "service-ticket#": 700874,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-24 18:25:17"
+  },
+  {
+    "ID": 58003,
+    "device_id": 3953,
+    "event": "new install",
+    "service-ticket#": 976511,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2024-12-26 13:10:17"
+  },
+  {
+    "ID": 61838,
+    "device_id": 8391,
+    "event": "patch",
+    "service-ticket#": 660545,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-04 13:28:17"
+  },
+  {
+    "ID": 66730,
+    "device_id": 5890,
+    "event": "new install",
+    "service-ticket#": 820660,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-03 13:13:17"
+  },
+  {
+    "ID": 95499,
+    "device_id": 9141,
+    "event": "replace device",
+    "service-ticket#": 105934,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-03 20:36:17"
+  },
+  {
+    "ID": 40272,
+    "device_id": 8728,
+    "event": "replace device",
+    "service-ticket#": 597840,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-03 01:05:17"
+  },
+  {
+    "ID": 39551,
+    "device_id": 3354,
+    "event": "patch",
+    "service-ticket#": 806622,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-04 03:53:17"
+  },
+  {
+    "ID": 88355,
+    "device_id": 2983,
+    "event": "replace device",
+    "service-ticket#": 340721,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-28 21:14:17"
+  },
+  {
+    "ID": 30285,
+    "device_id": 2110,
+    "event": "replace device",
+    "service-ticket#": 728168,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-11 10:39:17"
+  },
+  {
+    "ID": 55074,
+    "device_id": 5947,
+    "event": "patch",
+    "service-ticket#": 566414,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-19 17:19:17"
+  },
+  {
+    "ID": 90156,
+    "device_id": 4255,
+    "event": "patch",
+    "service-ticket#": 435881,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-23 23:34:17"
+  },
+  {
+    "ID": 10490,
+    "device_id": 1763,
+    "event": "new install",
+    "service-ticket#": 784291,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-18 22:26:17"
+  },
+  {
+    "ID": 71112,
+    "device_id": 2629,
+    "event": "new install",
+    "service-ticket#": 453132,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-26 23:53:17"
+  },
+  {
+    "ID": 69524,
+    "device_id": 7317,
+    "event": "patch",
+    "service-ticket#": 800484,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-07 22:01:17"
+  },
+  {
+    "ID": 17098,
+    "device_id": 9331,
+    "event": "new install",
+    "service-ticket#": 348967,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-10 23:57:17"
+  },
+  {
+    "ID": 12995,
+    "device_id": 5947,
+    "event": "new install",
+    "service-ticket#": 372127,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-17 01:37:17"
+  },
+  {
+    "ID": 27468,
+    "device_id": 8391,
+    "event": "replace device",
+    "service-ticket#": 942445,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-19 14:15:17"
+  },
+  {
+    "ID": 45502,
+    "device_id": 5770,
+    "event": "patch",
+    "service-ticket#": 291198,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-27 09:32:17"
+  },
+  {
+    "ID": 74425,
+    "device_id": 4410,
+    "event": "patch",
+    "service-ticket#": 291157,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-08 00:51:17"
+  },
+  {
+    "ID": 97782,
+    "device_id": 5890,
+    "event": "replace device",
+    "service-ticket#": 907208,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-24 00:20:17"
+  },
+  {
+    "ID": 95633,
+    "device_id": 4255,
+    "event": "new install",
+    "service-ticket#": 266925,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-17 23:49:17"
+  },
+  {
+    "ID": 41713,
+    "device_id": 2063,
+    "event": "new install",
+    "service-ticket#": 656468,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-16 08:52:17"
+  },
+  {
+    "ID": 26422,
+    "device_id": 2983,
+    "event": "patch",
+    "service-ticket#": 281485,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-03 11:23:17"
+  },
+  {
+    "ID": 94454,
+    "device_id": 5890,
+    "event": "replace device",
+    "service-ticket#": 389940,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-25 20:28:17"
+  },
+  {
+    "ID": 62600,
+    "device_id": 4410,
+    "event": "new install",
+    "service-ticket#": 673636,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2024-12-25 22:51:17"
+  },
+  {
+    "ID": 72182,
+    "device_id": 1857,
+    "event": "replace device",
+    "service-ticket#": 159016,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-17 12:44:17"
+  },
+  {
+    "ID": 60026,
+    "device_id": 2063,
+    "event": "new install",
+    "service-ticket#": 690646,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-11 12:59:17"
+  },
+  {
+    "ID": 64969,
+    "device_id": 6869,
+    "event": "patch",
+    "service-ticket#": 372258,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-06 09:02:17"
+  },
+  {
+    "ID": 96583,
+    "device_id": 8391,
+    "event": "patch",
+    "service-ticket#": 440841,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-09 05:17:17"
+  },
+  {
+    "ID": 27710,
+    "device_id": 6403,
+    "event": "new install",
+    "service-ticket#": 178706,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-30 17:40:17"
+  },
+  {
+    "ID": 40433,
+    "device_id": 6485,
+    "event": "patch",
+    "service-ticket#": 876556,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-25 10:30:17"
+  },
+  {
+    "ID": 67430,
+    "device_id": 3519,
+    "event": "replace device",
+    "service-ticket#": 780710,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-26 14:35:17"
+  },
+  {
+    "ID": 49606,
+    "device_id": 4918,
+    "event": "new install",
+    "service-ticket#": 196762,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-17 08:20:17"
+  },
+  {
+    "ID": 58029,
+    "device_id": 9141,
+    "event": "new install",
+    "service-ticket#": 276096,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-12 17:39:17"
+  },
+  {
+    "ID": 64715,
+    "device_id": 6276,
+    "event": "replace device",
+    "service-ticket#": 391260,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-20 11:19:17"
+  },
+  {
+    "ID": 69936,
+    "device_id": 6869,
+    "event": "replace device",
+    "service-ticket#": 669859,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-03 21:33:17"
+  },
+  {
+    "ID": 73090,
+    "device_id": 5890,
+    "event": "new install",
+    "service-ticket#": 749219,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-08 06:24:17"
+  },
+  {
+    "ID": 15279,
+    "device_id": 2846,
+    "event": "new install",
+    "service-ticket#": 158067,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-07 14:21:17"
+  },
+  {
+    "ID": 41348,
+    "device_id": 8964,
+    "event": "patch",
+    "service-ticket#": 255435,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-24 23:32:17"
+  },
+  {
+    "ID": 70857,
+    "device_id": 9752,
+    "event": "replace device",
+    "service-ticket#": 905796,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-01 12:55:17"
+  },
+  {
+    "ID": 66101,
+    "device_id": 9752,
+    "event": "patch",
+    "service-ticket#": 340195,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-12 14:00:17"
+  },
+  {
+    "ID": 23492,
+    "device_id": 4918,
+    "event": "patch",
+    "service-ticket#": 642737,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-06 07:43:17"
+  },
+  {
+    "ID": 74792,
+    "device_id": 5770,
+    "event": "new install",
+    "service-ticket#": 142702,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-17 19:06:17"
+  },
+  {
+    "ID": 91418,
+    "device_id": 3519,
+    "event": "new install",
+    "service-ticket#": 978961,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-22 14:29:17"
+  },
+  {
+    "ID": 91504,
+    "device_id": 6420,
+    "event": "replace device",
+    "service-ticket#": 923369,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-18 21:54:17"
+  },
+  {
+    "ID": 58950,
+    "device_id": 6403,
+    "event": "new install",
+    "service-ticket#": 986233,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-20 14:01:17"
+  },
+  {
+    "ID": 27204,
+    "device_id": 3354,
+    "event": "new install",
+    "service-ticket#": 302399,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-07 04:19:17"
+  },
+  {
+    "ID": 39112,
+    "device_id": 1267,
+    "event": "replace device",
+    "service-ticket#": 120837,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-19 08:04:17"
+  },
+  {
+    "ID": 18641,
+    "device_id": 9101,
+    "event": "patch",
+    "service-ticket#": 175919,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-20 09:50:17"
+  },
+  {
+    "ID": 76912,
+    "device_id": 9101,
+    "event": "replace device",
+    "service-ticket#": 663988,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-22 13:45:17"
+  },
+  {
+    "ID": 76077,
+    "device_id": 5770,
+    "event": "patch",
+    "service-ticket#": 603611,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-30 21:54:17"
+  },
+  {
+    "ID": 80454,
+    "device_id": 1267,
+    "event": "replace device",
+    "service-ticket#": 757011,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-01 01:24:17"
+  },
+  {
+    "ID": 75083,
+    "device_id": 2661,
+    "event": "replace device",
+    "service-ticket#": 405199,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-27 09:15:17"
+  },
+  {
+    "ID": 93640,
+    "device_id": 5035,
+    "event": "replace device",
+    "service-ticket#": 301028,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-07 08:57:17"
+  },
+  {
+    "ID": 52505,
+    "device_id": 6276,
+    "event": "patch",
+    "service-ticket#": 939533,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-31 14:26:17"
+  },
+  {
+    "ID": 61417,
+    "device_id": 6737,
+    "event": "new install",
+    "service-ticket#": 944945,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-21 13:26:17"
+  },
+  {
+    "ID": 92284,
+    "device_id": 2983,
+    "event": "patch",
+    "service-ticket#": 780382,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-27 12:26:17"
+  },
+  {
+    "ID": 36058,
+    "device_id": 2609,
+    "event": "patch",
+    "service-ticket#": 641463,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-19 02:22:17"
+  },
+  {
+    "ID": 91553,
+    "device_id": 5770,
+    "event": "replace device",
+    "service-ticket#": 323904,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-20 07:40:17"
+  },
+  {
+    "ID": 35227,
+    "device_id": 5719,
+    "event": "patch",
+    "service-ticket#": 136607,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-09 19:02:17"
+  },
+  {
+    "ID": 96990,
+    "device_id": 2023,
+    "event": "new install",
+    "service-ticket#": 810552,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-26 21:36:17"
+  },
+  {
+    "ID": 77728,
+    "device_id": 5770,
+    "event": "replace device",
+    "service-ticket#": 303379,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-25 05:51:17"
+  },
+  {
+    "ID": 92092,
+    "device_id": 1857,
+    "event": "replace device",
+    "service-ticket#": 413852,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-12 23:48:17"
+  },
+  {
+    "ID": 46652,
+    "device_id": 8964,
+    "event": "patch",
+    "service-ticket#": 593307,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-10 07:38:17"
+  },
+  {
+    "ID": 47609,
+    "device_id": 5719,
+    "event": "new install",
+    "service-ticket#": 243617,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-17 16:19:17"
+  },
+  {
+    "ID": 80630,
+    "device_id": 9752,
+    "event": "patch",
+    "service-ticket#": 959007,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-10 21:41:17"
+  },
+  {
+    "ID": 61260,
+    "device_id": 2615,
+    "event": "replace device",
+    "service-ticket#": 436328,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-15 15:23:17"
+  },
+  {
+    "ID": 26565,
+    "device_id": 9141,
+    "event": "replace device",
+    "service-ticket#": 359274,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-28 14:02:17"
+  },
+  {
+    "ID": 30005,
+    "device_id": 3354,
+    "event": "patch",
+    "service-ticket#": 180730,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-21 06:57:17"
+  },
+  {
+    "ID": 58774,
+    "device_id": 5770,
+    "event": "patch",
+    "service-ticket#": 764661,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-14 21:35:17"
+  },
+  {
+    "ID": 40490,
+    "device_id": 8147,
+    "event": "new install",
+    "service-ticket#": 482487,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-30 18:28:17"
+  },
+  {
+    "ID": 23940,
+    "device_id": 5770,
+    "event": "new install",
+    "service-ticket#": 746910,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-30 10:21:17"
+  },
+  {
+    "ID": 67412,
+    "device_id": 3354,
+    "event": "new install",
+    "service-ticket#": 995849,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-05 14:59:17"
+  },
+  {
+    "ID": 17362,
+    "device_id": 1233,
+    "event": "replace device",
+    "service-ticket#": 847014,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-26 14:26:17"
+  },
+  {
+    "ID": 12710,
+    "device_id": 2615,
+    "event": "new install",
+    "service-ticket#": 487913,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-31 23:58:17"
+  },
+  {
+    "ID": 90492,
+    "device_id": 1763,
+    "event": "patch",
+    "service-ticket#": 894680,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-01 22:03:17"
+  },
+  {
+    "ID": 84000,
+    "device_id": 7548,
+    "event": "patch",
+    "service-ticket#": 143950,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-03 21:31:17"
+  },
+  {
+    "ID": 94951,
+    "device_id": 4410,
+    "event": "replace device",
+    "service-ticket#": 753377,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-12 07:19:17"
+  },
+  {
+    "ID": 61214,
+    "device_id": 8111,
+    "event": "replace device",
+    "service-ticket#": 860956,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-31 17:09:17"
+  },
+  {
+    "ID": 54440,
+    "device_id": 9141,
+    "event": "replace device",
+    "service-ticket#": 787581,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-10 15:32:17"
+  },
+  {
+    "ID": 23931,
+    "device_id": 8813,
+    "event": "new install",
+    "service-ticket#": 279602,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-07 13:38:17"
+  },
+  {
+    "ID": 93274,
+    "device_id": 9101,
+    "event": "replace device",
+    "service-ticket#": 305428,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-12 05:21:17"
+  },
+  {
+    "ID": 49733,
+    "device_id": 2023,
+    "event": "replace device",
+    "service-ticket#": 773073,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-29 06:09:17"
+  },
+  {
+    "ID": 63994,
+    "device_id": 5035,
+    "event": "replace device",
+    "service-ticket#": 357905,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-28 02:04:17"
+  },
+  {
+    "ID": 68039,
+    "device_id": 2661,
+    "event": "new install",
+    "service-ticket#": 716872,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-25 02:47:17"
+  },
+  {
+    "ID": 92010,
+    "device_id": 9296,
+    "event": "patch",
+    "service-ticket#": 425324,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-30 14:21:17"
+  },
+  {
+    "ID": 36565,
+    "device_id": 5770,
+    "event": "replace device",
+    "service-ticket#": 717447,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-16 05:28:17"
+  },
+  {
+    "ID": 53328,
+    "device_id": 2846,
+    "event": "new install",
+    "service-ticket#": 395375,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-05 08:34:17"
+  },
+  {
+    "ID": 73093,
+    "device_id": 2846,
+    "event": "new install",
+    "service-ticket#": 711859,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-30 14:38:17"
+  },
+  {
+    "ID": 98630,
+    "device_id": 3020,
+    "event": "patch",
+    "service-ticket#": 366807,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-15 11:18:17"
+  },
+  {
+    "ID": 92066,
+    "device_id": 1763,
+    "event": "replace device",
+    "service-ticket#": 609151,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-18 01:35:17"
+  },
+  {
+    "ID": 58379,
+    "device_id": 7548,
+    "event": "new install",
+    "service-ticket#": 634081,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-13 00:21:17"
+  },
+  {
+    "ID": 86597,
+    "device_id": 6403,
+    "event": "patch",
+    "service-ticket#": 484962,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-31 02:57:17"
+  },
+  {
+    "ID": 30736,
+    "device_id": 3354,
+    "event": "patch",
+    "service-ticket#": 579473,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-13 07:36:17"
+  },
+  {
+    "ID": 75151,
+    "device_id": 2110,
+    "event": "replace device",
+    "service-ticket#": 649694,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-18 16:40:17"
+  },
+  {
+    "ID": 18509,
+    "device_id": 6869,
+    "event": "new install",
+    "service-ticket#": 777163,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-05 19:34:17"
+  },
+  {
+    "ID": 27416,
+    "device_id": 1233,
+    "event": "patch",
+    "service-ticket#": 251282,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-09 22:08:17"
+  },
+  {
+    "ID": 93854,
+    "device_id": 7548,
+    "event": "replace device",
+    "service-ticket#": 556017,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-29 18:52:17"
+  },
+  {
+    "ID": 16485,
+    "device_id": 2110,
+    "event": "patch",
+    "service-ticket#": 798979,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-14 05:11:17"
+  },
+  {
+    "ID": 57266,
+    "device_id": 2661,
+    "event": "new install",
+    "service-ticket#": 512485,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-24 10:03:17"
+  },
+  {
+    "ID": 99167,
+    "device_id": 6444,
+    "event": "patch",
+    "service-ticket#": 616966,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-19 19:44:17"
+  },
+  {
+    "ID": 94418,
+    "device_id": 4410,
+    "event": "patch",
+    "service-ticket#": 321196,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-06-02 03:40:17"
+  },
+  {
+    "ID": 37419,
+    "device_id": 2110,
+    "event": "replace device",
+    "service-ticket#": 444498,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-13 14:10:17"
+  },
+  {
+    "ID": 13296,
+    "device_id": 6276,
+    "event": "replace device",
+    "service-ticket#": 319693,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-02 00:52:17"
+  },
+  {
+    "ID": 95272,
+    "device_id": 5947,
+    "event": "replace device",
+    "service-ticket#": 339369,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-18 02:48:17"
+  },
+  {
+    "ID": 32433,
+    "device_id": 6403,
+    "event": "replace device",
+    "service-ticket#": 744144,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-16 06:37:17"
+  },
+  {
+    "ID": 26642,
+    "device_id": 2063,
+    "event": "new install",
+    "service-ticket#": 374828,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-08 08:39:17"
+  },
+  {
+    "ID": 42443,
+    "device_id": 2629,
+    "event": "patch",
+    "service-ticket#": 556560,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-15 23:52:17"
+  },
+  {
+    "ID": 27930,
+    "device_id": 9101,
+    "event": "new install",
+    "service-ticket#": 710551,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-28 16:09:17"
+  },
+  {
+    "ID": 77339,
+    "device_id": 5770,
+    "event": "replace device",
+    "service-ticket#": 501064,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-22 00:12:17"
+  },
+  {
+    "ID": 59614,
+    "device_id": 6485,
+    "event": "replace device",
+    "service-ticket#": 885036,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-04 18:07:17"
+  },
+  {
+    "ID": 34953,
+    "device_id": 1267,
+    "event": "replace device",
+    "service-ticket#": 105745,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-10 19:32:17"
+  },
+  {
+    "ID": 18368,
+    "device_id": 1233,
+    "event": "new install",
+    "service-ticket#": 874640,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-05 21:50:17"
+  },
+  {
+    "ID": 93004,
+    "device_id": 4918,
+    "event": "replace device",
+    "service-ticket#": 721342,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-06 01:22:17"
+  },
+  {
+    "ID": 89435,
+    "device_id": 9101,
+    "event": "new install",
+    "service-ticket#": 338035,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-18 20:37:17"
+  },
+  {
+    "ID": 97573,
+    "device_id": 2110,
+    "event": "replace device",
+    "service-ticket#": 267802,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-04 02:03:17"
+  },
+  {
+    "ID": 42357,
+    "device_id": 4410,
+    "event": "patch",
+    "service-ticket#": 156336,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-14 03:03:17"
+  },
+  {
+    "ID": 75329,
+    "device_id": 2846,
+    "event": "patch",
+    "service-ticket#": 457891,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-17 10:09:17"
+  },
+  {
+    "ID": 54233,
+    "device_id": 9331,
+    "event": "patch",
+    "service-ticket#": 313671,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-26 16:54:17"
+  },
+  {
+    "ID": 98087,
+    "device_id": 6420,
+    "event": "patch",
+    "service-ticket#": 510669,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-01 22:06:17"
+  },
+  {
+    "ID": 62076,
+    "device_id": 8728,
+    "event": "replace device",
+    "service-ticket#": 689677,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-17 23:25:17"
+  },
+  {
+    "ID": 18455,
+    "device_id": 2829,
+    "event": "new install",
+    "service-ticket#": 663678,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-14 17:26:17"
+  },
+  {
+    "ID": 50760,
+    "device_id": 9689,
+    "event": "replace device",
+    "service-ticket#": 780051,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-15 11:53:17"
+  },
+  {
+    "ID": 59843,
+    "device_id": 8111,
+    "event": "replace device",
+    "service-ticket#": 826706,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-16 19:45:17"
+  },
+  {
+    "ID": 33740,
+    "device_id": 4918,
+    "event": "replace device",
+    "service-ticket#": 980466,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-15 03:41:17"
+  },
+  {
+    "ID": 85509,
+    "device_id": 8728,
+    "event": "patch",
+    "service-ticket#": 543974,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-14 23:01:17"
+  },
+  {
+    "ID": 32904,
+    "device_id": 2615,
+    "event": "replace device",
+    "service-ticket#": 443189,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-21 03:55:17"
+  },
+  {
+    "ID": 56893,
+    "device_id": 2110,
+    "event": "patch",
+    "service-ticket#": 661181,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-24 09:52:17"
+  },
+  {
+    "ID": 86542,
+    "device_id": 5947,
+    "event": "replace device",
+    "service-ticket#": 711400,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-16 22:02:17"
+  },
+  {
+    "ID": 99305,
+    "device_id": 6276,
+    "event": "patch",
+    "service-ticket#": 139225,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-19 18:45:17"
+  },
+  {
+    "ID": 34262,
+    "device_id": 8111,
+    "event": "new install",
+    "service-ticket#": 895756,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-30 00:06:17"
+  },
+  {
+    "ID": 67334,
+    "device_id": 6737,
+    "event": "replace device",
+    "service-ticket#": 770236,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-27 18:08:17"
+  },
+  {
+    "ID": 54782,
+    "device_id": 5947,
+    "event": "replace device",
+    "service-ticket#": 915088,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-03 08:20:17"
+  },
+  {
+    "ID": 70043,
+    "device_id": 6737,
+    "event": "new install",
+    "service-ticket#": 919715,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-28 22:31:17"
+  },
+  {
+    "ID": 24396,
+    "device_id": 2983,
+    "event": "patch",
+    "service-ticket#": 119337,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-14 11:07:17"
+  },
+  {
+    "ID": 75234,
+    "device_id": 5035,
+    "event": "patch",
+    "service-ticket#": 119324,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-26 17:08:17"
+  },
+  {
+    "ID": 91913,
+    "device_id": 6420,
+    "event": "replace device",
+    "service-ticket#": 828734,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-26 13:09:17"
+  },
+  {
+    "ID": 17473,
+    "device_id": 8964,
+    "event": "replace device",
+    "service-ticket#": 520919,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-24 11:55:17"
+  },
+  {
+    "ID": 18216,
+    "device_id": 2615,
+    "event": "patch",
+    "service-ticket#": 271668,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-23 19:56:17"
+  },
+  {
+    "ID": 22505,
+    "device_id": 6485,
+    "event": "patch",
+    "service-ticket#": 238775,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-26 07:23:17"
+  },
+  {
+    "ID": 54015,
+    "device_id": 2609,
+    "event": "new install",
+    "service-ticket#": 778863,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-03 02:36:17"
+  },
+  {
+    "ID": 34954,
+    "device_id": 6485,
+    "event": "replace device",
+    "service-ticket#": 367921,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-19 06:35:17"
+  },
+  {
+    "ID": 41724,
+    "device_id": 2983,
+    "event": "replace device",
+    "service-ticket#": 298945,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-17 22:30:17"
+  },
+  {
+    "ID": 42283,
+    "device_id": 6276,
+    "event": "new install",
+    "service-ticket#": 563848,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-12 23:14:17"
+  },
+  {
+    "ID": 13016,
+    "device_id": 6485,
+    "event": "patch",
+    "service-ticket#": 138009,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-15 05:11:17"
+  },
+  {
+    "ID": 19176,
+    "device_id": 3020,
+    "event": "patch",
+    "service-ticket#": 631493,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-15 19:00:17"
+  },
+  {
+    "ID": 38490,
+    "device_id": 5770,
+    "event": "replace device",
+    "service-ticket#": 600185,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-24 09:08:17"
+  },
+  {
+    "ID": 53198,
+    "device_id": 1267,
+    "event": "replace device",
+    "service-ticket#": 679504,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-28 11:17:17"
+  },
+  {
+    "ID": 28074,
+    "device_id": 3354,
+    "event": "patch",
+    "service-ticket#": 825978,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-10 06:35:17"
+  },
+  {
+    "ID": 31597,
+    "device_id": 8111,
+    "event": "patch",
+    "service-ticket#": 871228,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-19 21:59:17"
+  },
+  {
+    "ID": 75246,
+    "device_id": 6737,
+    "event": "patch",
+    "service-ticket#": 877922,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-09 12:15:17"
+  },
+  {
+    "ID": 72754,
+    "device_id": 3519,
+    "event": "replace device",
+    "service-ticket#": 709106,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-19 14:14:17"
+  },
+  {
+    "ID": 97855,
+    "device_id": 2615,
+    "event": "patch",
+    "service-ticket#": 752256,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-10 00:37:17"
+  },
+  {
+    "ID": 41177,
+    "device_id": 2063,
+    "event": "new install",
+    "service-ticket#": 220549,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-30 15:41:17"
+  },
+  {
+    "ID": 65420,
+    "device_id": 4276,
+    "event": "patch",
+    "service-ticket#": 214211,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-04 00:41:17"
+  },
+  {
+    "ID": 70473,
+    "device_id": 2025,
+    "event": "new install",
+    "service-ticket#": 166645,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-11 14:30:17"
+  },
+  {
+    "ID": 96522,
+    "device_id": 1763,
+    "event": "patch",
+    "service-ticket#": 878506,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-27 10:04:17"
+  },
+  {
+    "ID": 56008,
+    "device_id": 1267,
+    "event": "patch",
+    "service-ticket#": 988513,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-15 15:37:17"
+  },
+  {
+    "ID": 96645,
+    "device_id": 6420,
+    "event": "patch",
+    "service-ticket#": 175780,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-19 19:44:17"
+  },
+  {
+    "ID": 28700,
+    "device_id": 9689,
+    "event": "replace device",
+    "service-ticket#": 573022,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-05 10:33:17"
+  },
+  {
+    "ID": 86599,
+    "device_id": 9141,
+    "event": "patch",
+    "service-ticket#": 659301,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-23 18:48:17"
+  },
+  {
+    "ID": 40274,
+    "device_id": 9101,
+    "event": "replace device",
+    "service-ticket#": 960853,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-05 06:04:17"
+  },
+  {
+    "ID": 82845,
+    "device_id": 6869,
+    "event": "new install",
+    "service-ticket#": 246694,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-15 14:04:17"
+  },
+  {
+    "ID": 42647,
+    "device_id": 9141,
+    "event": "patch",
+    "service-ticket#": 333794,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-03-16 02:38:17"
+  },
+  {
+    "ID": 42145,
+    "device_id": 8111,
+    "event": "new install",
+    "service-ticket#": 272039,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-22 00:21:17"
+  },
+  {
+    "ID": 21158,
+    "device_id": 2025,
+    "event": "new install",
+    "service-ticket#": 378672,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-01 18:30:17"
+  },
+  {
+    "ID": 91794,
+    "device_id": 9101,
+    "event": "replace device",
+    "service-ticket#": 421315,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-26 19:05:17"
+  },
+  {
+    "ID": 22448,
+    "device_id": 2023,
+    "event": "patch",
+    "service-ticket#": 353926,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-27 16:46:17"
+  },
+  {
+    "ID": 40800,
+    "device_id": 4255,
+    "event": "new install",
+    "service-ticket#": 104350,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-01 21:24:17"
+  },
+  {
+    "ID": 99308,
+    "device_id": 6403,
+    "event": "new install",
+    "service-ticket#": 369605,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-24 08:04:17"
+  },
+  {
+    "ID": 58845,
+    "device_id": 2829,
+    "event": "new install",
+    "service-ticket#": 480441,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-13 01:45:17"
+  },
+  {
+    "ID": 25139,
+    "device_id": 8964,
+    "event": "new install",
+    "service-ticket#": 350673,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2024-12-13 11:46:17"
+  },
+  {
+    "ID": 77383,
+    "device_id": 8728,
+    "event": "replace device",
+    "service-ticket#": 426948,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-14 09:34:17"
+  },
+  {
+    "ID": 11849,
+    "device_id": 1763,
+    "event": "new install",
+    "service-ticket#": 942634,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-13 20:00:17"
+  },
+  {
+    "ID": 18318,
+    "device_id": 9101,
+    "event": "patch",
+    "service-ticket#": 836441,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-04-22 18:42:17"
+  },
+  {
+    "ID": 20336,
+    "device_id": 4918,
+    "event": "new install",
+    "service-ticket#": 909606,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-26 18:44:17"
+  },
+  {
+    "ID": 97880,
+    "device_id": 9101,
+    "event": "patch",
+    "service-ticket#": 825318,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-10 11:10:17"
+  },
+  {
+    "ID": 78171,
+    "device_id": 6737,
+    "event": "patch",
+    "service-ticket#": 783166,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-02-28 05:30:17"
+  },
+  {
+    "ID": 77690,
+    "device_id": 3020,
+    "event": "replace device",
+    "service-ticket#": 515678,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-11 04:52:17"
+  },
+  {
+    "ID": 42143,
+    "device_id": 6403,
+    "event": "new install",
+    "service-ticket#": 485600,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-16 00:50:17"
+  },
+  {
+    "ID": 53830,
+    "device_id": 5890,
+    "event": "new install",
+    "service-ticket#": 588680,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-04-03 11:07:17"
+  },
+  {
+    "ID": 91029,
+    "device_id": 4276,
+    "event": "new install",
+    "service-ticket#": 319515,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-04-19 07:56:17"
+  },
+  {
+    "ID": 82837,
+    "device_id": 5719,
+    "event": "replace device",
+    "service-ticket#": 558086,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-27 22:32:17"
+  },
+  {
+    "ID": 73635,
+    "device_id": 9752,
+    "event": "new install",
+    "service-ticket#": 140597,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-20 17:10:17"
+  },
+  {
+    "ID": 19678,
+    "device_id": 3020,
+    "event": "replace device",
+    "service-ticket#": 920371,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-02-15 17:42:17"
+  },
+  {
+    "ID": 17228,
+    "device_id": 3354,
+    "event": "new install",
+    "service-ticket#": 977109,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-20 12:05:17"
+  },
+  {
+    "ID": 24150,
+    "device_id": 1763,
+    "event": "replace device",
+    "service-ticket#": 205727,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-26 03:07:17"
+  },
+  {
+    "ID": 72078,
+    "device_id": 3953,
+    "event": "replace device",
+    "service-ticket#": 509731,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-28 18:40:17"
+  },
+  {
+    "ID": 35813,
+    "device_id": 3020,
+    "event": "patch",
+    "service-ticket#": 648780,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-01 04:37:17"
+  },
+  {
+    "ID": 79385,
+    "device_id": 6444,
+    "event": "new install",
+    "service-ticket#": 852195,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-30 13:16:17"
+  },
+  {
+    "ID": 11374,
+    "device_id": 2829,
+    "event": "patch",
+    "service-ticket#": 676099,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-01-02 07:40:17"
+  },
+  {
+    "ID": 96957,
+    "device_id": 6444,
+    "event": "patch",
+    "service-ticket#": 313556,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-03-08 17:18:17"
+  },
+  {
+    "ID": 55478,
+    "device_id": 3354,
+    "event": "replace device",
+    "service-ticket#": 863033,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-13 18:30:17"
+  },
+  {
+    "ID": 30009,
+    "device_id": 1763,
+    "event": "patch",
+    "service-ticket#": 235550,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-01-08 23:25:17"
+  },
+  {
+    "ID": 84324,
+    "device_id": 3354,
+    "event": "replace device",
+    "service-ticket#": 271809,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-09 18:11:17"
+  },
+  {
+    "ID": 91663,
+    "device_id": 2025,
+    "event": "patch",
+    "service-ticket#": 707244,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-12 19:43:17"
+  },
+  {
+    "ID": 94021,
+    "device_id": 7317,
+    "event": "new install",
+    "service-ticket#": 829913,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-26 23:15:17"
+  },
+  {
+    "ID": 49663,
+    "device_id": 2615,
+    "event": "patch",
+    "service-ticket#": 996557,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-31 20:59:17"
+  },
+  {
+    "ID": 44045,
+    "device_id": 5947,
+    "event": "new install",
+    "service-ticket#": 166027,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-05-19 03:16:17"
+  },
+  {
+    "ID": 68573,
+    "device_id": 3354,
+    "event": "replace device",
+    "service-ticket#": 119116,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-01-17 09:46:17"
+  },
+  {
+    "ID": 21790,
+    "device_id": 6276,
+    "event": "replace device",
+    "service-ticket#": 387816,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-03-29 13:58:17"
+  },
+  {
+    "ID": 75717,
+    "device_id": 2983,
+    "event": "new install",
+    "service-ticket#": 180981,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.5.0",
+    "date-time": "2024-12-24 18:32:17"
+  },
+  {
+    "ID": 44319,
+    "device_id": 6737,
+    "event": "replace device",
+    "service-ticket#": 530956,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.7.0",
+    "date-time": "2024-12-18 18:04:17"
+  },
+  {
+    "ID": 97258,
+    "device_id": 3020,
+    "event": "new install",
+    "service-ticket#": 864379,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.6.0",
+    "date-time": "2024-12-31 05:36:17"
+  },
+  {
+    "ID": 97357,
+    "device_id": 9296,
+    "event": "patch",
+    "service-ticket#": 585631,
+    "FW-prior": "v3.7.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-07 17:31:17"
+  },
+  {
+    "ID": 54382,
+    "device_id": 1763,
+    "event": "new install",
+    "service-ticket#": 228788,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo2.0",
+    "FW-now": "v3.7.0",
+    "date-time": "2025-05-12 00:33:17"
+  },
+  {
+    "ID": 26557,
+    "device_id": 2983,
+    "event": "patch",
+    "service-ticket#": 587156,
+    "FW-prior": "v3.6.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.5.0",
+    "date-time": "2025-05-18 10:38:17"
+  },
+  {
+    "ID": 97686,
+    "device_id": 3519,
+    "event": "new install",
+    "service-ticket#": 244573,
+    "FW-prior": "v3.5.0",
+    "new-FW-source": "repo1.1",
+    "FW-now": "v3.6.0",
+    "date-time": "2025-02-01 16:59:17"
+  }
+]

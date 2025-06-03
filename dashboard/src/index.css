@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer utilities {
+    /* brand diagonal gradient */
+    .bg-brand-gradient {
+      @apply bg-gradient-to-br from-[#2F528A] via-[#233E72] to-[#16213E];
+    }
+  }
+  

@@ -1,0 +1,27 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import RequireAuth from './components/RequireAuth';
+import Layout from './components/Layout';
+
+import LoginPage from './pages/LoginPage';
+import DashboardPage from './pages/Dashboard';
+import DevicesPage from './pages/DevicePage';
+import EventsPage from './pages/EventsPage';
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route path="/" element={<RequireAuth><Layout><DashboardPage /></Layout></RequireAuth>} />
+        <Route path="/dashboard" element={<RequireAuth><Layout><DashboardPage /></Layout></RequireAuth>} />
+        <Route path="/devices"   element={<RequireAuth><Layout><DevicesPage /></Layout></RequireAuth>} />
+        <Route path="/events"    element={<RequireAuth><Layout><EventsPage /></Layout></RequireAuth>} />
+
+        {/* catch‐all */}
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </AuthProvider>
+  );
+}

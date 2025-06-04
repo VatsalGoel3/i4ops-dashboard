@@ -1,40 +1,152 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-
 import StatusPie from '../components/charts/StatusPie';
 import FirmwareBar from '../components/charts/FirmwareBar';
 import UptimeTrend from '../components/charts/UptimeTrend';
 import EventTrend from '../components/charts/EventTrend';
 import EventDistribution from '../components/charts/EventDistribution';
 import FirmwareRollout from '../components/charts/FirmwareRollout';
+import HostStatusPie from '../components/charts/HostStatusPie';
+import CpuTrend from '../components/charts/CpuTrend';
+import TopVMsChart from '../components/charts/TopVMsChart';
 import KpiCards from '../components/KPIStats';
-
-import type { Device } from '../api/useDevices';
+import HostKPI from '../components/HostKPI';
+import type { Host } from '../api/types';
 
 interface EventRow {
   event: string;
-  // You can extend this if needed (e.g. ID, date-time, etc.)
 }
 
 export default function Dashboard() {
-  const [devices, setDevices] = useState<Device[]>([]);
+  const [devices, setDevices] = useState<any[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
+  const [hosts, setHosts] = useState<Host[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
-    axios.get<Device[]>('/mock-devices.json').then((res) => setDevices(res.data));
-    axios.get<EventRow[]>('/mock-events.json').then((res) => setEvents(res.data));
+    const loadDashboardData = async () => {
+      try {
+        const [devicesRes, eventsRes] = await Promise.all([
+          axios.get('/mock-devices.json'),
+          axios.get('/mock-events.json')
+        ]);
+        setDevices(devicesRes.data);
+        setEvents(eventsRes.data);
+        // Fetch hosts list and their status
+        const hostListRes = await axios.get<{ name: string; ip: string; port: number; }[]>('/hosts.json');
+        const hostList = hostListRes.data;
+        const fetchedHosts: Host[] = await Promise.all(hostList.map(async (hostInfo) => {
+          try {
+            const res = await axios.get<Host>(`http://${hostInfo.ip}:${hostInfo.port}/status`);
+            const hostData = res.data;
+            const host: Host = {
+              name: hostInfo.name,
+              ip: hostInfo.ip,
+              os: hostData.os,
+              uptime: typeof hostData.uptime === 'number' ? hostData.uptime : 0,
+              status: 'up',
+              ssh: hostData.ssh,
+              cpu: hostData.cpu,
+              ram: hostData.ram,
+              disk: hostData.disk,
+              vms: hostData.vms || [],
+              vm_count: hostData.vms ? hostData.vms.length : 0
+            };
+            host.vms.forEach(vm => { vm.hostName = host.name; });
+            return host;
+          } catch {
+            return {
+              name: hostInfo.name,
+              ip: hostInfo.ip,
+              os: 'Unknown',
+              uptime: 0,
+              status: 'down',
+              ssh: false,
+              cpu: 0,
+              ram: 0,
+              disk: 0,
+              vms: [],
+              vm_count: 0
+            } as Host;
+          }
+        }));
+        setHosts(fetchedHosts);
+        setLastUpdated(new Date());
+      } catch (err) {
+        console.error('Failed to load dashboard data', err);
+      }
+    };
+    loadDashboardData();
   }, []);
+
+  const handleRefreshAll = () => {
+    // Refresh both firmware data and host data
+    axios.get('/mock-devices.json').then(res => setDevices(res.data));
+    axios.get('/mock-events.json').then(res => setEvents(res.data));
+    axios.get('/hosts.json').then(res => {
+      const hostList = res.data;
+      Promise.all(hostList.map(hostInfo =>
+        axios.get(`http://${hostInfo.ip}:${hostInfo.port}/status`).then(res => {
+          const hostData = res.data;
+          const host: Host = {
+            name: hostInfo.name,
+            ip: hostInfo.ip,
+            os: hostData.os,
+            uptime: typeof hostData.uptime === 'number' ? hostData.uptime : 0,
+            status: 'up',
+            ssh: hostData.ssh,
+            cpu: hostData.cpu,
+            ram: hostData.ram,
+            disk: hostData.disk,
+            vms: hostData.vms || [],
+            vm_count: hostData.vms ? hostData.vms.length : 0
+          };
+          host.vms.forEach(vm => { vm.hostName = host.name; });
+          return host;
+        }).catch(() => ({
+          name: hostInfo.name,
+          ip: hostInfo.ip,
+          os: 'Unknown',
+          uptime: 0,
+          status: 'down',
+          ssh: false,
+          cpu: 0,
+          ram: 0,
+          disk: 0,
+          vms: [],
+          vm_count: 0
+        } as Host))
+      )).then(results => {
+        setHosts(results);
+        setLastUpdated(new Date());
+      });
+    });
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       {/* Header */}
       <header className="h-16 flex items-center px-4 shadow-md bg-white dark:bg-gray-800">
-        <h1 className="text-xl font-semibold">Device Insights Hub</h1>
+        <h1 className="text-xl font-semibold">Infrastructure Overview</h1>
+        <button
+          onClick={handleRefreshAll}
+          className="ml-auto px-3 py-1 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded"
+        >
+          Refresh All
+        </button>
+        {lastUpdated && (
+          <span className="ml-4 text-xs text-gray-600 dark:text-gray-400">
+            Last updated: {lastUpdated.toLocaleString()}
+          </span>
+        )}
       </header>
 
       {/* Main Content */}
       <main className="p-6 space-y-8">
-        {/* ── KPI Strip ───────────────────────────── */}
+        {/* ── Host KPIs ─────────────────────────────── */}
+        <HostKPI hosts={hosts} />
+
+        {/* ── Firmware KPIs (existing) ──────────────── */}
         <KpiCards devices={devices} events={events} />
 
         {/* ── Row 1: Device Charts ────────────────── */}
@@ -66,6 +178,22 @@ export default function Dashboard() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-2">Firmware Rollouts by Source</h2>
             <FirmwareRollout />
+          </div>
+        </section>
+
+        {/* ── Row 3: Host & VM Charts ──────────────── */}
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <h2 className="text-lg font-semibold mb-2">Hosts by Status</h2>
+            <HostStatusPie hosts={hosts} />
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <h2 className="text-lg font-semibold mb-2">Avg CPU Usage (All Hosts)</h2>
+            <CpuTrend hosts={hosts} />
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <h2 className="text-lg font-semibold mb-2">Top VMs by CPU</h2>
+            <TopVMsChart hosts={hosts} />
           </div>
         </section>
       </main>

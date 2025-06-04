@@ -7,17 +7,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, signOut } = useAuth();
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center px-4 py-2 my-1 rounded-r-lg transition-colors duration-200
-     ${isActive 
-       ? 'bg-gray-100 dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 font-semibold border-l-4 border-indigo-500'
-       : 'text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white'}`;
+    `flex items-center px-4 py-2 my-1 rounded-r-lg transition-colors duration-200${
+      isActive 
+        ? ' bg-gray-100 dark:bg-gray-700 text-indigo-700 dark:text-indigo-300 font-semibold border-l-4 border-indigo-500' 
+        : ' text-gray-700 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-700 dark:hover:text-white'
+    }`;
 
   return (
     <div className="flex flex-col min-h-screen bg-brand-grad dark:bg-gray-900">
       {/* ─── Header ────────────────────────────────────────────── */}
       <header className="flex items-center justify-between h-16 px-6 bg-white dark:bg-gray-800 shadow-md z-10">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-          Firmware Monitoring
+          Baremetal & VM Management
         </h1>
         <div className="flex items-center gap-4">
           {user && (
@@ -39,13 +40,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <NavLink to="/dashboard" className={linkClass} end>
               <span className="ml-1">Dashboard</span>
             </NavLink>
-            <NavLink to="/devices" className={linkClass}>
-              <span className="ml-1">Devices</span>
+            <NavLink to="/hosts" className={linkClass}>
+              <span className="ml-1">Hosts</span>
             </NavLink>
-            <NavLink to="/events" className={linkClass}>
-              <span className="ml-1">Firmware Events</span>
+            <NavLink to="/vms" className={linkClass}>
+              <span className="ml-1">VMs</span>
             </NavLink>
-            {/* Add more <NavLink> items here if needed */}
           </nav>
         </aside>
 

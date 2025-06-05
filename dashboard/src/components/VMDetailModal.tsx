@@ -1,5 +1,7 @@
 import { X } from 'lucide-react';
 import type { VM } from '../api/types';
+import { useState } from 'react';
+import axios from 'axios';
 
 interface Props {
   vm: VM;
@@ -7,6 +9,26 @@ interface Props {
 }
 
 export default function VMDetailModal({ vm, onClose }: Props) {
+  const [assignedTo, setAssignedTo] = useState<string>(vm.assignedTo || '');
+  const [notes, setNotes] = useState<string>(vm.notes || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await axios.put(`/api/vms/${vm.id}`, {
+        ...vm,
+        assignedTo,
+        notes
+      });
+      // Optionally trigger a data refresh or toast
+    } catch (err) {
+      console.error('Failed to update VM:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-lg max-h-[80vh] overflow-y-auto">
@@ -19,6 +41,7 @@ export default function VMDetailModal({ vm, onClose }: Props) {
             <X size={20} />
           </button>
         </div>
+
         <ul className="space-y-2 text-sm mb-4">
           <li><strong>Host:</strong> {vm.host?.name || 'N/A'}</li>
           <li><strong>Status:</strong> {vm.status.charAt(0).toUpperCase() + vm.status.slice(1)}</li>
@@ -30,32 +53,46 @@ export default function VMDetailModal({ vm, onClose }: Props) {
           <li><strong>IP Address:</strong> {vm.networkIp || 'N/A'}</li>
           <li><strong>MAC Address:</strong> {vm.networkMac || 'N/A'}</li>
         </ul>
-        <div className="flex justify-around mb-2">
+
+        {/* ─── Manual Tracking Section ───────────────────── */}
+        <div className="mb-4 border-t pt-4">
+          <h4 className="text-md font-medium mb-2">Manual Tracking</h4>
+
+          {/* Assigned To */}
+          <div className="mb-2">
+            <label className="block text-sm font-medium mb-1">Assigned To</label>
+            <input
+              type="text"
+              className="border rounded p-1 w-full text-sm"
+              placeholder="e.g. diana"
+              value={assignedTo}
+              onChange={e => setAssignedTo(e.target.value)}
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="mb-2">
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <textarea
+              className="border rounded p-1 w-full text-sm"
+              rows={3}
+              placeholder="Add VM notes here…"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+            />
+          </div>
+
           <button
-            onClick={() => alert(`Start VM ${vm.name}`)}
-            className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded"
+            onClick={handleSave}
+            disabled={saving}
+            className={`px-4 py-2 rounded text-white text-sm ${
+              saving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+            }`}
           >
-            Start
-          </button>
-          <button
-            onClick={() => alert(`Stop VM ${vm.name}`)}
-            className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded"
-          >
-            Stop
-          </button>
-          <button
-            onClick={() => alert(`Reboot VM ${vm.name}`)}
-            className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded"
-          >
-            Reboot
-          </button>
-          <button
-            onClick={() => alert(`SSH to VM ${vm.name}`)}
-            className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-sm rounded"
-          >
-            SSH
+            {saving ? 'Saving…' : 'Save Changes'}
           </button>
         </div>
+
         <div>
           <h4 className="text-sm font-medium mb-2">VM XML:</h4>
           <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs overflow-x-auto">

@@ -1,5 +1,3 @@
-// dashboard/src/api/types.ts
-
 export interface VM {
   id: number;
   name: string;
@@ -17,6 +15,12 @@ export interface VM {
     name: string;
     ip: string;
   };
+
+  // ─── Manual Tracking Fields ─────────────
+  pipelineStage: string;
+  assignedTo?: string;
+  notes?: string;
+  updatedAt?: string;
 }
 
 export interface Host {
@@ -31,6 +35,12 @@ export interface Host {
   ram: number;          // RAM usage %
   disk: number;         // Disk usage %
   vms: VM[];
+
+  // ─── Manual Tracking Fields ─────────────
+  pipelineStage: string;
+  assignedTo?: string;
+  notes?: string;
+  updatedAt?: string;
 }
 
 export interface HostFilters {

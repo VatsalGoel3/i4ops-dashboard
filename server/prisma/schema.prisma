@@ -1,5 +1,3 @@
-// server/prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -20,37 +18,37 @@ model Host {
   cpu           Float    // CPU usage %
   ram           Float    // RAM usage %
   disk          Float    // Disk usage %
-  
-  // ─── NEW FIELDS ─────────────────────────────────
-  pipelineStage String   @default("Available")
-  assignedTo    String?  // e.g. email or username of person “owning” this host
-  notes         String?  // free‐form
-  updatedAt     DateTime @updatedAt
 
-  vms           VM[]     // 1→many relation
+  // ─── Manual Tracking Fields ───────────────────────────────
+  pipelineStage String   @default("unassigned") // e.g. "installing", "working", etc.
+  assignedTo    String?                        // e.g. "alice", "bob"
+  notes         String?                        // free-form
+  updatedAt     DateTime @default(now()) @updatedAt            // auto-updated timestamp
+
+  vms           VM[]     // 1-to-many relation
 }
 
 model VM {
-  id          Int      @id @default(autoincrement())
-  name        String
-  status      String    // “running” / “stopped” / etc.
-  cpu         Float     // CPU usage %
-  ram         Float     // RAM usage %
-  disk        Float     // Disk usage %
-  os          String    // guest OS
-  uptime      Int       // VM uptime in seconds
-  xml         String    // libvirt XML
-  networkIp   String?   // optional IP
-  networkMac  String?   // optional MAC
+  id           Int      @id @default(autoincrement())
+  name         String
+  status       String   // "running" / "stopped"
+  cpu          Float    // CPU usage %
+  ram          Float    // RAM usage %
+  disk         Float    // Disk usage %
+  os           String   // guest OS
+  uptime       Int      // uptime in seconds
+  xml          String   // libvirt XML
+  networkIp    String?  // optional IP
+  networkMac   String?  // optional MAC
 
-  // ─── Possibly track the same on the VM level if desired ─────────────────
-  pipelineStage String   @default("Available")
-  assignedTo    String?  
+  // ─── Manual Tracking Fields ───────────────────────────────
+  pipelineStage String   @default("unassigned") // same stages as Host
+  assignedTo    String?
   notes         String?
-  updatedAt     DateTime @updatedAt
+  updatedAt     DateTime @default(now()) @updatedAt
 
-  hostId      Int
-  host        Host      @relation(fields: [hostId], references: [id])
+  hostId       Int
+  host         Host     @relation(fields: [hostId], references: [id])
 
   @@unique([name, hostId])
 }

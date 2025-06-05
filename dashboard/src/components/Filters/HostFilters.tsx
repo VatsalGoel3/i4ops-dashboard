@@ -8,9 +8,13 @@ interface Props {
   vmCountOptions: number[];
 }
 
-export default function HostFilters({ filters, onChange, osOptions, statusOptions, vmCountOptions }: Props) {
-  const toTitleCase = (s: string) => s.replace(/\b\w/g, c => c.toUpperCase());
-
+export default function HostFilters({
+  filters,
+  onChange,
+  osOptions,
+  statusOptions,
+  vmCountOptions
+}: Props) {
   return (
     <div className="flex space-x-4">
       {/* OS Filter */}
@@ -19,14 +23,14 @@ export default function HostFilters({ filters, onChange, osOptions, statusOption
         <select
           className="border rounded p-1 text-sm"
           value={filters.os || ''}
-          onChange={(e) =>
+          onChange={e =>
             onChange({ ...filters, os: e.target.value || undefined })
           }
         >
           <option value="">All</option>
           {osOptions.map(os => (
             <option key={os} value={os}>
-              {toTitleCase(os)}
+              {os}
             </option>
           ))}
         </select>
@@ -38,14 +42,14 @@ export default function HostFilters({ filters, onChange, osOptions, statusOption
         <select
           className="border rounded p-1 text-sm"
           value={filters.status || ''}
-          onChange={(e) =>
-            onChange({ ...filters, status: (e.target.value as HostFilters['status']) || undefined })
+          onChange={e =>
+            onChange({ ...filters, status: e.target.value || undefined })
           }
         >
           <option value="">All</option>
           {statusOptions.map(status => (
             <option key={status} value={status}>
-              {toTitleCase(status)}
+              {status.charAt(0).toUpperCase() + status.slice(1)}
             </option>
           ))}
         </select>
@@ -57,11 +61,11 @@ export default function HostFilters({ filters, onChange, osOptions, statusOption
         <select
           className="border rounded p-1 text-sm"
           value={filters.vmCount !== undefined ? String(filters.vmCount) : ''}
-          onChange={(e) => {
+          onChange={e => {
             const val = e.target.value;
-            onChange({ 
-              ...filters, 
-              vmCount: val !== '' ? parseInt(val, 10) : undefined 
+            onChange({
+              ...filters,
+              vmCount: val !== '' ? parseInt(val, 10) : undefined
             });
           }}
         >

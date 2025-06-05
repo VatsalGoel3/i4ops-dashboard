@@ -6,7 +6,6 @@ interface Props {
 }
 
 export default function TopVMsChart({ hosts }: Props) {
-  // Flatten all VMs from all hosts and sort by CPU usage
   const allVMs = hosts.flatMap(h => h.vms);
   allVMs.sort((a, b) => b.cpu - a.cpu);
   const topList = allVMs.slice(0, 10);

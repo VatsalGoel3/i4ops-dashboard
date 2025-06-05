@@ -1,19 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import type { Host, VM, VMFilters } from '../api/types';
+import type { VM, VMFilters } from '../api/types';
 import VMFiltersComponent from '../components/Filters/VMFilters';
 import VMTable from '../components/VMTable';
-
-interface HostEntry {
-  name: string;
-  ip: string;
-  port: number;
-}
 
 export default function VMsPage() {
   const [allVMs, setAllVMs] = useState<VM[]>([]);
   const [displayedVMs, setDisplayedVMs] = useState<VM[]>([]);
-  const [hostOptions, setHostOptions] = useState<string[]>([]);
+  const [hostOptions, setHostOptions] = useState<{ name: string; id: number }[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
   const [filters, setFilters] = useState<VMFilters>({});
   const [sortField, setSortField] = useState<keyof VM>('name');
@@ -22,39 +16,30 @@ export default function VMsPage() {
   const pageSize = 10;
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-  // Fetch all hosts and flatten into VMs list
+  // Fetch all VMs & host list for filters
   useEffect(() => {
     const loadVMs = async () => {
       setLoading(true);
       try {
-        const { data: hostList } = await axios.get<HostEntry[]>('/hosts.json');
-        let vmsAggregate: VM[] = [];
-        await Promise.all(hostList.map(async (hostInfo: HostEntry) => {
-          try {
-            const res = await axios.get<Host>(`http://${hostInfo.ip}:${hostInfo.port}/status`);
-            const hostData = res.data;
-            const hostName = hostInfo.name;
-            const vms = hostData.vms || [];
-            vms.forEach((vm: VM) => {
-              vm.hostName = hostName;
-            });
-            vmsAggregate = vmsAggregate.concat(vms);
-          } catch {
-            // ignore unreachable host
+        // 1) fetch VMs (all)
+        const vmRes = await axios.get<VM[]>('/api/vms');
+        const vms = vmRes.data;
+        setAllVMs(vms);
+
+        // 2) derive host options from the nested vms (hostId and host.name)
+        const hostsMap: Record<number, string> = {};
+        vms.forEach(vm => {
+          if (vm.host) {
+            hostsMap[vm.hostId] = vm.host.name;
           }
-        }));
-        setAllVMs(vmsAggregate);
-        setHostOptions(
-          Array.from(new Set(vmsAggregate.map(vm => vm.hostName).filter(Boolean) as string[])).sort()
-        );
-        setStatusOptions(
-          Array.from(new Set(vmsAggregate.map(vm => vm.status).filter(Boolean))).sort()
-        );
-        setLastUpdated(new Date());
+        });
+        setHostOptions(Object.entries(hostsMap).map(([id, name]) => ({ id: Number(id), name })));
+
+        // 3) derive status options (e.g. "running", "stopped")
+        setStatusOptions(Array.from(new Set(vms.map(vm => vm.status))).sort());
       } catch (err) {
-        console.error('Failed to load VMs', err);
+        console.error('Failed to load VMs:', err);
       } finally {
         setLoading(false);
       }
@@ -62,11 +47,13 @@ export default function VMsPage() {
     loadVMs();
   }, []);
 
-  // Filter, sort, and paginate VMs whenever data or controls change
+  // compute filtered/sorted/paginated VMs
   useEffect(() => {
     let list = [...allVMs];
-    if (filters.host) {
-      list = list.filter(vm => vm.hostName === filters.host);
+
+    // Apply filters
+    if (filters.hostId !== undefined) {
+      list = list.filter(vm => vm.hostId === filters.hostId);
     }
     if (filters.status) {
       list = list.filter(vm => vm.status === filters.status);
@@ -76,14 +63,21 @@ export default function VMsPage() {
       list = list.filter(vm => vm.name.toLowerCase().includes(substr));
     }
 
+    // Sort
     if (sortField) {
       list.sort((a, b) => {
         const aVal = a[sortField];
         const bVal = b[sortField];
-        if (['cpu', 'ram', 'disk', 'uptime'].includes(sortField)) {
+        if (sortField === 'cpu' || sortField === 'ram' || sortField === 'disk' || sortField === 'uptime') {
           return sortOrder === 'asc'
             ? (aVal as number) - (bVal as number)
             : (bVal as number) - (aVal as number);
+        }
+        if (sortField === 'hostId') {
+          // sort by host name if available
+          const aName = a.host ? a.host.name : '';
+          const bName = b.host ? b.host.name : '';
+          return sortOrder === 'asc' ? aName.localeCompare(bName) : bName.localeCompare(aName);
         }
         return sortOrder === 'asc'
           ? String(aVal).localeCompare(String(bVal))
@@ -92,46 +86,30 @@ export default function VMsPage() {
     }
 
     setTotal(list.length);
-    const startIndex = (page - 1) * pageSize;
-    setDisplayedVMs(list.slice(startIndex, startIndex + pageSize));
+    const startIdx = (page - 1) * pageSize;
+    setDisplayedVMs(list.slice(startIdx, startIdx + pageSize));
   }, [allVMs, filters, sortField, sortOrder, page]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setPage(1);
     setLoading(true);
-    axios.get<HostEntry[]>('/hosts.json').then(res => {
-      const hostList = res.data;
-      let vmsAggregate: VM[] = [];
-      Promise.all(
-        hostList.map(hostInfo =>
-          axios.get<Host>(`http://${hostInfo.ip}:${hostInfo.port}/status`)
-            .then(res => {
-              const hostData = res.data;
-              const vms = hostData.vms || [];
-              vms.forEach((vm: VM) => {
-                vm.hostName = hostInfo.name;
-              });
-              vmsAggregate = vmsAggregate.concat(vms);
-            })
-            .catch(() => {
-              // skip down hosts
-            })
-        )
-      ).then(() => {
-        setAllVMs(vmsAggregate);
-        setHostOptions(
-          Array.from(new Set(vmsAggregate.map(vm => vm.hostName).filter(Boolean) as string[])).sort()
-        );
-        setStatusOptions(
-          Array.from(new Set(vmsAggregate.map(vm => vm.status).filter(Boolean))).sort()
-        );
-        setLastUpdated(new Date());
-      }).catch(err => {
-        console.error('Failed to refresh VMs', err);
-      }).finally(() => {
-        setLoading(false);
+    try {
+      const vmRes = await axios.get<VM[]>('/api/vms');
+      const vms = vmRes.data;
+      setAllVMs(vms);
+      const hostsMap: Record<number, string> = {};
+      vms.forEach(vm => {
+        if (vm.host) {
+          hostsMap[vm.hostId] = vm.host.name;
+        }
       });
-    });
+      setHostOptions(Object.entries(hostsMap).map(([id, name]) => ({ id: Number(id), name })));
+      setStatusOptions(Array.from(new Set(vms.map(vm => vm.status))).sort());
+    } catch (err) {
+      console.error('Failed to refresh VMs:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const start = (page - 1) * pageSize + 1;
@@ -140,32 +118,22 @@ export default function VMsPage() {
   return (
     <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-4">VMs</h2>
-
       <div className="flex flex-wrap justify-between items-end gap-4 mb-4">
         <VMFiltersComponent
           filters={filters}
           hostOptions={hostOptions}
           statusOptions={statusOptions}
-          onChange={(f) => {
-            setPage(1);
-            setFilters(f);
-          }}
+          onChange={f => { setPage(1); setFilters(f); }}
         />
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleRefresh}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded"
-          >
-            Refresh
-          </button>
-          <span className="text-sm text-gray-600 dark:text-gray-400">
-            Last updated: {lastUpdated ? lastUpdated.toLocaleString() : 'N/A'}
-          </span>
-        </div>
+        <button
+          onClick={handleRefresh}
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
+        >
+          Refresh
+        </button>
       </div>
-
       {loading ? (
-        <p>Loading…</p>
+        <p>Loading VMs…</p>
       ) : (
         <>
           <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
@@ -175,7 +143,7 @@ export default function VMsPage() {
             vms={displayedVMs}
             sortField={sortField}
             sortOrder={sortOrder}
-            onSortChange={(field) => {
+            onSortChange={field => {
               if (field === sortField) {
                 setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
               } else {
@@ -184,14 +152,14 @@ export default function VMsPage() {
               }
             }}
           />
-          <div className="mt-4 flex justify-center lg:justify-between items-center">
-            <div className="hidden lg:block text-sm text-gray-600 dark:text-gray-400">
-              Page {page}
+          <div className="mt-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Page {page} of {Math.ceil(total / pageSize)}
             </div>
             <div className="flex space-x-2">
               <button
                 disabled={page === 1}
-                onClick={() => setPage(p => p - 1)}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
                 className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
               >
                 Prev

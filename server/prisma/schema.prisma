@@ -1,0 +1,56 @@
+// server/prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Host {
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  ip            String
+  os            String
+  uptime        Int      // uptime in seconds
+  status        String   // "up" or "down"
+  ssh           Boolean  // true if SSH port open
+  cpu           Float    // CPU usage %
+  ram           Float    // RAM usage %
+  disk          Float    // Disk usage %
+  
+  // ─── NEW FIELDS ─────────────────────────────────
+  pipelineStage String   @default("Available")
+  assignedTo    String?  // e.g. email or username of person “owning” this host
+  notes         String?  // free‐form
+  updatedAt     DateTime @updatedAt
+
+  vms           VM[]     // 1→many relation
+}
+
+model VM {
+  id          Int      @id @default(autoincrement())
+  name        String
+  status      String    // “running” / “stopped” / etc.
+  cpu         Float     // CPU usage %
+  ram         Float     // RAM usage %
+  disk        Float     // Disk usage %
+  os          String    // guest OS
+  uptime      Int       // VM uptime in seconds
+  xml         String    // libvirt XML
+  networkIp   String?   // optional IP
+  networkMac  String?   // optional MAC
+
+  // ─── Possibly track the same on the VM level if desired ─────────────────
+  pipelineStage String   @default("Available")
+  assignedTo    String?  
+  notes         String?
+  updatedAt     DateTime @updatedAt
+
+  hostId      Int
+  host        Host      @relation(fields: [hostId], references: [id])
+
+  @@unique([name, hostId])
+}

@@ -8,15 +8,18 @@ export default function HostKPI({ hosts }: Props) {
   const totalHosts = hosts.length;
   const upCount = hosts.filter(h => h.status === 'up').length;
   const downCount = hosts.filter(h => h.status === 'down').length;
-  const totalVMs = hosts.reduce((sum, h) => sum + h.vm_count, 0);
-  const avgCpu = totalHosts ? Math.round(hosts.reduce((sum, h) => sum + h.cpu, 0) / totalHosts) : 0;
+  const totalVMs = hosts.reduce((sum, h) => sum + h.vms.length, 0);
+  const avgCpu =
+    totalHosts > 0
+      ? Math.round(hosts.reduce((sum, h) => sum + h.cpu, 0) / totalHosts)
+      : 0;
 
   const cards = [
     { label: 'Total Hosts', value: totalHosts },
     { label: 'Up', value: upCount },
     { label: 'Down', value: downCount },
     { label: 'Total VMs', value: totalVMs },
-    { label: 'Avg CPU', value: `${avgCpu}%` },
+    { label: 'Avg CPU', value: `${avgCpu}%` }
   ];
 
   return (

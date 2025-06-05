@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { VM } from '../api/types';
-import VMDetailModal from '../components/VMDetailModal';
+import VMDetailModal from './VMDetailModal';
 
 interface Props {
   vms: VM[];
@@ -28,9 +28,9 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
             </th>
             <th
               className="text-left px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('hostName')}
+              onClick={() => onSortChange('hostId')}
             >
-              Host {SortIcon('hostName')}
+              Host {SortIcon('hostId')}
             </th>
             <th
               className="text-left px-4 py-2 cursor-pointer"
@@ -73,12 +73,12 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
         <tbody>
           {vms.map(vm => (
             <tr
-              key={`${vm.hostName}-${vm.name}`}
+              key={vm.id}
               className="border-t hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
               onClick={() => setSelectedVM(vm)}
             >
               <td className="px-4 py-2">{vm.name}</td>
-              <td className="px-4 py-2">{vm.hostName}</td>
+              <td className="px-4 py-2">{vm.host?.name}</td>
               <td className="px-4 py-2">{vm.status.charAt(0).toUpperCase() + vm.status.slice(1)}</td>
               <td className="text-right px-4 py-2">{vm.cpu}%</td>
               <td className="text-right px-4 py-2">{vm.ram}%</td>
@@ -93,10 +93,7 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
       </table>
 
       {selectedVM && (
-        <VMDetailModal
-          vm={selectedVM}
-          onClose={() => setSelectedVM(null)}
-        />
+        <VMDetailModal vm={selectedVM} onClose={() => setSelectedVM(null)} />
       )}
     </>
   );

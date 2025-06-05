@@ -1,6 +1,8 @@
 import { X } from 'lucide-react';
 import type { Host } from '../api/types';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
+import axios from 'axios';
+import { useState } from 'react';
 
 interface Props {
   host: Host;
@@ -8,8 +10,30 @@ interface Props {
 }
 
 export default function HostDetailModal({ host, onClose }: Props) {
-  // Prepare data for per-VM CPU usage bar chart
   const cpuData = host.vms.map(vm => ({ name: vm.name, cpu: vm.cpu }));
+
+  // ─── Local state for form ──────────────────────
+  const [pipelineStage, setPipelineStage] = useState<string>(host.pipelineStage);
+  const [assignedTo, setAssignedTo] = useState<string>(host.assignedTo || '');
+  const [notes, setNotes] = useState<string>(host.notes || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await axios.put(`/api/hosts/${host.id}`, {
+        ...host,
+        pipelineStage,
+        assignedTo,
+        notes
+      });
+      // You could add toast or refresh logic here
+    } catch (err) {
+      console.error('Failed to update host:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -23,6 +47,7 @@ export default function HostDetailModal({ host, onClose }: Props) {
             <X size={20} />
           </button>
         </div>
+
         <ul className="space-y-2 text-sm mb-4">
           <li><strong>IP:</strong> {host.ip}</li>
           <li><strong>OS:</strong> {host.os}</li>
@@ -34,6 +59,64 @@ export default function HostDetailModal({ host, onClose }: Props) {
           <li><strong>Disk Usage:</strong> {host.disk}%</li>
           <li><strong>Total VMs:</strong> {host.vms.length}</li>
         </ul>
+
+        {/* ─── Manual Tracking Fields ───────────────────────── */}
+        <div className="mb-4 border-t pt-4">
+          <h4 className="text-md font-medium mb-2">Manual Pipeline Tracking</h4>
+
+          {/* Pipeline Stage Dropdown */}
+          <div className="mb-2">
+            <label className="block text-sm font-medium mb-1">Pipeline Stage</label>
+            <select
+              className="border rounded p-1 w-full text-sm"
+              value={pipelineStage}
+              onChange={e => setPipelineStage(e.target.value)}
+            >
+              <option value="unassigned">Unassigned</option>
+              <option value="installing">Installing</option>
+              <option value="working">Working</option>
+              <option value="broken">Broken</option>
+              <option value="reserved">Reserved</option>
+            </select>
+          </div>
+
+          {/* Assigned To Field */}
+          <div className="mb-2">
+            <label className="block text-sm font-medium mb-1">Assigned To</label>
+            <input
+              type="text"
+              className="border rounded p-1 w-full text-sm"
+              placeholder="e.g. alice"
+              value={assignedTo}
+              onChange={e => setAssignedTo(e.target.value)}
+            />
+          </div>
+
+          {/* Notes Field */}
+          <div className="mb-2">
+            <label className="block text-sm font-medium mb-1">Notes</label>
+            <textarea
+              className="border rounded p-1 w-full text-sm"
+              rows={3}
+              placeholder="Enter any notes here…"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+            />
+          </div>
+
+          {/* Save Button */}
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`px-4 py-2 rounded text-white text-sm ${
+              saving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+            }`}
+          >
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+
+        {/* ─── VM CPU Chart ─────────────────────────── */}
         {host.vms.length > 0 ? (
           <div>
             <h4 className="text-sm font-medium mb-2">Per-VM CPU Usage:</h4>

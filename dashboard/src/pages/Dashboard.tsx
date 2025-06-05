@@ -21,12 +21,12 @@ export default function Dashboard() {
   const [devices, setDevices] = useState<any[]>([]);
   const [events, setEvents] = useState<EventRow[]>([]);
   const [hosts, setHosts] = useState<Host[]>([]);
+  const [stageCounts, setStageCounts] = useState<Record<string, number>>({});
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        // Fetch firmware data from mocks
         const [devicesRes, eventsRes] = await Promise.all([
           axios.get('/mock-devices.json'),
           axios.get('/mock-events.json')
@@ -34,9 +34,16 @@ export default function Dashboard() {
         setDevices(devicesRes.data);
         setEvents(eventsRes.data);
 
-        // Fetch host data from our new API
         const hostRes = await axios.get<Host[]>('/api/hosts');
-        setHosts(hostRes.data);
+        const hostsData = hostRes.data;
+        setHosts(hostsData);
+
+        const counts: Record<string, number> = {};
+        hostsData.forEach(h => {
+          const stage = h.pipelineStage || 'unassigned';
+          counts[stage] = (counts[stage] || 0) + 1;
+        });
+        setStageCounts(counts);
 
         setLastUpdated(new Date());
       } catch (err) {
@@ -55,7 +62,16 @@ export default function Dashboard() {
       ]);
       setDevices(devicesRes.data);
       setEvents(eventsRes.data);
-      setHosts(hostRes.data);
+      const hostsData = hostRes.data;
+      setHosts(hostsData);
+
+      const counts: Record<string, number> = {};
+      hostsData.forEach(h => {
+        const stage = h.pipelineStage || 'unassigned';
+        counts[stage] = (counts[stage] || 0) + 1;
+      });
+      setStageCounts(counts);
+
       setLastUpdated(new Date());
     } catch (err) {
       console.error('Failed to refresh all data:', err);
@@ -80,6 +96,26 @@ export default function Dashboard() {
       </header>
 
       <main className="p-6 space-y-8">
+        {/* ── Pipeline Stage Summary ───────────────────── */}
+        <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <h2 className="text-lg font-semibold mb-2">Pipeline Stage Summary</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {Object.entries(stageCounts).map(([stage, count]) => (
+              <div
+                key={stage}
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 flex flex-col items-center"
+              >
+                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                  {count}
+                </span>
+                <span className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  {stage.charAt(0).toUpperCase() + stage.slice(1)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {/* ── Host KPIs ─────────────────────────────── */}
         <HostKPI hosts={hosts} />
 

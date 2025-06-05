@@ -20,52 +20,34 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
       <table className="min-w-full border-collapse">
         <thead className="bg-gray-50 dark:bg-gray-700">
           <tr>
-            <th
-              className="text-left px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('name')}
-            >
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('name')}>
               VM Name {SortIcon('name')}
             </th>
-            <th
-              className="text-left px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('hostId')}
-            >
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('hostId')}>
               Host {SortIcon('hostId')}
             </th>
-            <th
-              className="text-left px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('status')}
-            >
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('status')}>
               Status {SortIcon('status')}
             </th>
-            <th
-              className="text-right px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('cpu')}
-            >
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('pipelineStage')}>
+              Stage {SortIcon('pipelineStage')}
+            </th>
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('assignedTo')}>
+              Assigned {SortIcon('assignedTo')}
+            </th>
+            <th className="text-right px-4 py-2 cursor-pointer" onClick={() => onSortChange('cpu')}>
               CPU% {SortIcon('cpu')}
             </th>
-            <th
-              className="text-right px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('ram')}
-            >
+            <th className="text-right px-4 py-2 cursor-pointer" onClick={() => onSortChange('ram')}>
               RAM% {SortIcon('ram')}
             </th>
-            <th
-              className="text-right px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('disk')}
-            >
+            <th className="text-right px-4 py-2 cursor-pointer" onClick={() => onSortChange('disk')}>
               Disk% {SortIcon('disk')}
             </th>
-            <th
-              className="text-left px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('os')}
-            >
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('os')}>
               OS {SortIcon('os')}
             </th>
-            <th
-              className="text-left px-4 py-2 cursor-pointer"
-              onClick={() => onSortChange('uptime')}
-            >
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('uptime')}>
               Uptime {SortIcon('uptime')}
             </th>
           </tr>
@@ -80,6 +62,8 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
               <td className="px-4 py-2">{vm.name}</td>
               <td className="px-4 py-2">{vm.host?.name}</td>
               <td className="px-4 py-2">{vm.status.charAt(0).toUpperCase() + vm.status.slice(1)}</td>
+              <td className="px-4 py-2">{vm.pipelineStage}</td>
+              <td className="px-4 py-2">{vm.assignedTo || '-'}</td>
               <td className="text-right px-4 py-2">{vm.cpu}%</td>
               <td className="text-right px-4 py-2">{vm.ram}%</td>
               <td className="text-right px-4 py-2">{vm.disk}%</td>

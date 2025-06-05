@@ -1,46 +1,42 @@
 export interface VM {
   id: number;
   name: string;
-  status: string;       // "running", "stopped", etc.
-  cpu: number;          // CPU usage %
-  ram: number;          // RAM usage %
-  disk: number;         // Disk usage %
-  os: string;           // Guest OS
-  uptime: number;       // seconds
+  status: string;
+  cpu: number;
+  ram: number;
+  disk: number;
+  os: string;
+  uptime: number;
   xml: string;
   networkIp: string | null;
   networkMac: string | null;
   hostId: number;
+  pipelineStage: string;
+  assignedTo?: string | null;
+  notes?: string | null;
+  updatedAt: string;
   host?: {
     name: string;
     ip: string;
   };
-
-  // ─── Manual Tracking Fields ─────────────
-  pipelineStage: string;
-  assignedTo?: string;
-  notes?: string;
-  updatedAt?: string;
 }
 
 export interface Host {
   id: number;
   name: string;
   ip: string;
-  os: string;           // e.g. "Ubuntu 24.04"
-  uptime: number;       // seconds
-  status: string;       // "up" or "down"
+  os: string;
+  uptime: number;
+  status: string;
   ssh: boolean;
-  cpu: number;          // CPU usage %
-  ram: number;          // RAM usage %
-  disk: number;         // Disk usage %
-  vms: VM[];
-
-  // ─── Manual Tracking Fields ─────────────
+  cpu: number;
+  ram: number;
+  disk: number;
   pipelineStage: string;
-  assignedTo?: string;
-  notes?: string;
-  updatedAt?: string;
+  assignedTo?: string | null;
+  notes?: string | null;
+  updatedAt: string;
+  vms: VM[];
 }
 
 export interface HostFilters {

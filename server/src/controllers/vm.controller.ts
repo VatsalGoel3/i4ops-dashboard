@@ -60,11 +60,30 @@ export async function getVMById(req: Request, res: Response) {
  *   "xml": "<domain>…</domain>",
  *   "networkIp": "192.168.122.120",
  *   "networkMac": "52:54:00:12:34:56",
- *   "hostId": 1
+ *   "hostId": 1,
+ *   "pipelineStage": "working",
+ *   "assignedTo": "diana",
+ *   "notes": "Running database load test"
  * }
  */
 export async function createVM(req: Request, res: Response) {
-  const { name, status, cpu, ram, disk, os, uptime, xml, networkIp, networkMac, hostId } = req.body;
+  const {
+    name,
+    status,
+    cpu,
+    ram,
+    disk,
+    os,
+    uptime,
+    xml,
+    networkIp,
+    networkMac,
+    hostId,
+    pipelineStage,
+    assignedTo,
+    notes
+  } = req.body;
+
   try {
     const newVM = await prisma.vm.create({
       data: {
@@ -78,6 +97,9 @@ export async function createVM(req: Request, res: Response) {
         xml,
         networkIp,
         networkMac,
+        pipelineStage: pipelineStage || 'unassigned',
+        assignedTo,
+        notes,
         host: { connect: { id: hostId } }
       }
     });

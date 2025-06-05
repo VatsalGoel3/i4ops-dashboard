@@ -11,7 +11,8 @@ export async function getAllHosts(_req: Request, res: Response) {
     const hosts = await prisma.host.findMany({
       include: {
         vms: true
-      }
+      },
+      orderBy: { name: 'asc' }
     });
     return res.json(hosts);
   } catch (error) {
@@ -52,14 +53,44 @@ export async function getHostById(req: Request, res: Response) {
  *   "ssh": false,
  *   "cpu": 0,
  *   "ram": 0,
- *   "disk": 0
+ *   "disk": 0,
+ *   "pipelineStage": "installing",
+ *   "assignedTo": "alice",
+ *   "notes": "Provisioning test machine"
  * }
  */
 export async function createHost(req: Request, res: Response) {
-  const { name, ip, os, uptime, status, ssh, cpu, ram, disk } = req.body;
+  const {
+    name,
+    ip,
+    os,
+    uptime,
+    status,
+    ssh,
+    cpu,
+    ram,
+    disk,
+    pipelineStage,
+    assignedTo,
+    notes
+  } = req.body;
+
   try {
     const newHost = await prisma.host.create({
-      data: { name, ip, os, uptime, status, ssh, cpu, ram, disk }
+      data: {
+        name,
+        ip,
+        os,
+        uptime,
+        status,
+        ssh,
+        cpu,
+        ram,
+        disk,
+        pipelineStage: pipelineStage || 'unassigned',
+        assignedTo,
+        notes
+      }
     });
     return res.status(201).json(newHost);
   } catch (error) {

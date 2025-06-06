@@ -232,7 +232,7 @@ export default function HostsPage() {
                 </button>
                 <button
                   disabled={page * pageSize >= total}
-                  onClick={() => setPage((p) => p + 1))}
+                  onClick={() => setPage((p) => p + 1)}
                   className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
                 >
                   Next

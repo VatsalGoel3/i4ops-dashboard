@@ -1,31 +1,40 @@
 import { useEffect, useState } from 'react';
-import { Sun, Moon } from 'lucide-react';
-
-const STORAGE_KEY = 'firmware-dashboard-theme';
+import { Moon, Sun } from 'lucide-react';
 
 export default function DarkModeToggle() {
+  // Initialize from localStorage or OS preference
   const [isDark, setIsDark] = useState<boolean>(() => {
-    // initial read from localStorage or OS
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored !== null) return stored === 'dark';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('dark-mode');
+      if (stored !== null) {
+        return stored === 'true';
+      }
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
   });
 
-  // Effect: apply class and persist
   useEffect(() => {
-    const html = document.documentElement;
-    if (isDark) html.classList.add('dark');
-    else html.classList.remove('dark');
-    localStorage.setItem(STORAGE_KEY, isDark ? 'dark' : 'light');
+    const root = document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('dark-mode', JSON.stringify(isDark));
   }, [isDark]);
 
   return (
     <button
-      onClick={() => setIsDark(d => !d)}
-      className="ml-auto p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-      aria-label="Toggle dark mode"
+      onClick={() => setIsDark((prev) => !prev)}
+      className="p-2 rounded-lg focus:outline-none focus:ring bg-gray-200 dark:bg-gray-700"
+      aria-label="Toggle Dark Mode"
     >
-      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+      {isDark ? (
+        <Sun size={20} className="text-yellow-400" />
+      ) : (
+        <Moon size={20} className="text-gray-600" />
+      )}
     </button>
   );
 }

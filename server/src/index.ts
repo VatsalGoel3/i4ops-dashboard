@@ -10,7 +10,7 @@ dotenv.config();
 const app = express();
 const prisma = new PrismaClient();
 
-app.use(cors({ origin: 'http://localhost:3000' })); // allow your React frontend
+app.use(cors({ origin: 'http://localhost:5173' })); // allow your React frontend
 app.use(express.json());
 
 // Simple health check

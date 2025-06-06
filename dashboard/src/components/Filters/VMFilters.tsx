@@ -2,34 +2,33 @@ import type { VMFilters } from '../../api/types';
 
 interface Props {
   filters: VMFilters;
-  onChange: (f: VMFilters) => void;
-  hostOptions: { id: number; name: string }[];
+  hostOptions: { name: string; id: number }[];
   statusOptions: string[];
+  onChange: (f: VMFilters) => void;
 }
 
-export default function VMFilters({
+export default function VMFiltersComponent({
   filters,
-  onChange,
   hostOptions,
-  statusOptions
+  statusOptions,
+  onChange,
 }: Props) {
   return (
-    <div className="flex space-x-4">
+    <div className="flex flex-wrap gap-4">
       {/* Host Filter */}
       <div>
-        <label className="block text-sm font-medium mb-1">Host</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Host
+        </label>
         <select
-          className="border rounded p-1 text-sm"
-          value={filters.hostId !== undefined ? String(filters.hostId) : ''}
-          onChange={e =>
-            onChange({
-              ...filters,
-              hostId: e.target.value ? Number(e.target.value) : undefined
-            })
+          className="mt-1 block w-36 px-2 py-1 bg-white dark:bg-gray-700 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring focus:border-indigo-300"
+          value={filters.hostId !== undefined ? filters.hostId.toString() : ''}
+          onChange={(e) =>
+            onChange({ ...filters, hostId: e.target.value ? Number(e.target.value) : undefined })
           }
         >
           <option value="">All</option>
-          {hostOptions.map(h => (
+          {hostOptions.map((h) => (
             <option key={h.id} value={h.id}>
               {h.name}
             </option>
@@ -39,34 +38,36 @@ export default function VMFilters({
 
       {/* Status Filter */}
       <div>
-        <label className="block text-sm font-medium mb-1">Status</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Status
+        </label>
         <select
-          className="border rounded p-1 text-sm"
+          className="mt-1 block w-36 px-2 py-1 bg-white dark:bg-gray-700 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring focus:border-indigo-300"
           value={filters.status || ''}
-          onChange={e =>
+          onChange={(e) =>
             onChange({ ...filters, status: e.target.value || undefined })
           }
         >
           <option value="">All</option>
-          {statusOptions.map(s => (
-            <option key={s} value={s}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
+          {statusOptions.map((st) => (
+            <option key={st} value={st}>
+              {st.charAt(0).toUpperCase() + st.slice(1)}
             </option>
           ))}
         </select>
       </div>
 
-      {/* VM Name Filter */}
+      {/* VM Name Search */}
       <div>
-        <label className="block text-sm font-medium mb-1">VM Name</label>
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          Name
+        </label>
         <input
           type="text"
-          className="border rounded p-1 text-sm"
-          placeholder="Search name..."
+          className="mt-1 block w-36 px-2 py-1 bg-white dark:bg-gray-700 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring focus:border-indigo-300"
+          placeholder="Search…"
           value={filters.name || ''}
-          onChange={e =>
-            onChange({ ...filters, name: e.target.value || undefined })
-          }
+          onChange={(e) => onChange({ ...filters, name: e.target.value || undefined })}
         />
       </div>
     </div>

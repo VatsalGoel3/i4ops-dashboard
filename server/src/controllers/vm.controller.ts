@@ -11,7 +11,7 @@ export async function getAllVMs(req: Request, res: Response) {
   const hostId = req.query.hostId ? Number(req.query.hostId) : undefined;
 
   try {
-    const vms = await prisma.vm.findMany({
+    const vms = await prisma.vM.findMany({
       where: hostId ? { hostId } : {},
       include: {
         host: { select: { name: true, ip: true } }
@@ -30,7 +30,7 @@ export async function getAllVMs(req: Request, res: Response) {
 export async function getVMById(req: Request, res: Response) {
   const id = Number(req.params.id);
   try {
-    const vm = await prisma.vm.findUnique({
+    const vm = await prisma.vM.findUnique({
       where: { id },
       include: {
         host: { select: { name: true, ip: true } }
@@ -117,7 +117,7 @@ export async function updateVM(req: Request, res: Response) {
   const id = Number(req.params.id);
   const data = req.body;
   try {
-    const updated = await prisma.vm.update({
+    const updated = await prisma.vM.update({
       where: { id },
       data
     });
@@ -134,7 +134,7 @@ export async function updateVM(req: Request, res: Response) {
 export async function deleteVM(req: Request, res: Response) {
   const id = Number(req.params.id);
   try {
-    await prisma.vm.delete({ where: { id } });
+    await prisma.vM.delete({ where: { id } });
     return res.status(204).send();
   } catch (error) {
     console.error('Error deleting VM:', error);

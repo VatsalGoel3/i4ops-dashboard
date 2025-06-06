@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import { AuthProvider } from './context/AuthContext';
@@ -12,7 +12,11 @@ export default function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Redirect root path to /dashboard */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
         <Route path="/login" element={<LoginPage />} />
+        
         <Route
           path="/dashboard"
           element={

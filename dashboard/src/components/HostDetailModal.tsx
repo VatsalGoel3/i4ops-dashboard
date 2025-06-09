@@ -121,12 +121,15 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
               value={pipelineStage}
               onChange={(e) => setPipelineStage(e.target.value)}
             >
-              <option value="unassigned">Unassigned</option>
-              <option value="installing">Installing</option>
-              <option value="working">Working</option>
-              <option value="broken">Broken</option>
-              <option value="reserved">Reserved</option>
+              <option value="Active">Active</option>
+              <option value="Broken">Broken</option>
+              <option value="Installing">Installing</option>
+              <option value="Reserved">Reserved</option>
+              <option value="Unassigned">Unassigned</option>
             </select>
+            <p className="mt-1 text-xs text-gray-500">
+              Use <strong>Notes</strong> field to describe what's being installed or done.
+            </p>
           </div>
 
           {/* Assigned To Field */}

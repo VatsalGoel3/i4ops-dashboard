@@ -74,7 +74,14 @@ export default function HostTable({
                     )}h`
                   : 'N/A'}
               </td>
-              <td className="px-4 py-2 text-sm">{capitalize(host.status)}</td>
+              <td className="px-4 py-2 text-sm flex items-center">
+                <span
+                  className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                    host.status === 'up' ? 'bg-green-500' : 'bg-red-500'
+                  }`}
+                />
+                {capitalize(host.status)}
+              </td>
               <td className="px-4 py-2 text-sm">
                 {host.assignedTo ? capitalize(host.assignedTo) : '-'}
               </td>

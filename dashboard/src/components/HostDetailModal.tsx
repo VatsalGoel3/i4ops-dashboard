@@ -111,11 +111,11 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
 
         {/* Manual Tracking Fields */}
         <div className="mb-4 border-t pt-4">
-          <h4 className="text-md font-medium mb-2">Manual Pipeline Tracking</h4>
+          <h4 className="text-md font-medium mb-2">Provisioning Status</h4>
 
-          {/* Pipeline Stage Dropdown */}
+          {/* Stage Dropdown */}
           <div className="mb-2">
-            <label className="block text-sm font-medium mb-1">Pipeline Stage</label>
+            <label className="block text-sm font-medium mb-1">Current Stage</label>
             <select
               className="border rounded p-1 w-full text-sm"
               value={pipelineStage}
@@ -125,50 +125,51 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
               <option value="Broken">Broken</option>
               <option value="Installing">Installing</option>
               <option value="Reserved">Reserved</option>
+              <option value="Staging">Staging</option>
               <option value="Unassigned">Unassigned</option>
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              Use <strong>Notes</strong> field to describe what's being installed or done.
+              Use the <strong>Notes</strong> field below to describe what’s being set up or debugged.
             </p>
-          </div>
-
-          {/* Assigned To Field */}
-          <div className="mb-2">
-            <label className="block text-sm font-medium mb-1">Assigned To</label>
-            <input
-              type="text"
-              className="border rounded p-1 w-full text-sm"
-              placeholder="e.g. Alice"
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-            />
-          </div>
-
-          {/* Notes Field */}
-          <div className="mb-2">
-            <label className="block text-sm font-medium mb-1">Notes</label>
-            <textarea
-              className="border rounded p-1 w-full text-sm"
-              rows={3}
-              placeholder="Enter any notes here…"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
-          </div>
-
-          {/* Save Button & Feedback */}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className={`px-4 py-2 rounded text-white text-sm ${
-              saving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
-            }`}
-          >
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-          {success && <p className="mt-2 text-sm text-green-600">{success}</p>}
         </div>
+
+        {/* Assigned To */}
+        <div className="mb-2">
+          <label className="block text-sm font-medium mb-1">Assigned To</label>
+          <input
+            type="text"
+            className="border rounded p-1 w-full text-sm"
+            placeholder="e.g. Alice"
+            value={assignedTo}
+            onChange={(e) => setAssignedTo(e.target.value)}
+          />
+        </div>
+
+        {/* Notes */}
+        <div className="mb-2">
+          <label className="block text-sm font-medium mb-1">Notes</label>
+          <textarea
+            className="border rounded p-1 w-full text-sm"
+            rows={3}
+            placeholder="e.g. Reformatted disk, joined VPN, ran install.sh"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+          />
+        </div>
+
+        {/* Save Button + Feedback */}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={`px-4 py-2 rounded text-white text-sm ${
+          saving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+          }`}
+        >
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {success && <p className="mt-2 text-sm text-green-600">{success}</p>}
+      </div>
 
         {/* VM CPU Chart */}
         {host.vms.length > 0 ? (

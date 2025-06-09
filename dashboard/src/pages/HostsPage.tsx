@@ -28,7 +28,7 @@ export default function HostsPage() {
   const [sortField, setSortField] = useState<keyof Host>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = 15;
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 

@@ -16,14 +16,12 @@ import {
     ];
   
     const linkClass = ({ isActive }: { isActive: boolean }) =>
-      `relative group flex items-center transition-all ${
+      `relative group flex items-center transition-all duration-200 ease-in-out ${
         collapsed ? 'justify-center' : 'gap-4 px-4'
-      } py-3 ${
+      } py-3 rounded-md mx-2 ${
         isActive
-          ? collapsed
-            ? 'bg-[#2E3D66] text-[#FDF6E3] rounded-full p-2'
-            : 'bg-[#2E3D66] text-[#FDF6E3] font-semibold rounded-r-xl pl-4 border-l-4 border-[#FDF6E3]'
-          : 'text-[#D1D5DB] hover:bg-[#334269] hover:text-white px-4'
+          ? 'bg-[#2E3D66] text-[#FDF6E3] font-semibold border-l-4 border-[#FDF6E3]'
+          : 'text-gray-300 hover:bg-[#334269] hover:text-white'
       }`;
   
     return (
@@ -41,7 +39,7 @@ import {
           <img
             src={i4opsLogo}
             alt="i4ops"
-            className={`transition-all duration-300 object-contain ${
+            className={`object-contain transition-all duration-300 ${
               collapsed ? 'w-10 h-10' : 'w-14 h-14'
             }`}
           />
@@ -52,8 +50,14 @@ import {
           )}
         </div>
   
-        {/* Nav */}
-        <nav className="mt-4 space-y-2">
+        {/* Nav Section */}
+        <nav className="mt-4">
+          {!collapsed && (
+            <div className="px-5 text-xs text-gray-400 tracking-wider mb-2 uppercase">
+              Infrastructure
+            </div>
+          )}
+  
           {navItems.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
@@ -61,18 +65,18 @@ import {
               className={linkClass}
               title={collapsed ? label : undefined}
             >
-              <div className="relative w-full flex items-center">
+              <div className="relative flex items-center w-full">
                 <Icon
-                  size={24}
+                  size={22}
                   className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
                     collapsed ? 'mx-auto' : ''
                   }`}
                 />
                 {!collapsed && <span className="truncate ml-4">{label}</span>}
   
-                {/* Tooltip */}
+                {/* Tooltip for collapsed mode */}
                 {collapsed && (
-                  <span className="absolute left-full ml-2 whitespace-nowrap text-sm bg-black text-white px-2 py-1 rounded shadow-lg hidden group-hover:block z-50">
+                  <span className="absolute left-full ml-3 whitespace-nowrap text-sm bg-black text-white px-2 py-1 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50">
                     {label}
                   </span>
                 )}
@@ -82,4 +86,5 @@ import {
         </nav>
       </aside>
     );
-  }  
+  }
+  

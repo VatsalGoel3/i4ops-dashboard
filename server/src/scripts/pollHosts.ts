@@ -15,6 +15,12 @@ if (!SSH_PASSWORD) {
   process.exit(1);
 }
 
+async function logPollSnapshot(up: number, down: number) {
+  await prisma.pollHistory.create({
+    data: { up, down },
+  });
+}
+
 async function runSSHCommand(ip: string, command: string): Promise<string | null> {
   const ssh = new NodeSSH();
   try {
@@ -74,7 +80,7 @@ export async function pollAllHosts(): Promise<void> {
   console.log('Starting poll at', new Date().toISOString());
   const hosts: Host[] = await prisma.host.findMany({ include: { vms: true } });
 
-  const limit = pLimit(5); // Max 5 concurrent SSH connections
+  const limit = pLimit(5);
 
   await Promise.all(
     hosts.map((host) =>
@@ -133,9 +139,14 @@ export async function pollAllHosts(): Promise<void> {
   );
 
   console.log('Poll complete at', new Date().toISOString());
+
+  const updatedHosts = await prisma.host.findMany();
+  const upCount = updatedHosts.filter((h) => h.status === 'up').length;
+  const downCount = updatedHosts.length - upCount;
+
+  await logPollSnapshot(upCount, downCount);
 }
 
-// For internal API usage (no process.exit)
 export async function pollAllHostsSafe(): Promise<void> {
   try {
     await pollAllHosts();
@@ -143,9 +154,3 @@ export async function pollAllHostsSafe(): Promise<void> {
     console.error('Fatal error in pollHosts:', err);
   }
 }
-
-// Removed CLI runner to be used via internal API
-// pollAllHosts().catch(err => {
-//   console.error('Fatal error in pollHosts:', err);
-//   process.exit(1);
-// });

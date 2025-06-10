@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import HostStatusPie from '../components/charts/HostStatusPie';
-import CpuTrend from '../components/charts/CpuTrend';
+import HostUptimeHistory from '../components/charts/HostUptimeHistory';
 import TopVMsChart from '../components/charts/TopVMsChart';
 import HostKPI from '../components/HostKPI';
 import type { Host } from '../api/types';
@@ -90,9 +90,10 @@ export default function Dashboard() {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
-              Avg CPU (All Hosts)
+              Host Uptime – Last 5 Polls
             </h2>
-            <CpuTrend hosts={hosts} />
+            <HostUptimeHistory />
+
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">

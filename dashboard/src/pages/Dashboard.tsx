@@ -19,9 +19,13 @@ export default function Dashboard() {
 
       const counts: Record<string, number> = {};
       hostsData.forEach((h) => {
-        const stage = h.pipelineStage || 'unassigned';
+        const raw = h.pipelineStage?.trim().toLowerCase() || 'unassigned';
+        const stage = ['unassigned', 'active', 'reserved', 'staging', 'installing', 'broken'].includes(raw)
+          ? raw
+          : 'unassigned'; // normalize bad/null/missing values
         counts[stage] = (counts[stage] || 0) + 1;
       });
+
       setStageCounts(counts);
       setLastUpdated(new Date());
     } catch (err) {

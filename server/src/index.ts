@@ -5,7 +5,6 @@ import { PrismaClient } from '@prisma/client';
 
 import hostRoutes from './routes/host.routes';
 import vmRoutes from './routes/vm.routes';
-import pollNowRouter from './routes/internal/poll-now';
 import { startPollingJob } from './jobs/poll-scheduler';
 
 dotenv.config();
@@ -22,7 +21,6 @@ app.get('/', (_req: Request, res: Response) => {
 
 app.use('/api/hosts', hostRoutes);
 app.use('/api/vms', vmRoutes);
-app.use('/api/internal', pollNowRouter);
 
 startPollingJob();
 

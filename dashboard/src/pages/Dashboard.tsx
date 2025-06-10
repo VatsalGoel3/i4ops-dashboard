@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [hosts, setHosts] = useState<Host[]>([]);
   const [stageCounts, setStageCounts] = useState<Record<string, number>>({});
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [polling, setPolling] = useState(false); // 🔄 Track polling state
 
   const loadHostData = async () => {
     try {
@@ -29,6 +30,18 @@ export default function Dashboard() {
     }
   };
 
+  const triggerBackendPoll = async () => {
+    setPolling(true);
+    try {
+      await axios.post('http://localhost:4000/api/internal/poll-now');
+      await loadHostData(); // Reload after backend finishes polling
+    } catch (e) {
+      alert('Polling failed or rate limited.');
+    } finally {
+      setPolling(false);
+    }
+  };
+
   useEffect(() => {
     loadHostData();
   }, []);
@@ -39,10 +52,13 @@ export default function Dashboard() {
         <h1 className="text-2xl font-semibold">Infrastructure Overview</h1>
         <div className="flex items-center space-x-4">
           <button
-            onClick={loadHostData}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+            onClick={triggerBackendPoll}
+            disabled={polling}
+            className={`px-4 py-2 ${
+              polling ? 'bg-gray-400' : 'bg-indigo-600 hover:bg-indigo-700'
+            } text-white rounded-lg`}
           >
-            Refresh All
+            {polling ? 'Refreshing…' : 'Refresh All'}
           </button>
           {lastUpdated && (
             <span className="text-sm text-gray-600 dark:text-gray-400">

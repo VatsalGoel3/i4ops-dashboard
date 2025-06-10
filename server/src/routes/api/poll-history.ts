@@ -10,7 +10,12 @@ router.get('/poll-history', async (_, res) => {
     const file = await fs.readFile(HISTORY_FILE, 'utf8');
     const data = JSON.parse(file);
     res.json(data);
-  } catch (e) {
+  } catch (err) {
+    if ((err as any).code === 'ENOENT') {
+      // File doesn't exist — return empty array
+      return res.json([]);
+    }
+    console.error('Error reading poll history:', err);
     res.status(500).json({ error: 'Could not load poll history' });
   }
 });

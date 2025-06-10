@@ -3,6 +3,9 @@ import { NodeSSH, Config as SSHConfig } from 'node-ssh';
 import { PrismaClient, Host } from '@prisma/client';
 import { updateIPsFromTailscale } from './sync-IPs';
 import pLimit from 'p-limit';
+import fs from 'fs/promises';
+import path from 'path';
+const HISTORY_FILE = path.resolve(__dirname, 'poll_history.json');
 
 dotenv.config();
 
@@ -13,6 +16,24 @@ const SSH_PASSWORD = process.env.SSH_PASSWORD;
 if (!SSH_PASSWORD) {
   console.error('ERROR: SSH_PASSWORD not set in .env');
   process.exit(1);
+}
+
+
+async function logPollSnapshot(up: number, down: number) {
+  const now = new Date().toISOString();
+  let history: { time: string; up: number; down: number }[] = [];
+
+  try {
+    const file = await fs.readFile(HISTORY_FILE, 'utf8');
+    history = JSON.parse(file);
+  } catch (_) {
+    history = [];
+  }
+
+  history.push({ time: now, up, down });
+  history = history.slice(-5); // Keep last 5
+
+  await fs.writeFile(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf8');
 }
 
 async function runSSHCommand(ip: string, command: string): Promise<string | null> {
@@ -133,6 +154,11 @@ export async function pollAllHosts(): Promise<void> {
   );
 
   console.log('Poll complete at', new Date().toISOString());
+
+  const upCount = hosts.filter((h) => h.status === 'up').length;
+  const downCount = hosts.length - upCount;
+  await logPollSnapshot(upCount, downCount);
+
 }
 
 // For internal API usage (no process.exit)

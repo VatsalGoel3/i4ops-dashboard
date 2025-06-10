@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { pollAllHostsSafe } from '../scripts/pollHosts.js';
+import { pollAllHostsSafe } from '../scripts/pollHosts';
 
 export function startPollingJob() {
   console.log('[CRON] Scheduling host polling every 30 minutes');

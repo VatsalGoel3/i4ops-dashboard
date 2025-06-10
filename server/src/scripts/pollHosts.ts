@@ -3,9 +3,6 @@ import { NodeSSH, Config as SSHConfig } from 'node-ssh';
 import { PrismaClient, Host } from '@prisma/client';
 import { updateIPsFromTailscale } from './sync-IPs';
 import pLimit from 'p-limit';
-import fs from 'fs/promises';
-import path from 'path';
-const HISTORY_FILE = path.resolve(__dirname, 'poll_history.json');
 
 dotenv.config();
 
@@ -18,22 +15,10 @@ if (!SSH_PASSWORD) {
   process.exit(1);
 }
 
-
 async function logPollSnapshot(up: number, down: number) {
-  const now = new Date().toISOString();
-  let history: { time: string; up: number; down: number }[] = [];
-
-  try {
-    const file = await fs.readFile(HISTORY_FILE, 'utf8');
-    history = JSON.parse(file);
-  } catch (_) {
-    history = [];
-  }
-
-  history.push({ time: now, up, down });
-  history = history.slice(-5); // Keep last 5
-
-  await fs.writeFile(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf8');
+  await prisma.pollHistory.create({
+    data: { up, down },
+  });
 }
 
 async function runSSHCommand(ip: string, command: string): Promise<string | null> {
@@ -95,7 +80,7 @@ export async function pollAllHosts(): Promise<void> {
   console.log('Starting poll at', new Date().toISOString());
   const hosts: Host[] = await prisma.host.findMany({ include: { vms: true } });
 
-  const limit = pLimit(5); // Max 5 concurrent SSH connections
+  const limit = pLimit(5);
 
   await Promise.all(
     hosts.map((host) =>
@@ -155,13 +140,13 @@ export async function pollAllHosts(): Promise<void> {
 
   console.log('Poll complete at', new Date().toISOString());
 
-  const upCount = hosts.filter((h) => h.status === 'up').length;
-  const downCount = hosts.length - upCount;
-  await logPollSnapshot(upCount, downCount);
+  const updatedHosts = await prisma.host.findMany();
+  const upCount = updatedHosts.filter((h) => h.status === 'up').length;
+  const downCount = updatedHosts.length - upCount;
 
+  await logPollSnapshot(upCount, downCount);
 }
 
-// For internal API usage (no process.exit)
 export async function pollAllHostsSafe(): Promise<void> {
   try {
     await pollAllHosts();
@@ -169,9 +154,3 @@ export async function pollAllHostsSafe(): Promise<void> {
     console.error('Fatal error in pollHosts:', err);
   }
 }
-
-// Removed CLI runner to be used via internal API
-// pollAllHosts().catch(err => {
-//   console.error('Fatal error in pollHosts:', err);
-//   process.exit(1);
-// });

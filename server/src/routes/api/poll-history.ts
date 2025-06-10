@@ -1,21 +1,18 @@
 import express from 'express';
-import fs from 'fs/promises';
-import path from 'path';
+import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
-const HISTORY_FILE = path.resolve(__dirname, '../../../poll_history.json');
+const prisma = new PrismaClient();
 
 router.get('/poll-history', async (_, res) => {
   try {
-    const file = await fs.readFile(HISTORY_FILE, 'utf8');
-    const data = JSON.parse(file);
-    res.json(data);
+    const history = await prisma.pollHistory.findMany({
+      orderBy: { time: 'desc' },
+      take: 5,
+    });
+    res.json(history);
   } catch (err) {
-    if ((err as any).code === 'ENOENT') {
-      // File doesn't exist — return empty array
-      return res.json([]);
-    }
-    console.error('Error reading poll history:', err);
+    console.error('Error fetching poll history:', err);
     res.status(500).json({ error: 'Could not load poll history' });
   }
 });

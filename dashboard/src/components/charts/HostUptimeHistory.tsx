@@ -8,23 +8,36 @@ interface HistoryPoint {
 }
 
 export default function HostUptimeHistory() {
-  const [data, setData] = useState<HistoryPoint[]>([]);
+  const [data, setData] = useState<HistoryPoint[] | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
-      const res = await fetch('http://localhost:4000/api/poll-history');
-      const json = await res.json();
-      setData(json);
+      try {
+        const res = await fetch('http://localhost:4000/api/poll-history');
+        const json = await res.json();
+        setData(json);
+      } catch (e) {
+        console.error('Error fetching poll history:', e);
+        setData([]);
+      }
     };
     fetchHistory();
   }, []);
+
+  if (data === null) return <div className="text-sm text-gray-500">Loading...</div>;
+  if (data.length === 0) return <div className="text-sm text-gray-500">No poll data yet</div>;
 
   return (
     <div className="w-full h-64">
       <ResponsiveContainer>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="time" tickFormatter={(t) => new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
+          <XAxis
+            dataKey="time"
+            tickFormatter={(t) =>
+              new Date(t).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }
+          />
           <YAxis />
           <Tooltip />
           <Legend />

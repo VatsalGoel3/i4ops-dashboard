@@ -1,22 +1,22 @@
-// pollHosts.ts
 import dotenv from 'dotenv';
 import { NodeSSH, Config as SSHConfig } from 'node-ssh';
 import { PrismaClient, Host } from '@prisma/client';
 import { updateIPsFromTailscale } from './sync-IPs';
+import pLimit from 'p-limit';
 
 dotenv.config();
 
 const prisma = new PrismaClient();
-const ssh = new NodeSSH();
-
 const SSH_USER = process.env.SSH_USER || 'i4ops';
 const SSH_PASSWORD = process.env.SSH_PASSWORD;
+
 if (!SSH_PASSWORD) {
   console.error('ERROR: SSH_PASSWORD not set in .env');
   process.exit(1);
 }
 
 async function runSSHCommand(ip: string, command: string): Promise<string | null> {
+  const ssh = new NodeSSH();
   try {
     await ssh.connect({
       host: ip,
@@ -67,73 +67,85 @@ function parseLoadAvg(output: string): number {
   return Math.round(parseFloat(parts[0]) * 100) / 100;
 }
 
-async function pollAllHosts() {
+export async function pollAllHosts(): Promise<void> {
   console.log('→ Syncing IPs from Tailscale API...');
   await updateIPsFromTailscale();
 
   console.log('Starting poll at', new Date().toISOString());
-
   const hosts: Host[] = await prisma.host.findMany({ include: { vms: true } });
 
-  for (const host of hosts) {
-    console.log(`→ Polling host ${host.name} (${host.ip})`);
+  const limit = pLimit(5); // Max 5 concurrent SSH connections
 
-    const uptimeOut = await runSSHCommand(host.ip, 'cat /proc/uptime');
-    if (!uptimeOut) {
-      console.log(`   • ${host.ip} unreachable → marking status=down`);
-      await prisma.host.update({
-        where: { id: host.id },
-        data: { status: 'down', ssh: false, uptime: 0, cpu: 0, ram: 0, disk: 0 }
-      });
-      await prisma.vM.updateMany({
-        where: { hostId: host.id },
-        data: { status: 'offline', cpu: 0, ram: 0, disk: 0 }
-      });
-      continue;
-    }
+  await Promise.all(
+    hosts.map((host) =>
+      limit(async () => {
+        console.log(`→ Polling host ${host.name} (${host.ip})`);
 
-    const osRelease = await runSSHCommand(host.ip, 'cat /etc/os-release');
-    let osLine = host.os;
-    if (osRelease) {
-      const match = osRelease
-        .split('\n')
-        .find(l => l.startsWith('PRETTY_NAME='));
-      if (match) {
-        osLine = match.split('=')[1].replace(/"/g, '');
-      }
-    }
+        const uptimeOut = await runSSHCommand(host.ip, 'cat /proc/uptime');
+        if (!uptimeOut) {
+          console.log(`   • ${host.ip} unreachable → marking status=down`);
+          await prisma.host.update({
+            where: { id: host.id },
+            data: { status: 'down', ssh: false, uptime: 0, cpu: 0, ram: 0, disk: 0 }
+          });
+          await prisma.vM.updateMany({
+            where: { hostId: host.id },
+            data: { status: 'offline', cpu: 0, ram: 0, disk: 0 }
+          });
+          return;
+        }
 
-    const uptimeSecs = parseUptime(uptimeOut);
-    const loadOut = await runSSHCommand(host.ip, 'cat /proc/loadavg');
-    const cpuLoad = loadOut ? parseLoadAvg(loadOut) : 0;
-    const freeOut = await runSSHCommand(host.ip, 'free -m');
-    const ramUsage = freeOut ? parseFreeOut(freeOut) : 0;
-    const dfOut = await runSSHCommand(host.ip, 'df -h /');
-    const diskUsage = dfOut ? parseDfRoot(dfOut) : 0;
+        const osRelease = await runSSHCommand(host.ip, 'cat /etc/os-release');
+        let osLine = host.os;
+        if (osRelease) {
+          const match = osRelease.split('\n').find((l) => l.startsWith('PRETTY_NAME='));
+          if (match) {
+            osLine = match.split('=')[1].replace(/"/g, '');
+          }
+        }
 
-    await prisma.host.update({
-      where: { id: host.id },
-      data: {
-        os: osLine,
-        uptime: uptimeSecs,
-        status: 'up',
-        ssh: true,
-        cpu: cpuLoad,
-        ram: ramUsage,
-        disk: diskUsage
-      }
-    });
+        const uptimeSecs = parseUptime(uptimeOut);
+        const loadOut = await runSSHCommand(host.ip, 'cat /proc/loadavg');
+        const cpuLoad = loadOut ? parseLoadAvg(loadOut) : 0;
+        const freeOut = await runSSHCommand(host.ip, 'free -m');
+        const ramUsage = freeOut ? parseFreeOut(freeOut) : 0;
+        const dfOut = await runSSHCommand(host.ip, 'df -h /');
+        const diskUsage = dfOut ? parseDfRoot(dfOut) : 0;
 
-    console.log(
-      `   • Updated host ${host.name}: load=${cpuLoad}, RAM=${ramUsage}%, Disk=${diskUsage}%`
-    );
-  }
+        await prisma.host.update({
+          where: { id: host.id },
+          data: {
+            os: osLine,
+            uptime: uptimeSecs,
+            status: 'up',
+            ssh: true,
+            cpu: cpuLoad,
+            ram: ramUsage,
+            disk: diskUsage,
+          },
+        });
+
+        console.log(
+          `   • Updated host ${host.name}: load=${cpuLoad}, RAM=${ramUsage}%, Disk=${diskUsage}%`
+        );
+      })
+    )
+  );
 
   console.log('Poll complete at', new Date().toISOString());
-  process.exit(0);
 }
 
-pollAllHosts().catch(err => {
-  console.error('Fatal error in pollHosts:', err);
-  process.exit(1);
-});
+// For internal API usage (no process.exit)
+export async function pollAllHostsSafe(): Promise<void> {
+  try {
+    await pollAllHosts();
+  } catch (err) {
+    console.error('Fatal error in pollHosts:', err);
+  }
+}
+
+// Removed CLI runner to be used via internal API
+// pollAllHosts().catch(err => {
+//   console.error('Fatal error in pollHosts:', err);
+//   process.exit(1);
+// });

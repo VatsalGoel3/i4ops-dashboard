@@ -19,9 +19,13 @@ export default function Dashboard() {
 
       const counts: Record<string, number> = {};
       hostsData.forEach((h) => {
-        const stage = h.pipelineStage || 'unassigned';
+        const raw = h.pipelineStage?.trim().toLowerCase() || 'unassigned';
+        const stage = ['unassigned', 'active', 'reserved', 'staging', 'installing', 'broken'].includes(raw)
+          ? raw
+          : 'unassigned'; // normalize bad/null/missing values
         counts[stage] = (counts[stage] || 0) + 1;
       });
+
       setStageCounts(counts);
       setLastUpdated(new Date());
     } catch (err) {
@@ -37,16 +41,14 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className="flex items-center justify-between px-6 py-4 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <h1 className="text-2xl font-semibold">Infrastructure Overview</h1>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={loadHostData}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
-          >
-            Refresh All
-          </button>
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {lastUpdated && (
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Last updated: {lastUpdated.toLocaleString()}
+            <span>
+              Last updated:{' '}
+              {lastUpdated.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </span>
           )}
         </div>

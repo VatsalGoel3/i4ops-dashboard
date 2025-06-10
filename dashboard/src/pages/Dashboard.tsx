@@ -10,7 +10,6 @@ export default function Dashboard() {
   const [hosts, setHosts] = useState<Host[]>([]);
   const [stageCounts, setStageCounts] = useState<Record<string, number>>({});
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [polling, setPolling] = useState(false); // 🔄 Track polling state
 
   const loadHostData = async () => {
     try {
@@ -30,18 +29,6 @@ export default function Dashboard() {
     }
   };
 
-  const triggerBackendPoll = async () => {
-    setPolling(true);
-    try {
-      await axios.post('http://localhost:4000/api/internal/poll-now');
-      await loadHostData(); // Reload after backend finishes polling
-    } catch (e) {
-      alert('Polling failed or rate limited.');
-    } finally {
-      setPolling(false);
-    }
-  };
-
   useEffect(() => {
     loadHostData();
   }, []);
@@ -50,19 +37,14 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <header className="flex items-center justify-between px-6 py-4 bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <h1 className="text-2xl font-semibold">Infrastructure Overview</h1>
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={triggerBackendPoll}
-            disabled={polling}
-            className={`px-4 py-2 ${
-              polling ? 'bg-gray-400' : 'bg-indigo-600 hover:bg-indigo-700'
-            } text-white rounded-lg`}
-          >
-            {polling ? 'Refreshing…' : 'Refresh All'}
-          </button>
+        <div className="text-sm text-gray-600 dark:text-gray-400">
           {lastUpdated && (
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Last updated: {lastUpdated.toLocaleString()}
+            <span>
+              Last updated:{' '}
+              {lastUpdated.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+              })}
             </span>
           )}
         </div>

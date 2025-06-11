@@ -10,9 +10,8 @@ import { vmSchema } from '../schemas/vm.schema';
 
 export async function getAllVMs(req: Request, res: Response) {
   try {
-    const hostId = req.query.hostId ? Number(req.query.hostId) : undefined;
-    const vms = await getAllVMsService(hostId);
-    res.json(vms);
+    const result = await getAllVMsService(req.query);
+    res.json(result); // { data, totalCount }
   } catch (err) {
     console.error('Error fetching VMs:', err);
     res.status(500).json({ error: 'Internal server error' });

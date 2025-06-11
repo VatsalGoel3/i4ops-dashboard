@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import { NodeSSH, Config as SSHConfig } from 'node-ssh';
-import { PrismaClient, Host } from '@prisma/client';
+import { PrismaClient, Host, HostStatus, VMStatus } from '@prisma/client';
 import { updateIPsFromTailscale } from './sync-IPs';
 import pLimit from 'p-limit';
 
@@ -88,19 +88,38 @@ export async function pollAllHosts(): Promise<void> {
         console.log(`→ Polling host ${host.name} (${host.ip})`);
 
         const uptimeOut = await runSSHCommand(host.ip, 'cat /proc/uptime');
+
+        // Unreachable host
         if (!uptimeOut) {
           console.log(`   • ${host.ip} unreachable → marking status=down`);
-          await prisma.host.update({
-            where: { id: host.id },
-            data: { status: 'down', ssh: false, uptime: 0, cpu: 0, ram: 0, disk: 0 }
-          });
-          await prisma.vM.updateMany({
-            where: { hostId: host.id },
-            data: { status: 'offline', cpu: 0, ram: 0, disk: 0 }
-          });
+
+          await prisma.$transaction([
+            prisma.host.update({
+              where: { id: host.id },
+              data: {
+                status: 'down' as HostStatus,
+                ssh: false,
+                uptime: 0,
+                cpu: 0,
+                ram: 0,
+                disk: 0
+              }
+            }),
+            prisma.vM.updateMany({
+              where: { hostId: host.id },
+              data: {
+                status: 'offline' as VMStatus,
+                cpu: 0,
+                ram: 0,
+                disk: 0
+              }
+            })
+          ]);
+
           return;
         }
 
+        // Reachable host
         const osRelease = await runSSHCommand(host.ip, 'cat /etc/os-release');
         let osLine = host.os;
         if (osRelease) {
@@ -118,18 +137,30 @@ export async function pollAllHosts(): Promise<void> {
         const dfOut = await runSSHCommand(host.ip, 'df -h /');
         const diskUsage = dfOut ? parseDfRoot(dfOut) : 0;
 
-        await prisma.host.update({
-          where: { id: host.id },
-          data: {
-            os: osLine,
-            uptime: uptimeSecs,
-            status: 'up',
-            ssh: true,
-            cpu: cpuLoad,
-            ram: ramUsage,
-            disk: diskUsage,
-          },
-        });
+        await prisma.$transaction([
+          prisma.host.update({
+            where: { id: host.id },
+            data: {
+              os: osLine,
+              uptime: uptimeSecs,
+              status: 'up' as HostStatus,
+              ssh: true,
+              cpu: cpuLoad,
+              ram: ramUsage,
+              disk: diskUsage,
+            },
+          }),
+          prisma.vM.updateMany({
+            where: { hostId: host.id },
+            data: {
+              // Adjust this logic if needed — setting default for now
+              status: 'running' as VMStatus,
+              cpu: 0,
+              ram: 0,
+              disk: 0
+            }
+          })
+        ]);
 
         console.log(
           `   • Updated host ${host.name}: load=${cpuLoad}, RAM=${ramUsage}%, Disk=${diskUsage}%`

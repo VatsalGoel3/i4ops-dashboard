@@ -8,10 +8,10 @@ import {
 } from '../services/host.service';
 import { hostSchema } from '../schemas/host.schema';
 
-export async function getAllHosts(_req: Request, res: Response) {
+export async function getAllHosts(req: Request, res: Response) {
   try {
-    const hosts = await getAllHostsService();
-    res.json(hosts);
+    const result = await getAllHostsService(req.query);
+    res.json(result); // { data, totalCount }
   } catch (err) {
     console.error('Error fetching hosts:', err);
     res.status(500).json({ error: 'Internal server error' });

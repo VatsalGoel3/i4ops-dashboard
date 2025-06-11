@@ -2,11 +2,28 @@ import { PrismaClient, HostStatus, PipelineStage } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function getAllHostsService() {
-  return prisma.host.findMany({
-    include: { vms: true },
-    orderBy: { name: 'asc' }
-  });
+export async function getAllHostsService(query: any) {
+  const page = parseInt(query.page) || 1;
+  const limit = parseInt(query.limit) || 20;
+  const skip = (page - 1) * limit;
+
+  const filters: any = {};
+  if (query.status) filters.status = query.status;
+  if (query.pipelineStage) filters.pipelineStage = query.pipelineStage;
+  if (query.assignedTo) filters.assignedTo = query.assignedTo;
+
+  const [data, totalCount] = await Promise.all([
+    prisma.host.findMany({
+      where: filters,
+      include: { vms: true },
+      orderBy: { name: 'asc' },
+      skip,
+      take: limit
+    }),
+    prisma.host.count({ where: filters })
+  ]);
+
+  return { data, totalCount };
 }
 
 export async function getHostByIdService(id: number) {

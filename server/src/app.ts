@@ -10,7 +10,7 @@ import { startPollingJob } from './jobs/poll-scheduler';
 dotenv.config();
 
 const app = express();
-app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({ origin: 'http://localhost:8888' }));
 app.use(express.json());
 
 app.get('/', (_req, res) => {

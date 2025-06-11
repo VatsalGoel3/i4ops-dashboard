@@ -21,7 +21,8 @@
     "node-cron": "^4.1.0",
     "node-fetch": "^3.3.2",
     "node-ssh": "^13.2.1",
-    "p-limit": "^6.2.0"
+    "p-limit": "^6.2.0",
+    "zod": "^3.25.58"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

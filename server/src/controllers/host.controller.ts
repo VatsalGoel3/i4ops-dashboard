@@ -6,6 +6,7 @@ import {
   updateHostService,
   deleteHostService
 } from '../services/host.service';
+import { hostSchema } from '../schemas/host.schema';
 
 export async function getAllHosts(_req: Request, res: Response) {
   try {
@@ -30,8 +31,13 @@ export async function getHostById(req: Request, res: Response) {
 }
 
 export async function createHost(req: Request, res: Response) {
+  const result = hostSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ error: 'Invalid request', details: result.error.errors });
+  }
+
   try {
-    const newHost = await createHostService(req.body);
+    const newHost = await createHostService(result.data);
     res.status(201).json(newHost);
   } catch (err) {
     console.error('Error creating host:', err);
@@ -41,8 +47,13 @@ export async function createHost(req: Request, res: Response) {
 
 export async function updateHost(req: Request, res: Response) {
   const id = Number(req.params.id);
+  const result = hostSchema.partial().safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ error: 'Invalid request', details: result.error.errors });
+  }
+
   try {
-    const updated = await updateHostService(id, req.body);
+    const updated = await updateHostService(id, result.data);
     res.json(updated);
   } catch (err) {
     console.error('Error updating host:', err);

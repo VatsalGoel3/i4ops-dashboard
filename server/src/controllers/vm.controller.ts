@@ -6,6 +6,7 @@ import {
   updateVMService,
   deleteVMService
 } from '../services/vm.service';
+import { vmSchema } from '../schemas/vm.schema';
 
 export async function getAllVMs(req: Request, res: Response) {
   try {
@@ -31,8 +32,13 @@ export async function getVMById(req: Request, res: Response) {
 }
 
 export async function createVM(req: Request, res: Response) {
+  const result = vmSchema.safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ error: 'Invalid request', details: result.error.errors });
+  }
+
   try {
-    const newVM = await createVMService(req.body);
+    const newVM = await createVMService(result.data);
     res.status(201).json(newVM);
   } catch (err) {
     console.error('Error creating VM:', err);
@@ -41,9 +47,14 @@ export async function createVM(req: Request, res: Response) {
 }
 
 export async function updateVM(req: Request, res: Response) {
+  const id = Number(req.params.id);
+  const result = vmSchema.partial().safeParse(req.body);
+  if (!result.success) {
+    return res.status(400).json({ error: 'Invalid request', details: result.error.errors });
+  }
+
   try {
-    const id = Number(req.params.id);
-    const updated = await updateVMService(id, req.body);
+    const updated = await updateVMService(id, result.data);
     res.json(updated);
   } catch (err) {
     console.error('Error updating VM:', err);

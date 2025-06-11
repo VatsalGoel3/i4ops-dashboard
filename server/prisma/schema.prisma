@@ -7,6 +7,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum HostStatus {
+  up
+  down
+}
+
+enum VMStatus {
+  running
+  stopped
+  offline
+}
+
+enum PipelineStage {
+  unassigned
+  installing
+  working
+  broken
+}
+
 model PollHistory {
   id        Int      @id @default(autoincrement())
   time      DateTime @default(now())
@@ -15,47 +33,47 @@ model PollHistory {
 }
 
 model Host {
-  id            Int      @id @default(autoincrement())
-  name          String   @unique
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
   ip            String
   os            String
-  uptime        Int      // uptime in seconds
-  status        String   // "up" or "down"
-  ssh           Boolean  // true if SSH port open
-  cpu           Float    // CPU usage %
-  ram           Float    // RAM usage %
-  disk          Float    // Disk usage %
+  uptime        Int            // uptime in seconds
+  status        HostStatus     @default(up)       // "up" or "down"
+  ssh           Boolean        // true if SSH port open
+  cpu           Float          // CPU usage %
+  ram           Float          // RAM usage %
+  disk          Float          // Disk usage %
 
   // ─── Manual Tracking Fields ───────────────────────────────
-  pipelineStage String   @default("unassigned") // e.g. "installing", "working", etc.
-  assignedTo    String?                        // e.g. "alice", "bob"
-  notes         String?                        // free-form
-  updatedAt     DateTime @default(now()) @updatedAt            // auto-updated timestamp
+  pipelineStage PipelineStage  @default(unassigned)
+  assignedTo    String?
+  notes         String?
+  updatedAt     DateTime       @default(now()) @updatedAt
 
-  vms           VM[]     // 1-to-many relation
+  vms           VM[]           // 1-to-many relation
 }
 
 model VM {
-  id           Int      @id @default(autoincrement())
-  name         String
-  status       String   // "running" / "stopped"
-  cpu          Float    // CPU usage %
-  ram          Float    // RAM usage %
-  disk         Float    // Disk usage %
-  os           String   // guest OS
-  uptime       Int      // uptime in seconds
-  xml          String   // libvirt XML
-  networkIp    String?  // optional IP
-  networkMac   String?  // optional MAC
+  id            Int            @id @default(autoincrement())
+  name          String
+  status        VMStatus       @default(stopped)   // "running" / "stopped" / "offline"
+  cpu           Float          // CPU usage %
+  ram           Float          // RAM usage %
+  disk          Float          // Disk usage %
+  os            String         // guest OS
+  uptime        Int            // uptime in seconds
+  xml           String         // libvirt XML
+  networkIp     String?        // optional IP
+  networkMac    String?        // optional MAC
 
   // ─── Manual Tracking Fields ───────────────────────────────
-  pipelineStage String   @default("unassigned") // same stages as Host
+  pipelineStage PipelineStage  @default(unassigned)
   assignedTo    String?
   notes         String?
-  updatedAt     DateTime @default(now()) @updatedAt
+  updatedAt     DateTime       @default(now()) @updatedAt
 
-  hostId       Int
-  host         Host     @relation(fields: [hostId], references: [id])
+  hostId        Int
+  host          Host           @relation(fields: [hostId], references: [id])
 
   @@unique([name, hostId])
 }

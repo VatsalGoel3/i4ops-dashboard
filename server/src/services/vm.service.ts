@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, VMStatus, PipelineStage } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -19,17 +19,33 @@ export async function getVMByIdService(id: number) {
 export async function createVMService(data: any) {
   return prisma.vM.create({
     data: {
-      ...data,
-      pipelineStage: data.pipelineStage || 'unassigned',
+      name: data.name,
+      status: data.status as VMStatus || VMStatus.stopped,
+      cpu: data.cpu,
+      ram: data.ram,
+      disk: data.disk,
+      os: data.os,
+      uptime: data.uptime,
+      xml: data.xml,
+      networkIp: data.networkIp,
+      networkMac: data.networkMac,
+      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.unassigned,
+      assignedTo: data.assignedTo,
+      notes: data.notes,
       host: { connect: { id: data.hostId } }
     }
   });
 }
 
 export async function updateVMService(id: number, data: any) {
+  const updatedData = {
+    ...data,
+    status: data.status as VMStatus,
+    pipelineStage: data.pipelineStage as PipelineStage
+  };
   return prisma.vM.update({
     where: { id },
-    data
+    data: updatedData
   });
 }
 

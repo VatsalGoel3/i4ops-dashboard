@@ -36,15 +36,17 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
     setSaving(true);
     setError('');
     setSuccess('');
-
+  
     try {
-      const payload = { pipelineStage, assignedTo, notes };
+      const payload = {
+        pipelineStage: pipelineStage.trim().toLowerCase(),
+        assignedTo,
+        notes,
+      };
       await axios.put(`http://localhost:4000/api/hosts/${host.id}`, payload);
       const updatedHost: Host = {
         ...host,
-        pipelineStage,
-        assignedTo,
-        notes,
+        ...payload,
       };
       setSuccess('Saved successfully!');
       onSave(updatedHost);
@@ -54,7 +56,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
     } finally {
       setSaving(false);
     }
-  };
+  };  
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">

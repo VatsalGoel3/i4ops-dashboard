@@ -13,8 +13,8 @@ export default function Dashboard() {
 
   const loadHostData = async () => {
     try {
-      const res = await axios.get<Host[]>('http://localhost:4000/api/hosts');
-      const hostsData = res.data;
+      const res = await axios.get<{ data: Host[]; total: number }>('http://localhost:4000/api/hosts');
+      const hostsData = res.data.data; // ✅ correctly extract host array
       setHosts(hostsData);
 
       const counts: Record<string, number> = {};
@@ -22,7 +22,7 @@ export default function Dashboard() {
         const raw = h.pipelineStage?.trim().toLowerCase() || 'unassigned';
         const stage = ['unassigned', 'active', 'reserved', 'staging', 'installing', 'broken'].includes(raw)
           ? raw
-          : 'unassigned'; // normalize bad/null/missing values
+          : 'unassigned';
         counts[stage] = (counts[stage] || 0) + 1;
       });
 
@@ -93,7 +93,6 @@ export default function Dashboard() {
               Host Uptime – Last 5 Polls
             </h2>
             <HostUptimeHistory />
-
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">

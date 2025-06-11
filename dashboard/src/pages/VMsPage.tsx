@@ -17,31 +17,25 @@ export default function VMsPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  // Fetch all VMs & host list for filters
+  // ── Load VMs ───────────────────────────────
   useEffect(() => {
     const loadVMs = async () => {
       setLoading(true);
       try {
-        // ← **Changed**: point to backend:4000
-        const vmRes = await axios.get<VM[]>('http://localhost:4000/api/vms');
-        const vms = vmRes.data;
+        const vmRes = await axios.get<{ data: VM[]; total: number }>('http://localhost:4000/api/vms');
+        const vms = vmRes.data.data;
         setAllVMs(vms);
 
-        // Derive host options from the nested vms (hostId and host.name)
         const hostsMap: Record<number, string> = {};
         vms.forEach(vm => {
           if (vm.host) {
             hostsMap[vm.hostId] = vm.host.name;
           }
         });
-        setHostOptions(
-          Object.entries(hostsMap).map(([id, name]) => ({
-            id: Number(id),
-            name
-          }))
-        );
 
-        // Derive status options (e.g., "running", "stopped")
+        setHostOptions(
+          Object.entries(hostsMap).map(([id, name]) => ({ id: Number(id), name }))
+        );
         setStatusOptions(Array.from(new Set(vms.map(vm => vm.status))).sort());
       } catch (err) {
         console.error('Failed to load VMs:', err);
@@ -52,11 +46,10 @@ export default function VMsPage() {
     loadVMs();
   }, []);
 
-  // Compute filtered/sorted/paginated VMs
+  // ── Filtering / Sorting / Pagination ────────
   useEffect(() => {
     let list = [...allVMs];
 
-    // Apply filters
     if (filters.hostId !== undefined) {
       list = list.filter(vm => vm.hostId === filters.hostId);
     }
@@ -68,29 +61,25 @@ export default function VMsPage() {
       list = list.filter(vm => vm.name.toLowerCase().includes(substr));
     }
 
-    // Sort
     if (sortField) {
       list.sort((a, b) => {
         const aVal = a[sortField];
         const bVal = b[sortField];
-        if (
-          sortField === 'cpu' ||
-          sortField === 'ram' ||
-          sortField === 'disk' ||
-          sortField === 'uptime'
-        ) {
+
+        if (sortField === 'cpu' || sortField === 'ram' || sortField === 'disk' || sortField === 'uptime') {
           return sortOrder === 'asc'
             ? (aVal as number) - (bVal as number)
             : (bVal as number) - (aVal as number);
         }
+
         if (sortField === 'hostId') {
-          // Sort by host name if available
           const aName = a.host ? a.host.name : '';
           const bName = b.host ? b.host.name : '';
           return sortOrder === 'asc'
             ? aName.localeCompare(bName)
             : bName.localeCompare(aName);
         }
+
         return sortOrder === 'asc'
           ? String(aVal).localeCompare(String(bVal))
           : String(bVal).localeCompare(String(aVal));
@@ -102,12 +91,13 @@ export default function VMsPage() {
     setDisplayedVMs(list.slice(startIdx, startIdx + pageSize));
   }, [allVMs, filters, sortField, sortOrder, page]);
 
+  // ── Refresh Button ─────────────────────────
   const handleRefresh = async () => {
     setPage(1);
     setLoading(true);
     try {
-      const vmRes = await axios.get<VM[]>('http://localhost:4000/api/vms');
-      const vms = vmRes.data;
+      const vmRes = await axios.get<{ data: VM[]; total: number }>('http://localhost:4000/api/vms');
+      const vms = vmRes.data.data;
       setAllVMs(vms);
 
       const hostsMap: Record<number, string> = {};

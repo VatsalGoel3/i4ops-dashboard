@@ -64,10 +64,12 @@ export async function updateVM(req: Request, res: Response) {
 export async function deleteVM(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
-    await deleteVMService(id);
-    res.status(204).send();
+    const deleted = await deleteVMService(id);
+
+    // Even if it was already deleted, return 204 for idempotency
+    return res.status(204).send();
   } catch (err) {
     console.error('Error deleting VM:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

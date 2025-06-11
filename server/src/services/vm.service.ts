@@ -75,5 +75,13 @@ export async function updateVMService(id: number, data: any) {
 }
 
 export async function deleteVMService(id: number) {
-  return prisma.vM.delete({ where: { id } });
+  try {
+    return await prisma.vM.delete({ where: { id } });
+  } catch (err: any) {
+    if (err.code === 'P2025') {
+      // Record not found, treat as already deleted
+      return null;
+    }
+    throw err;
+  }
 }

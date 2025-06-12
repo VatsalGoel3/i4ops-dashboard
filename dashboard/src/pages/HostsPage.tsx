@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import type { Host, HostFilters } from '../api/types';
 import HostFiltersComponent from '../components/Filters/HostFilters';
 import HostTable from '../components/HostTable';
 import HostDetailModal from '../components/HostDetailModal';
+import { usePolling } from '../context/PollingContext';
 
 function compareHostnames(a: string, b: string) {
   const hostRegex = /^([a-zA-Z]+)(\d+)$/;
   const m1 = a.match(hostRegex);
   const m2 = b.match(hostRegex);
-
   if (m1 && m2 && m1[1] === m2[1]) {
     return Number(m1[2]) - Number(m2[2]);
   }
@@ -17,43 +16,33 @@ function compareHostnames(a: string, b: string) {
 }
 
 export default function HostsPage() {
-  const [allHosts, setAllHosts] = useState<Host[]>([]);
+  const { hosts: allHosts, triggerRefresh, loading } = usePolling();
+
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
   const [osOptions, setOsOptions] = useState<string[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
   const [vmCountOptions, setVmCountOptions] = useState<number[]>([]);
+
   const [filters, setFilters] = useState<HostFilters>({});
   const [sortField, setSortField] = useState<keyof Host>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const pageSize = 15;
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
 
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
+  // Extract options once hosts are available
   useEffect(() => {
-    const loadHosts = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get<{ data: Host[]; total: number }>('http://localhost:4000/api/hosts');
-        const hosts = res.data.data;
-        setAllHosts(hosts);
-        setOsOptions(Array.from(new Set(hosts.map((h) => h.os))).sort());
-        setStatusOptions(Array.from(new Set(hosts.map((h) => h.status))).sort());
-        setVmCountOptions(
-          Array.from(new Set(hosts.map((h) => h.vms.length))).sort((a, b) => a - b)
-        );
-      } catch (err) {
-        console.error('Failed to load hosts:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadHosts();
-  }, []);
+    setOsOptions(Array.from(new Set(allHosts.map((h) => h.os))).sort());
+    setStatusOptions(Array.from(new Set(allHosts.map((h) => h.status))).sort());
+    setVmCountOptions(
+      Array.from(new Set(allHosts.map((h) => h.vms.length))).sort((a, b) => a - b)
+    );
+  }, [allHosts]);
 
+  // Filtering, sorting, pagination
   useEffect(() => {
     let list = [...allHosts];
 
@@ -66,12 +55,7 @@ export default function HostsPage() {
       const aVal = a[sortField];
       const bVal = b[sortField];
 
-      if (
-        sortField === 'uptime' ||
-        sortField === 'cpu' ||
-        sortField === 'ram' ||
-        sortField === 'disk'
-      ) {
+      if (sortField === 'uptime' || sortField === 'cpu' || sortField === 'ram' || sortField === 'disk') {
         return sortOrder === 'asc'
           ? (aVal as number) - (bVal as number)
           : (bVal as number) - (aVal as number);
@@ -114,39 +98,18 @@ export default function HostsPage() {
     setDisplayedHosts(list.slice(startIdx, startIdx + pageSize));
   }, [allHosts, filters, sortField, sortOrder, page]);
 
-  const handleRefresh = async () => {
-    setPage(1);
-    setLoading(true);
-    try {
-      const res = await axios.get<{ data: Host[]; total: number }>('http://localhost:4000/api/hosts');
-      const hosts = res.data.data;
-      setAllHosts(hosts);
-      setOsOptions(Array.from(new Set(hosts.map((h) => h.os))).sort());
-      setStatusOptions(Array.from(new Set(hosts.map((h) => h.status))).sort());
-      setVmCountOptions(
-        Array.from(new Set(hosts.map((h) => h.vms.length))).sort((a, b) => a - b)
-      );
-    } catch (err) {
-      console.error('Refresh failed:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const start = (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, total);
-
   const handleRowClick = (host: Host) => {
     setSelectedHost(host);
     setModalVisible(true);
   };
 
-  const handleHostSave = (updatedHost: Host) => {
-    setAllHosts((prev) =>
-      prev.map((h) => (h.id === updatedHost.id ? updatedHost : h))
-    );
+  const handleHostSave = () => {
+    // No-op: rely on centralized polling to sync fresh host data
     setModalVisible(false);
   };
+
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, total);
 
   return (
     <>
@@ -167,7 +130,7 @@ export default function HostsPage() {
             }}
           />
           <button
-            onClick={handleRefresh}
+            onClick={triggerRefresh}
             className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
           >
             Refresh

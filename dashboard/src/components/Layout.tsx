@@ -10,7 +10,9 @@ export default function Layout({ children }: { children: ReactNode }) {
       <Sidebar collapsed={sidebarCollapsed} />
       <div className="flex-1 flex flex-col">
         <Header onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)} />
-        <main className="flex-1 p-6 space-y-6">{children}</main>
+        <main className="flex-1 p-6 space-y-6">
+          {children}
+        </main>
       </div>
     </div>
   );

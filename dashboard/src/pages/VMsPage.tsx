@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import type { VM, VMFilters } from '../api/types';
 import VMFiltersComponent from '../components/Filters/VMFilters';
 import VMTable from '../components/VMTable';
+import { usePolling } from '../context/PollingContext';
 
 export default function VMsPage() {
-  const [allVMs, setAllVMs] = useState<VM[]>([]);
+  const { vms: allVMs, triggerRefresh, loading } = usePolling();
+
   const [displayedVMs, setDisplayedVMs] = useState<VM[]>([]);
   const [hostOptions, setHostOptions] = useState<{ name: string; id: number }[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
@@ -15,36 +16,21 @@ export default function VMsPage() {
   const [page, setPage] = useState(1);
   const pageSize = 10;
   const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(false);
 
-  // ── Load VMs ───────────────────────────────
+  // ── Generate dropdown/filter options from VM data ──
   useEffect(() => {
-    const loadVMs = async () => {
-      setLoading(true);
-      try {
-        const vmRes = await axios.get<{ data: VM[]; total: number }>('http://localhost:4000/api/vms');
-        const vms = vmRes.data.data;
-        setAllVMs(vms);
-
-        const hostsMap: Record<number, string> = {};
-        vms.forEach(vm => {
-          if (vm.host) {
-            hostsMap[vm.hostId] = vm.host.name;
-          }
-        });
-
-        setHostOptions(
-          Object.entries(hostsMap).map(([id, name]) => ({ id: Number(id), name }))
-        );
-        setStatusOptions(Array.from(new Set(vms.map(vm => vm.status))).sort());
-      } catch (err) {
-        console.error('Failed to load VMs:', err);
-      } finally {
-        setLoading(false);
+    const hostsMap: Record<number, string> = {};
+    allVMs.forEach(vm => {
+      if (vm.host) {
+        hostsMap[vm.hostId] = vm.host.name;
       }
-    };
-    loadVMs();
-  }, []);
+    });
+
+    setHostOptions(
+      Object.entries(hostsMap).map(([id, name]) => ({ id: Number(id), name }))
+    );
+    setStatusOptions(Array.from(new Set(allVMs.map(vm => vm.status))).sort());
+  }, [allVMs]);
 
   // ── Filtering / Sorting / Pagination ────────
   useEffect(() => {
@@ -91,32 +77,6 @@ export default function VMsPage() {
     setDisplayedVMs(list.slice(startIdx, startIdx + pageSize));
   }, [allVMs, filters, sortField, sortOrder, page]);
 
-  // ── Refresh Button ─────────────────────────
-  const handleRefresh = async () => {
-    setPage(1);
-    setLoading(true);
-    try {
-      const vmRes = await axios.get<{ data: VM[]; total: number }>('http://localhost:4000/api/vms');
-      const vms = vmRes.data.data;
-      setAllVMs(vms);
-
-      const hostsMap: Record<number, string> = {};
-      vms.forEach(vm => {
-        if (vm.host) {
-          hostsMap[vm.hostId] = vm.host.name;
-        }
-      });
-      setHostOptions(
-        Object.entries(hostsMap).map(([id, name]) => ({ id: Number(id), name }))
-      );
-      setStatusOptions(Array.from(new Set(vms.map(vm => vm.status))).sort());
-    } catch (err) {
-      console.error('Failed to refresh VMs:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
 
@@ -134,7 +94,7 @@ export default function VMsPage() {
           }}
         />
         <button
-          onClick={handleRefresh}
+          onClick={triggerRefresh}
           className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
         >
           Refresh

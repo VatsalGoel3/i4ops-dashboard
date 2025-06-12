@@ -1,41 +1,20 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
 import HostStatusPie from '../components/charts/HostStatusPie';
 import HostUptimeHistory from '../components/charts/HostUptimeHistory';
 import TopVMsChart from '../components/charts/TopVMsChart';
 import HostKPI from '../components/HostKPI';
-import type { Host } from '../api/types';
+import { usePolling } from '../context/PollingContext';
 
 export default function Dashboard() {
-  const [hosts, setHosts] = useState<Host[]>([]);
-  const [stageCounts, setStageCounts] = useState<Record<string, number>>({});
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const { hosts, lastUpdated } = usePolling();
 
-  const loadHostData = async () => {
-    try {
-      const res = await axios.get<{ data: Host[]; total: number }>('http://localhost:4000/api/hosts');
-      const hostsData = res.data.data; // ✅ correctly extract host array
-      setHosts(hostsData);
-
-      const counts: Record<string, number> = {};
-      hostsData.forEach((h) => {
-        const raw = h.pipelineStage?.trim().toLowerCase() || 'unassigned';
-        const stage = ['unassigned', 'active', 'reserved', 'staging', 'installing', 'broken'].includes(raw)
-          ? raw
-          : 'unassigned';
-        counts[stage] = (counts[stage] || 0) + 1;
-      });
-
-      setStageCounts(counts);
-      setLastUpdated(new Date());
-    } catch (err) {
-      console.error('Failed to load hosts:', err);
-    }
-  };
-
-  useEffect(() => {
-    loadHostData();
-  }, []);
+  const stageCounts = hosts.reduce((counts, h) => {
+    const raw = h.pipelineStage?.trim().toLowerCase() || 'unassigned';
+    const stage = ['unassigned', 'active', 'reserved', 'staging', 'installing', 'broken'].includes(raw)
+      ? raw
+      : 'unassigned';
+    counts[stage] = (counts[stage] || 0) + 1;
+    return counts;
+  }, {} as Record<string, number>);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">

@@ -77,3 +77,15 @@ model VM {
 
   @@unique([name, hostId])
 }
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  entity    String
+  entityId  Int
+  action    String    // e.g., "update", "refresh", "create"
+  field     String    // e.g., "pipelineStage"
+  oldValue  String?   // nullable for "create" or system actions
+  newValue  String?   // nullable for "delete" actions
+  user      String    // e.g., email or "system"
+  time      DateTime  @default(now())
+}

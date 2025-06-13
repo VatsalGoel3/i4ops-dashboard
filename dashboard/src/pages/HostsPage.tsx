@@ -3,7 +3,7 @@ import type { Host, HostFilters } from '../api/types';
 import HostFiltersComponent from '../components/Filters/HostFilters';
 import HostTable from '../components/HostTable';
 import HostDetailModal from '../components/HostDetailModal';
-import { usePolling } from '../context/PollingContext';
+import { useRealTimeContext } from '../context/RealTimeContext';
 
 function compareHostnames(a: string, b: string) {
   const hostRegex = /^([a-zA-Z]+)(\d+)$/;
@@ -16,7 +16,7 @@ function compareHostnames(a: string, b: string) {
 }
 
 export default function HostsPage() {
-  const { hosts: allHosts, triggerRefresh, loading } = usePolling();
+  const { hosts: allHosts } = useRealTimeContext();
 
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
   const [osOptions, setOsOptions] = useState<string[]>([]);
@@ -104,8 +104,8 @@ export default function HostsPage() {
   };
 
   const handleHostSave = () => {
-    triggerRefresh();
     setModalVisible(false);
+    // No triggerRefresh needed — SSE will push updates
   };
 
   const start = (page - 1) * pageSize + 1;
@@ -129,59 +129,57 @@ export default function HostsPage() {
               setFilters(f);
             }}
           />
+          {/* Optional Refresh Button (for fallback UX) */}
           <button
-            onClick={triggerRefresh}
-            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+            disabled
+            className="px-4 py-2 bg-indigo-400 text-white rounded-lg opacity-60 cursor-not-allowed"
+            title="Auto-refresh enabled"
           >
             Refresh
           </button>
         </div>
 
-        {loading ? (
-          <p className="text-gray-600 dark:text-gray-400">Loading hosts…</p>
-        ) : (
-          <>
-            <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-              Showing {start}–{end} of {total} hosts
-            </p>
-            <HostTable
-              hosts={displayedHosts}
-              sortField={sortField}
-              sortOrder={sortOrder}
-              onSortChange={(field) => {
-                if (field === sortField) {
-                  setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
-                } else {
-                  setSortField(field);
-                  setSortOrder('asc');
-                }
-              }}
-              onRowClick={handleRowClick}
-            />
+        <>
+          <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+            Showing {start}–{end} of {total} hosts
+          </p>
+          <HostTable
+            hosts={displayedHosts}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSortChange={(field) => {
+              if (field === sortField) {
+                setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
+              } else {
+                setSortField(field);
+                setSortOrder('asc');
+              }
+            }}
+            onRowClick={handleRowClick}
+          />
 
-            <div className="mt-4 flex justify-between items-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Page {page} of {Math.ceil(total / pageSize)}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
-                >
-                  Prev
-                </button>
-                <button
-                  disabled={page * pageSize >= total}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+          <div className="mt-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Page {page} of {Math.ceil(total / pageSize)}
             </div>
-          </>
-        )}
+            <div className="flex space-x-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
+              >
+                Prev
+              </button>
+              <button
+                disabled={page * pageSize >= total}
+                onClick={() => setPage((p) => p + 1)}
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
       </section>
 
       {modalVisible && selectedHost && (

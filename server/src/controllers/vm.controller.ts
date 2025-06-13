@@ -9,6 +9,7 @@ import {
   deleteVMService,
 } from '../services/vm.service';
 import { vmSchema } from '../schemas/vm.schema';
+import { broadcast } from '../events';
 
 const prisma = new PrismaClient();
 
@@ -80,6 +81,9 @@ export async function updateVM(req: Request, res: Response) {
         });
       }
     }
+
+    // 🔥 Broadcast updated VM via SSE
+    broadcast('vm-update', updated);
 
     res.json(updated);
   } catch (err) {

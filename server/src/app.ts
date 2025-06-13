@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import hostRoutes from './routes/host.routes';
 import vmRoutes from './routes/vm.routes';
 import pollHistoryRouter from './routes/api/poll-history';
+import auditLogRoutes from './routes/auditLogs';
+
 import { startPollingJob } from './jobs/poll-scheduler';
 
 dotenv.config();
@@ -20,6 +22,7 @@ app.get('/', (_req, res) => {
 app.use('/api/hosts', hostRoutes);
 app.use('/api/vms', vmRoutes);
 app.use('/api', pollHistoryRouter);
+app.use('/api/audit-logs', auditLogRoutes);
 
 startPollingJob();
 

@@ -18,6 +18,14 @@ interface Props {
   onSave: (updatedHost: Host) => void;
 }
 
+const pipelineStages = [
+  'Active',
+  'Broken',
+  'Installing',
+  'Reserved',
+  'Unassigned',
+];
+
 function capitalize(s: string) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 }
@@ -36,10 +44,10 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
     setSaving(true);
     setError('');
     setSuccess('');
-  
+
     try {
       const payload = {
-        pipelineStage: pipelineStage.trim().toLowerCase(),
+        pipelineStage: pipelineStage.trim(), // Fixed: Removed toLowerCase
         assignedTo,
         notes,
       };
@@ -56,7 +64,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
     } finally {
       setSaving(false);
     }
-  };  
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -90,33 +98,19 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
 
         {/* Info */}
         <ul className="space-y-2 text-sm mb-4">
-          <li>
-            <strong>IP:</strong> {host.ip}
-          </li>
-          <li>
-            <strong>OS:</strong> {host.os}
-          </li>
+          <li><strong>IP:</strong> {host.ip}</li>
+          <li><strong>OS:</strong> {host.os}</li>
           <li>
             <strong>Uptime:</strong>{' '}
             {host.uptime
-              ? `${Math.floor(host.uptime / 86400)}d ${Math.floor(
-                  (host.uptime % 86400) / 3600
-                )}h`
+              ? `${Math.floor(host.uptime / 86400)}d ${Math.floor((host.uptime % 86400) / 3600)}h`
               : 'N/A'}
           </li>
-          <li>
-            <strong>CPU Usage:</strong> {host.cpu}%
-          </li>
-          <li>
-            <strong>RAM Usage:</strong> {host.ram}%
-          </li>
-          <li>
-            <strong>Disk Usage:</strong> {host.disk}%
-          </li>
+          <li><strong>CPU Usage:</strong> {host.cpu}%</li>
+          <li><strong>RAM Usage:</strong> {host.ram}%</li>
+          <li><strong>Disk Usage:</strong> {host.disk}%</li>
           {host.vms.length > 0 && (
-            <li>
-              <strong>Total VMs:</strong> {host.vms.length}
-            </li>
+            <li><strong>Total VMs:</strong> {host.vms.length}</li>
           )}
         </ul>
 
@@ -132,12 +126,11 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
               value={pipelineStage}
               onChange={(e) => setPipelineStage(e.target.value)}
             >
-              <option value="Active">Active</option>
-              <option value="Broken">Broken</option>
-              <option value="Installing">Installing</option>
-              <option value="Reserved">Reserved</option>
-              <option value="Staging">Staging</option>
-              <option value="Unassigned">Unassigned</option>
+              {pipelineStages.map((stage) => (
+                <option key={stage} value={stage}>
+                  {stage}
+                </option>
+              ))}
             </select>
             <p className="mt-1 text-xs text-gray-500">
               Use the <strong>Notes</strong> field below to describe what’s being set up or debugged.
@@ -169,7 +162,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           </div>
         </div>
 
-        {/* Save Controls (Sticky Footer) */}
+        {/* Save Controls */}
         <div className="sticky bottom-0 bg-white dark:bg-gray-800 pt-3 pb-4 border-t">
           <div className="flex justify-between items-center">
             <button
@@ -198,10 +191,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
             <h4 className="text-sm font-medium mb-2">Per-VM CPU Usage:</h4>
             <div className="w-full h-48">
               <ResponsiveContainer>
-                <BarChart
-                  data={cpuData}
-                  margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                >
+                <BarChart data={cpuData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" tick={{ fontSize: 10 }} />
                   <YAxis domain={[0, 100]} allowDecimals={false} />

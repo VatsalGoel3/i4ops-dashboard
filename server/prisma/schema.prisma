@@ -19,10 +19,11 @@ enum VMStatus {
 }
 
 enum PipelineStage {
-  unassigned
-  installing
-  working
-  broken
+  Active
+  Installing
+  Broken
+  Reserved
+  Unassigned
 }
 
 model PollHistory {
@@ -45,7 +46,7 @@ model Host {
   disk          Float          // Disk usage %
 
   // ─── Manual Tracking Fields ───────────────────────────────
-  pipelineStage PipelineStage  @default(unassigned)
+  pipelineStage PipelineStage  @default(Unassigned)
   assignedTo    String?
   notes         String?
   updatedAt     DateTime       @default(now()) @updatedAt
@@ -67,7 +68,7 @@ model VM {
   networkMac    String?        // optional MAC
 
   // ─── Manual Tracking Fields ───────────────────────────────
-  pipelineStage PipelineStage  @default(unassigned)
+  pipelineStage PipelineStage  @default(Unassigned)
   assignedTo    String?
   notes         String?
   updatedAt     DateTime       @default(now()) @updatedAt
@@ -76,4 +77,16 @@ model VM {
   host          Host           @relation(fields: [hostId], references: [id])
 
   @@unique([name, hostId])
+}
+
+model AuditLog {
+  id        Int      @id @default(autoincrement())
+  entity    String
+  entityId  Int
+  action    String    // e.g., "update", "refresh", "create"
+  field     String    // e.g., "pipelineStage"
+  oldValue  String?   // nullable for "create" or system actions
+  newValue  String?   // nullable for "delete" actions
+  user      String    // e.g., email or "system"
+  time      DateTime  @default(now())
 }

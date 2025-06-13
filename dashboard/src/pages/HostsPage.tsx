@@ -104,7 +104,7 @@ export default function HostsPage() {
   };
 
   const handleHostSave = () => {
-    // No-op: rely on centralized polling to sync fresh host data
+    triggerRefresh();
     setModalVisible(false);
   };
 

@@ -54,7 +54,7 @@ export async function createVMService(data: any) {
       xml: data.xml,
       networkIp: data.networkIp,
       networkMac: data.networkMac,
-      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.unassigned,
+      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.Unassigned,
       assignedTo: data.assignedTo,
       notes: data.notes,
       host: { connect: { id: data.hostId } }

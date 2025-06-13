@@ -45,7 +45,7 @@ export async function createHostService(data: any) {
       cpu: data.cpu,
       ram: data.ram,
       disk: data.disk,
-      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.unassigned,
+      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.Unassigned,
       assignedTo: data.assignedTo,
       notes: data.notes
     }

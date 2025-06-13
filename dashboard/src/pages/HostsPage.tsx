@@ -38,7 +38,7 @@ export default function HostsPage() {
     setOsOptions(Array.from(new Set(allHosts.map((h) => h.os))).sort());
     setStatusOptions(Array.from(new Set(allHosts.map((h) => h.status))).sort());
     setVmCountOptions(
-      Array.from(new Set(allHosts.map((h) => h.vms.length))).sort((a, b) => a - b)
+      Array.from(new Set(allHosts.map((h) => h.vms?.length ?? 0))).sort((a, b) => a - b)
     );
   }, [allHosts]);
 
@@ -49,7 +49,7 @@ export default function HostsPage() {
     if (filters.os) list = list.filter((h) => h.os === filters.os);
     if (filters.status) list = list.filter((h) => h.status === filters.status);
     if (filters.vmCount !== undefined)
-      list = list.filter((h) => h.vms.length === filters.vmCount);
+      list = list.filter((h) => (h.vms?.length ?? 0) === filters.vmCount);
 
     list.sort((a, b) => {
       const aVal = a[sortField];
@@ -81,9 +81,9 @@ export default function HostsPage() {
       }
 
       if (sortField === 'vms') {
-        return sortOrder === 'asc'
-          ? a.vms.length - b.vms.length
-          : b.vms.length - a.vms.length;
+        const aLen = a.vms?.length ?? 0;
+        const bLen = b.vms?.length ?? 0;
+        return sortOrder === 'asc' ? aLen - bLen : bLen - aLen;
       }
 
       const aStr = String(aVal);
@@ -105,7 +105,7 @@ export default function HostsPage() {
 
   const handleHostSave = () => {
     setModalVisible(false);
-    // No triggerRefresh needed — SSE will push updates
+    // SSE will auto-update the UI
   };
 
   const start = (page - 1) * pageSize + 1;
@@ -129,7 +129,6 @@ export default function HostsPage() {
               setFilters(f);
             }}
           />
-          {/* Optional Refresh Button (for fallback UX) */}
           <button
             disabled
             className="px-4 py-2 bg-indigo-400 text-white rounded-lg opacity-60 cursor-not-allowed"

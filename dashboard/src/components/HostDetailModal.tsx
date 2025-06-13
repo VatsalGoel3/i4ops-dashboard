@@ -31,7 +31,8 @@ function capitalize(s: string) {
 }
 
 export default function HostDetailModal({ host, onClose, onSave }: Props) {
-  const cpuData = host.vms.map((vm) => ({ name: vm.name, cpu: vm.cpu }));
+  // ✅ Safely handle vms possibly being undefined
+  const cpuData = host.vms?.map((vm) => ({ name: vm.name, cpu: vm.cpu })) ?? [];
 
   const [pipelineStage, setPipelineStage] = useState<string>(host.pipelineStage);
   const [assignedTo, setAssignedTo] = useState<string>(host.assignedTo || '');
@@ -47,7 +48,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
 
     try {
       const payload = {
-        pipelineStage: pipelineStage.trim(), // Fixed: Removed toLowerCase
+        pipelineStage: pipelineStage.trim(),
         assignedTo,
         notes,
       };
@@ -80,7 +81,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           </button>
         </div>
 
-        {/* Badges for Status and Stage */}
+        {/* Badges */}
         <div className="flex items-center gap-4 mb-4">
           <span
             className={`inline-block px-2 py-1 text-xs rounded-full ${
@@ -109,16 +110,15 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           <li><strong>CPU Usage:</strong> {host.cpu}%</li>
           <li><strong>RAM Usage:</strong> {host.ram}%</li>
           <li><strong>Disk Usage:</strong> {host.disk}%</li>
-          {host.vms.length > 0 && (
+          {host.vms?.length ? (
             <li><strong>Total VMs:</strong> {host.vms.length}</li>
-          )}
+          ) : null}
         </ul>
 
         {/* Provisioning Form */}
         <div className="mb-4 border-t pt-4">
           <h4 className="text-md font-medium mb-2">Provisioning Status</h4>
 
-          {/* Stage Dropdown */}
           <div className="mb-2">
             <label className="block text-sm font-medium mb-1">Current Stage</label>
             <select
@@ -137,7 +137,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
             </p>
           </div>
 
-          {/* Assigned To */}
           <div className="mb-2">
             <label className="block text-sm font-medium mb-1">Assigned To</label>
             <input
@@ -149,7 +148,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
             />
           </div>
 
-          {/* Notes */}
           <div className="mb-2">
             <label className="block text-sm font-medium mb-1">Notes</label>
             <textarea
@@ -186,7 +184,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
         </div>
 
         {/* VM Chart */}
-        {host.vms.length > 0 && (
+        {cpuData.length > 0 && (
           <div className="mt-6">
             <h4 className="text-sm font-medium mb-2">Per-VM CPU Usage:</h4>
             <div className="w-full h-48">

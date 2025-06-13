@@ -9,6 +9,7 @@ import {
   deleteHostService,
 } from '../services/host.service';
 import { hostSchema } from '../schemas/host.schema';
+import { broadcast } from '../events';
 
 const prisma = new PrismaClient();
 
@@ -62,6 +63,7 @@ export async function updateHost(req: Request, res: Response) {
 
     const updated = await updateHostService(id, result.data);
 
+    // Audit logging
     const user = (req.headers['x-user-email'] as string) || 'unknown';
     for (const field of Object.keys(result.data)) {
       const oldValue = (oldHost as any)[field];
@@ -80,6 +82,9 @@ export async function updateHost(req: Request, res: Response) {
         });
       }
     }
+
+    // 🔥 Broadcast updated host via SSE
+    broadcast('host-update', updated);
 
     res.json(updated);
   } catch (err) {

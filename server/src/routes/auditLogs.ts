@@ -3,9 +3,8 @@ import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
 
 const router = express.Router();
-const prisma = new PrismaClient(); // Initialize Prisma client
+const prisma = new PrismaClient();
 
-// Schema to validate query params
 const querySchema = z.object({
   entity: z.enum(['Host', 'VM']),
   entityId: z.coerce.number().int().positive(),

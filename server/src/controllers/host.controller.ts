@@ -1,17 +1,21 @@
 import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
 import {
   getAllHostsService,
   getHostByIdService,
   createHostService,
   updateHostService,
-  deleteHostService
+  deleteHostService,
 } from '../services/host.service';
 import { hostSchema } from '../schemas/host.schema';
+
+const prisma = new PrismaClient();
 
 export async function getAllHosts(req: Request, res: Response) {
   try {
     const result = await getAllHostsService(req.query);
-    res.json(result); // { data, totalCount }
+    res.json(result);
   } catch (err) {
     console.error('Error fetching hosts:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -53,7 +57,30 @@ export async function updateHost(req: Request, res: Response) {
   }
 
   try {
+    const oldHost = await getHostByIdService(id);
+    if (!oldHost) return res.status(404).json({ error: 'Host not found' });
+
     const updated = await updateHostService(id, result.data);
+
+    const user = (req.headers['x-user-email'] as string) || 'unknown';
+    for (const field of Object.keys(result.data)) {
+      const oldValue = (oldHost as any)[field];
+      const newValue = (result.data as any)[field];
+      if (oldValue !== newValue) {
+        await prisma.auditLog.create({
+          data: {
+            entity: 'Host',
+            entityId: id,
+            action: 'update',
+            field,
+            oldValue: oldValue != null ? String(oldValue) : null,
+            newValue: newValue != null ? String(newValue) : null,
+            user,
+          },
+        });
+      }
+    }
+
     res.json(updated);
   } catch (err) {
     console.error('Error updating host:', err);

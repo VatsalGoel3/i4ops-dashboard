@@ -1,17 +1,21 @@
 import { Request, Response } from 'express';
+import { PrismaClient } from '@prisma/client';
+
 import {
   getAllVMsService,
   getVMByIdService,
   createVMService,
   updateVMService,
-  deleteVMService
+  deleteVMService,
 } from '../services/vm.service';
 import { vmSchema } from '../schemas/vm.schema';
+
+const prisma = new PrismaClient();
 
 export async function getAllVMs(req: Request, res: Response) {
   try {
     const result = await getAllVMsService(req.query);
-    res.json(result); // { data, totalCount }
+    res.json(result);
   } catch (err) {
     console.error('Error fetching VMs:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -53,7 +57,30 @@ export async function updateVM(req: Request, res: Response) {
   }
 
   try {
+    const oldVM = await getVMByIdService(id);
+    if (!oldVM) return res.status(404).json({ error: 'VM not found' });
+
     const updated = await updateVMService(id, result.data);
+
+    const user = (req.headers['x-user-email'] as string) || 'unknown';
+    for (const field of Object.keys(result.data)) {
+      const oldValue = (oldVM as any)[field];
+      const newValue = (result.data as any)[field];
+      if (oldValue !== newValue) {
+        await prisma.auditLog.create({
+          data: {
+            entity: 'VM',
+            entityId: id,
+            action: 'update',
+            field,
+            oldValue: oldValue != null ? String(oldValue) : null,
+            newValue: newValue != null ? String(newValue) : null,
+            user,
+          },
+        });
+      }
+    }
+
     res.json(updated);
   } catch (err) {
     console.error('Error updating VM:', err);
@@ -64,9 +91,7 @@ export async function updateVM(req: Request, res: Response) {
 export async function deleteVM(req: Request, res: Response) {
   try {
     const id = Number(req.params.id);
-    const deleted = await deleteVMService(id);
-
-    // Even if it was already deleted, return 204 for idempotency
+    await deleteVMService(id);
     return res.status(204).send();
   } catch (err) {
     console.error('Error deleting VM:', err);

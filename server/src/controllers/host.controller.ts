@@ -9,6 +9,7 @@ import {
   deleteHostService,
 } from '../services/host.service';
 import { hostSchema } from '../schemas/host.schema';
+import { broadcast } from '../events';
 
 const prisma = new PrismaClient();
 
@@ -60,7 +61,7 @@ export async function updateHost(req: Request, res: Response) {
     const oldHost = await getHostByIdService(id);
     if (!oldHost) return res.status(404).json({ error: 'Host not found' });
 
-    const updated = await updateHostService(id, result.data);
+    await updateHostService(id, result.data);
 
     const user = (req.headers['x-user-email'] as string) || 'unknown';
     for (const field of Object.keys(result.data)) {
@@ -81,7 +82,17 @@ export async function updateHost(req: Request, res: Response) {
       }
     }
 
-    res.json(updated);
+    // 🔁 Re-fetch updated host with VMs
+    const fullHost = await prisma.host.findUnique({
+      where: { id },
+      include: { vms: true },
+    });
+    if (!fullHost) return res.status(404).json({ error: 'Host not found after update' });
+
+    // 📡 Broadcast full host with VMs
+    broadcast('host-update', fullHost);
+
+    res.json(fullHost);
   } catch (err) {
     console.error('Error updating host:', err);
     res.status(500).json({ error: 'Internal server error' });

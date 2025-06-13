@@ -9,6 +9,7 @@ import {
   deleteVMService,
 } from '../services/vm.service';
 import { vmSchema } from '../schemas/vm.schema';
+import { broadcast } from '../events';
 
 const prisma = new PrismaClient();
 
@@ -60,7 +61,7 @@ export async function updateVM(req: Request, res: Response) {
     const oldVM = await getVMByIdService(id);
     if (!oldVM) return res.status(404).json({ error: 'VM not found' });
 
-    const updated = await updateVMService(id, result.data);
+    await updateVMService(id, result.data);
 
     const user = (req.headers['x-user-email'] as string) || 'unknown';
     for (const field of Object.keys(result.data)) {
@@ -81,7 +82,17 @@ export async function updateVM(req: Request, res: Response) {
       }
     }
 
-    res.json(updated);
+    // 🔁 Re-fetch updated VM with host included
+    const fullVM = await prisma.vM.findUnique({
+      where: { id },
+      include: { host: true },
+    });
+    if (!fullVM) return res.status(404).json({ error: 'VM not found after update' });
+
+    // 📡 Broadcast full VM with host
+    broadcast('vm-update', fullVM);
+
+    res.json(fullVM);
   } catch (err) {
     console.error('Error updating VM:', err);
     res.status(500).json({ error: 'Internal server error' });

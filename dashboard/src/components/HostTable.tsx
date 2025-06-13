@@ -90,7 +90,9 @@ export default function HostTable({
                   {capitalize(host.pipelineStage)}
                 </span>
               </td>
-              <td className="text-right px-4 py-2 text-sm">{host.vms.length}</td>
+              <td className="text-right px-4 py-2 text-sm">
+                {host.vms?.length ?? 0}
+              </td>
             </tr>
           ))}
         </tbody>

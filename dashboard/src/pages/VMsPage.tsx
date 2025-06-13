@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import type { VM, VMFilters } from '../api/types';
 import VMFiltersComponent from '../components/Filters/VMFilters';
 import VMTable from '../components/VMTable';
-import { usePolling } from '../context/PollingContext';
+import { useRealTimeContext } from '../context/RealTimeContext';
 
 export default function VMsPage() {
-  const { vms: allVMs, triggerRefresh, loading } = usePolling();
+  const { vms: allVMs } = useRealTimeContext();
 
   const [displayedVMs, setDisplayedVMs] = useState<VM[]>([]);
   const [hostOptions, setHostOptions] = useState<{ name: string; id: number }[]>([]);
@@ -93,56 +93,55 @@ export default function VMsPage() {
             setFilters(f);
           }}
         />
+        {/* Optional: remove or disable refresh button since data is live */}
         <button
-          onClick={triggerRefresh}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
+          disabled
+          className="px-4 py-2 bg-indigo-400 text-white rounded opacity-60 cursor-not-allowed"
+          title="Auto-refresh enabled"
         >
           Refresh
         </button>
       </div>
-      {loading ? (
-        <p>Loading VMs…</p>
-      ) : (
-        <>
-          <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-            Showing {start}–{end} of {total} VMs
-          </p>
-          <VMTable
-            vms={displayedVMs}
-            sortField={sortField}
-            sortOrder={sortOrder}
-            onSortChange={field => {
-              if (field === sortField) {
-                setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
-              } else {
-                setSortField(field);
-                setSortOrder('asc');
-              }
-            }}
-          />
-          <div className="mt-4 flex justify-between items-center">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Page {page} of {Math.ceil(total / pageSize)}
-            </div>
-            <div className="flex space-x-2">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
-              >
-                Prev
-              </button>
-              <button
-                disabled={page * pageSize >= total}
-                onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
+
+      <>
+        <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
+          Showing {start}–{end} of {total} VMs
+        </p>
+        <VMTable
+          vms={displayedVMs}
+          sortField={sortField}
+          sortOrder={sortOrder}
+          onSortChange={field => {
+            if (field === sortField) {
+              setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
+            } else {
+              setSortField(field);
+              setSortOrder('asc');
+            }
+          }}
+        />
+        <div className="mt-4 flex justify-between items-center">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Page {page} of {Math.ceil(total / pageSize)}
           </div>
-        </>
-      )}
+          <div className="flex space-x-2">
+            <button
+              disabled={page === 1}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
+            >
+              Prev
+            </button>
+            <button
+              disabled={page * pageSize >= total}
+              onClick={() => setPage(p => p + 1)}
+              className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </>
     </section>
   );
 }

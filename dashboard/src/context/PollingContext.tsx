@@ -29,9 +29,6 @@ export function PollingProvider({ children }: { children: ReactNode }) {
       setVMs(vmRes.data.data);
       setLastUpdated(new Date());
 
-      // 💡 Audit placeholder
-      console.log('[Audit] Data refreshed at', new Date().toISOString());
-
     } catch (err) {
       console.error('Polling failed:', err);
     } finally {

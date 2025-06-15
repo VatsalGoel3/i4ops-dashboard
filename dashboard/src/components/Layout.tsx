@@ -1,11 +1,9 @@
 import { useState, type ReactNode } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
-import { useRealTimeContext } from '../context/RealTimeContext';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const { lastUpdated } = useRealTimeContext();
 
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">

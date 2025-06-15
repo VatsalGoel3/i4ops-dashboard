@@ -13,12 +13,6 @@ export default function Layout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col">
         <Header onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)} />
         
-        {lastUpdated && (
-          <div className="text-sm text-gray-600 dark:text-gray-400 px-6 py-1 text-right">
-            Last updated: {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </div>
-        )}
-        
         <main className="flex-1 p-6 space-y-6">
           {children}
         </main>

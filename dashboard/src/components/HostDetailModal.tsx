@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import axios from 'axios';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface Props {
   host: Host;
@@ -32,30 +33,18 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
   const [assignedTo, setAssignedTo] = useState<string>(host.assignedTo || '');
   const [notes, setNotes] = useState<string>(host.notes || '');
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
 
   const handleSave = async () => {
     setSaving(true);
-    setError('');
-    setSuccess('');
-
     try {
-      const payload = {
-        pipelineStage,
-        assignedTo,
-        notes,
-      };
+      const payload = { pipelineStage, assignedTo, notes };
       await axios.put(`http://localhost:4000/api/hosts/${host.id}`, payload);
-      const updatedHost: Host = {
-        ...host,
-        ...payload,
-      };
-      setSuccess('Saved successfully!');
+      const updatedHost: Host = { ...host, ...payload };
+      toast.success(`✅ Host '${host.name}' saved!`);
       onSave(updatedHost);
     } catch (err) {
       console.error('Failed to update host:', err);
-      setError('Failed to save. Please try again.');
+      toast.error(`❌ Failed to save host`);
     } finally {
       setSaving(false);
     }
@@ -168,8 +157,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
               Close
             </button>
           </div>
-          {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-          {success && <p className="mt-2 text-sm text-green-600">{success}</p>}
         </div>
 
         {cpuData.length > 0 && (

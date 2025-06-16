@@ -3,7 +3,7 @@ import type { Host, HostFilters } from '../api/types';
 import HostFiltersComponent from '../components/Filters/HostFilters';
 import HostTable from '../components/HostTable';
 import HostDetailModal from '../components/HostDetailModal';
-import { useDataContext } from '../context/DataContext'; // ✅ replaced RealTimeContext
+import { useDataContext } from '../context/DataContext';
 
 function compareHostnames(a: string, b: string) {
   const hostRegex = /^([a-zA-Z]+)(\d+)$/;
@@ -16,7 +16,7 @@ function compareHostnames(a: string, b: string) {
 }
 
 export default function HostsPage() {
-  const { hosts: allHosts } = useDataContext(); // ✅ updated hook
+  const { hosts: allHosts } = useDataContext();
 
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
   const [osOptions, setOsOptions] = useState<string[]>([]);

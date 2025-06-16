@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
+import { toast } from 'sonner';
+
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { useDataContext } from '../context/DataContext';
 import SettingsSection from '../components/SettingsSection';
 
 export default function SettingsPage() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { darkMode, toggleDarkMode, pageSize, setPageSize } = useUI();
   const { hosts } = useDataContext();
 
@@ -16,8 +18,14 @@ export default function SettingsPage() {
   const [lastPoll, setLastPoll] = useState<string>('Loading...');
 
   useEffect(() => {
-    fetch('/version.txt').then(res => res.text()).then(setVersion).catch(() => setVersion('unknown'));
-    fetch('/healthz').then(res => res.ok ? setHealth('Healthy') : setHealth('Unavailable')).catch(() => setHealth('Unavailable'));
+    fetch('/version.txt')
+      .then(res => res.text())
+      .then(setVersion)
+      .catch(() => setVersion('unknown'));
+
+    fetch('/healthz')
+      .then(res => res.ok ? setHealth('Healthy') : setHealth('Unavailable'))
+      .catch(() => setHealth('Unavailable'));
 
     const timer = setInterval(() => {
       setSseStatus(Math.random() > 0.05 ? 'connected' : 'disconnected');
@@ -54,30 +62,49 @@ export default function SettingsPage() {
     a.download = 'hosts.csv';
     a.click();
     URL.revokeObjectURL(url);
+
+    toast.success('Exported Hosts CSV');
   };
 
   return (
     <div className="p-6 space-y-6">
       <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h2>
 
+      {/* GENERAL */}
       <SettingsSection title="General">
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <li><strong>Real-time updates:</strong> {sseStatus === 'connected' ? '✅ Connected (SSE)' : '❌ Disconnected'}</li>
+          <li>
+            <strong>Real-time updates:</strong>{' '}
+            <span
+              className={`inline-block px-2 py-1 text-xs rounded-full ${
+                sseStatus === 'connected'
+                  ? 'bg-green-100 text-green-800'
+                  : 'bg-red-100 text-red-800'
+              }`}
+            >
+              {sseStatus === 'connected' ? 'Connected (SSE)' : 'Disconnected'}
+            </span>
+          </li>
           <li><strong>Polling interval:</strong> 30s (read-only)</li>
           <li><strong>Last poll:</strong> {lastPoll}</li>
         </ul>
       </SettingsSection>
 
+      {/* USER INFO */}
       <SettingsSection title="User Info">
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <li><strong>Email:</strong> admin@test.com</li>
-          <li><strong>Role:</strong> admin (placeholder)</li>
+          <li><strong>Email:</strong> {user?.email || 'unknown'}</li>
+          <li><strong>Role:</strong> {user?.user_metadata?.role || 'viewer'}</li>
         </ul>
-        <button className="mt-3 px-3 py-1 bg-red-500 text-white rounded text-xs" onClick={signOut}>
+        <button
+          className="mt-3 px-3 py-1 bg-red-500 text-white rounded text-xs"
+          onClick={signOut}
+        >
           Log out
         </button>
       </SettingsSection>
 
+      {/* APPEARANCE */}
       <SettingsSection title="Appearance">
         <div className="flex items-center gap-4 flex-wrap">
           <label className="flex items-center space-x-2">
@@ -104,6 +131,7 @@ export default function SettingsPage() {
         </div>
       </SettingsSection>
 
+      {/* DIAGNOSTICS */}
       <SettingsSection title="Diagnostics">
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li><strong>App Version:</strong> {version}</li>
@@ -111,6 +139,7 @@ export default function SettingsPage() {
         </ul>
       </SettingsSection>
 
+      {/* ADMIN TOOLS */}
       <SettingsSection title="Admin Tools">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
           <button
@@ -130,6 +159,7 @@ export default function SettingsPage() {
             onClick={() => {
               localStorage.removeItem('dark-mode');
               localStorage.removeItem('ui-page-size');
+              toast.success('UI preferences reset');
               window.location.reload();
             }}
           >

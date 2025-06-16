@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import { AuthProvider } from './context/AuthContext';
-import { RealTimeProvider } from './context/RealTimeContext';
+import { DataProvider } from './context/DataContext';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/Dashboard';
@@ -12,11 +12,11 @@ import VMsPage from './pages/VMsPage';
 export default function App() {
   return (
     <AuthProvider>
-      <RealTimeProvider>
+      <DataProvider> {/* ✅ replaces RealTimeProvider */}
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<LoginPage />} />
-          
+
           <Route
             path="/dashboard"
             element={
@@ -48,7 +48,7 @@ export default function App() {
             }
           />
         </Routes>
-      </RealTimeProvider>
+      </DataProvider>
     </AuthProvider>
   );
 }

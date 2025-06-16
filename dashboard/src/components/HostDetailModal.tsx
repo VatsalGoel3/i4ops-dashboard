@@ -40,15 +40,15 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
       const payload = { pipelineStage, assignedTo, notes };
       await axios.put(`http://localhost:4000/api/hosts/${host.id}`, payload);
       const updatedHost: Host = { ...host, ...payload };
-      toast.success(`✅ Host '${host.name}' saved!`);
+      toast.success(`Host '${host.name}' saved successfully.`);
       onSave(updatedHost);
     } catch (err) {
       console.error('Failed to update host:', err);
-      toast.error(`❌ Failed to save host`);
+      toast.error(`Failed to save host`);
     } finally {
       setSaving(false);
     }
-  };
+  };  
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">

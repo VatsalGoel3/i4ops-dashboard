@@ -33,7 +33,6 @@ export default function HostsPage() {
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Extract options once hosts are available
   useEffect(() => {
     setOsOptions(Array.from(new Set(allHosts.map((h) => h.os))).sort());
     setStatusOptions(Array.from(new Set(allHosts.map((h) => h.status))).sort());
@@ -42,7 +41,6 @@ export default function HostsPage() {
     );
   }, [allHosts]);
 
-  // Filtering, sorting, pagination
   useEffect(() => {
     let list = [...allHosts];
 
@@ -86,6 +84,12 @@ export default function HostsPage() {
         return sortOrder === 'asc' ? aLen - bLen : bLen - aLen;
       }
 
+      if (sortField === 'pipelineStage') {
+        return sortOrder === 'asc'
+          ? a.pipelineStage.localeCompare(b.pipelineStage)
+          : b.pipelineStage.localeCompare(a.pipelineStage);
+      }
+
       const aStr = String(aVal);
       const bStr = String(bVal);
       return sortOrder === 'asc'
@@ -105,7 +109,6 @@ export default function HostsPage() {
 
   const handleHostSave = () => {
     setModalVisible(false);
-    // SSE will auto-update the UI
   };
 
   const start = (page - 1) * pageSize + 1;

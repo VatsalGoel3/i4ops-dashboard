@@ -1,5 +1,6 @@
 import { X } from 'lucide-react';
 import type { Host } from '../api/types';
+import { PipelineStage } from '../api/types';
 import {
   BarChart,
   Bar,
@@ -18,23 +19,16 @@ interface Props {
   onSave: (updatedHost: Host) => void;
 }
 
-const pipelineStages = [
-  'Active',
-  'Broken',
-  'Installing',
-  'Reserved',
-  'Unassigned',
-];
+const pipelineStages = Object.values(PipelineStage);
 
 function capitalize(s: string) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
 }
 
 export default function HostDetailModal({ host, onClose, onSave }: Props) {
-  // ✅ Safely handle vms possibly being undefined
   const cpuData = host.vms?.map((vm) => ({ name: vm.name, cpu: vm.cpu })) ?? [];
 
-  const [pipelineStage, setPipelineStage] = useState<string>(host.pipelineStage);
+  const [pipelineStage, setPipelineStage] = useState<PipelineStage>(host.pipelineStage);
   const [assignedTo, setAssignedTo] = useState<string>(host.assignedTo || '');
   const [notes, setNotes] = useState<string>(host.notes || '');
   const [saving, setSaving] = useState(false);
@@ -48,7 +42,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
 
     try {
       const payload = {
-        pipelineStage: pipelineStage.trim(),
+        pipelineStage,
         assignedTo,
         notes,
       };
@@ -70,7 +64,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-lg shadow-lg max-h-[90vh] overflow-y-auto relative">
-        {/* Header */}
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Host Details: {host.name}</h3>
           <button
@@ -81,7 +74,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           </button>
         </div>
 
-        {/* Badges */}
         <div className="flex items-center gap-4 mb-4">
           <span
             className={`inline-block px-2 py-1 text-xs rounded-full ${
@@ -97,7 +89,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           </span>
         </div>
 
-        {/* Info */}
         <ul className="space-y-2 text-sm mb-4">
           <li><strong>IP:</strong> {host.ip}</li>
           <li><strong>OS:</strong> {host.os}</li>
@@ -115,7 +106,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           ) : null}
         </ul>
 
-        {/* Provisioning Form */}
         <div className="mb-4 border-t pt-4">
           <h4 className="text-md font-medium mb-2">Provisioning Status</h4>
 
@@ -124,7 +114,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
             <select
               className="border rounded p-1 w-full text-sm"
               value={pipelineStage}
-              onChange={(e) => setPipelineStage(e.target.value)}
+              onChange={(e) => setPipelineStage(e.target.value as PipelineStage)}
             >
               {pipelineStages.map((stage) => (
                 <option key={stage} value={stage}>
@@ -160,7 +150,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           </div>
         </div>
 
-        {/* Save Controls */}
         <div className="sticky bottom-0 bg-white dark:bg-gray-800 pt-3 pb-4 border-t">
           <div className="flex justify-between items-center">
             <button
@@ -183,7 +172,6 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           {success && <p className="mt-2 text-sm text-green-600">{success}</p>}
         </div>
 
-        {/* VM Chart */}
         {cpuData.length > 0 && (
           <div className="mt-6">
             <h4 className="text-sm font-medium mb-2">Per-VM CPU Usage:</h4>

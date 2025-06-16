@@ -87,7 +87,7 @@ export default function HostTable({
               </td>
               <td className="px-4 py-2 text-sm">
                 <span className="inline-block rounded px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                  {capitalize(host.pipelineStage)}
+                  {host.pipelineStage}
                 </span>
               </td>
               <td className="text-right px-4 py-2 text-sm">

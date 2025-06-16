@@ -1,3 +1,11 @@
+export enum PipelineStage {
+  Unassigned = 'Unassigned',
+  Active = 'Active',
+  Installing = 'Installing',
+  Reserved = 'Reserved',
+  Broken = 'Broken',
+}
+
 export interface VM {
   id: number;
   name: string;
@@ -11,7 +19,7 @@ export interface VM {
   networkIp: string | null;
   networkMac: string | null;
   hostId: number;
-  pipelineStage: string;
+  pipelineStage: PipelineStage;
   assignedTo?: string | null;
   notes?: string | null;
   updatedAt: string;
@@ -32,7 +40,7 @@ export interface Host {
   cpu: number;
   ram: number;
   disk: number;
-  pipelineStage: string;
+  pipelineStage: PipelineStage;
   assignedTo?: string | null;
   notes?: string | null;
   updatedAt: string;

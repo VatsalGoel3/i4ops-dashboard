@@ -2,11 +2,11 @@ import HostStatusPie from '../components/charts/HostStatusPie';
 import HostUptimeHistory from '../components/charts/HostUptimeHistory';
 import TopVMsChart from '../components/charts/TopVMsChart';
 import HostKPI from '../components/HostKPI';
-import { useRealTimeContext } from '../context/RealTimeContext';
+import { useDataContext } from '../context/DataContext';
 import { PipelineStage } from '../api/types';
 
 export default function Dashboard() {
-  const { hosts, lastUpdated } = useRealTimeContext();
+  const { hosts, lastUpdated } = useDataContext();
 
   const stageCounts = hosts.reduce((counts, h) => {
     const stage = h.pipelineStage || PipelineStage.Unassigned;

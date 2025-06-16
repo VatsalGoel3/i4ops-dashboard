@@ -1,71 +1,99 @@
 import { useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useUI } from '../context/UIContext';
+import { useDataContext } from '../context/DataContext';
+import SettingsSection from '../components/SettingsSection';
 
 export default function SettingsPage() {
+  const { signOut } = useAuth();
+  const { darkMode, toggleDarkMode, pageSize, setPageSize } = useUI();
+  const { hosts } = useDataContext();
+
   const [version, setVersion] = useState('...');
   const [health, setHealth] = useState('...');
   const [sseStatus, setSseStatus] = useState<'connected' | 'disconnected'>('connected');
   const [lastPoll, setLastPoll] = useState<string>('Loading...');
-  const [email] = useState('you@example.com'); // Replace with real auth
-  const [role] = useState<'admin' | 'viewer'>('admin'); // Replace with useRole()
-  const [darkMode, setDarkMode] = useState(false);
-  const [pageSize, setPageSize] = useState(15);
 
   useEffect(() => {
     fetch('/version.txt').then(res => res.text()).then(setVersion).catch(() => setVersion('unknown'));
-    fetch('/healthz').then(res => res.ok ? setHealth('Healthy') : setHealth('Degraded')).catch(() => setHealth('Unavailable'));
+    fetch('/healthz').then(res => res.ok ? setHealth('Healthy') : setHealth('Unavailable')).catch(() => setHealth('Unavailable'));
 
     const timer = setInterval(() => {
-      // Simulate heartbeat check
       setSseStatus(Math.random() > 0.05 ? 'connected' : 'disconnected');
       setLastPoll(new Date().toLocaleTimeString());
     }, 5000);
+
     return () => clearInterval(timer);
   }, []);
 
-  return (
-    <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 space-y-8">
-      <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
-        Settings
-      </h2>
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPageSize(Number(e.target.value));
+  };
 
-      {/* General */}
-      <div>
-        <h3 className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-200">General</h3>
+  const exportHostsCSV = () => {
+    const headers = ['Name', 'IP', 'OS', 'Status', 'Uptime', 'VM Count'];
+    const rows = hosts.map(h => [
+      h.name,
+      h.ip,
+      h.os,
+      h.status,
+      `${Math.floor(h.uptime / 86400)}d`,
+      h.vms?.length ?? 0,
+    ]);
+
+    const csv = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'hosts.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h2>
+
+      <SettingsSection title="General">
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li><strong>Real-time updates:</strong> {sseStatus === 'connected' ? '✅ Connected (SSE)' : '❌ Disconnected'}</li>
           <li><strong>Polling interval:</strong> 30s (read-only)</li>
           <li><strong>Last poll:</strong> {lastPoll}</li>
         </ul>
-      </div>
+      </SettingsSection>
 
-      {/* User Info */}
-      <div>
-        <h3 className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-200">User Info</h3>
+      <SettingsSection title="User Info">
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <li><strong>Email:</strong> {email}</li>
-          <li><strong>Role:</strong> {role}</li>
-          <li><button className="mt-2 px-3 py-1 bg-red-500 text-white rounded-md text-xs">Log out</button></li>
+          <li><strong>Email:</strong> admin@test.com</li>
+          <li><strong>Role:</strong> admin (placeholder)</li>
         </ul>
-      </div>
+        <button className="mt-3 px-3 py-1 bg-red-500 text-white rounded text-xs" onClick={signOut}>
+          Log out
+        </button>
+      </SettingsSection>
 
-      {/* Appearance */}
-      <div>
-        <h3 className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-200">Appearance</h3>
-        <div className="flex items-center space-x-4 text-sm">
+      <SettingsSection title="Appearance">
+        <div className="flex items-center gap-4 flex-wrap">
           <label className="flex items-center space-x-2">
             <input
               type="checkbox"
               checked={darkMode}
-              onChange={() => setDarkMode(!darkMode)}
+              onChange={toggleDarkMode}
               className="form-checkbox"
             />
-            <span>Dark Mode</span>
+            <span className="text-sm">Dark Mode</span>
           </label>
           <label className="flex items-center space-x-2">
-            <span>Table Page Size</span>
+            <span className="text-sm">Table Page Size</span>
             <select
               value={pageSize}
-              onChange={(e) => setPageSize(Number(e.target.value))}
+              onChange={handlePageSizeChange}
               className="bg-gray-200 dark:bg-gray-700 p-1 rounded"
             >
               <option value={15}>15</option>
@@ -74,29 +102,41 @@ export default function SettingsPage() {
             </select>
           </label>
         </div>
-      </div>
+      </SettingsSection>
 
-      {/* Diagnostics */}
-      <div>
-        <h3 className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-200">Diagnostics</h3>
+      <SettingsSection title="Diagnostics">
         <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
           <li><strong>App Version:</strong> {version}</li>
           <li><strong>Backend Health:</strong> {health}</li>
         </ul>
-      </div>
+      </SettingsSection>
 
-      {/* Admin Tools */}
-      <div>
-        <h3 className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-200">Admin Tools</h3>
-        <div className="flex flex-col gap-2 text-sm">
-          <button className="bg-indigo-500 text-white px-3 py-1 rounded">Export Hosts CSV</button>
-          <button className="bg-indigo-500 text-white px-3 py-1 rounded opacity-50 cursor-not-allowed" disabled>Export Audit Logs (coming soon)</button>
-          <button className="bg-gray-700 text-white px-3 py-1 rounded" onClick={() => {
-            localStorage.clear();
-            window.location.reload();
-          }}>Reset UI Preferences</button>
+      <SettingsSection title="Admin Tools">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <button
+            className="bg-indigo-500 text-white px-3 py-1 rounded flex items-center justify-center"
+            onClick={exportHostsCSV}
+          >
+            <Download className="w-4 h-4 mr-2" /> Export Hosts CSV
+          </button>
+          <button
+            className="bg-indigo-500 text-white px-3 py-1 rounded opacity-50 cursor-not-allowed"
+            disabled
+          >
+            Export Audit Logs (coming soon)
+          </button>
+          <button
+            className="bg-gray-700 text-white px-3 py-1 rounded"
+            onClick={() => {
+              localStorage.removeItem('dark-mode');
+              localStorage.removeItem('ui-page-size');
+              window.location.reload();
+            }}
+          >
+            Reset UI Preferences
+          </button>
         </div>
-      </div>
-    </section>
+      </SettingsSection>
+    </div>
   );
 }

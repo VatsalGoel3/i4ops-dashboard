@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import type { VM, VMFilters } from '../api/types';
 import VMFiltersComponent from '../components/Filters/VMFilters';
 import VMTable from '../components/VMTable';
-import { useRealTimeContext } from '../context/RealTimeContext';
+import { useDataContext } from '../context/DataContext';
 
 export default function VMsPage() {
-  const { vms: allVMs } = useRealTimeContext();
+  const { vms: allVMs } = useDataContext();
 
   const [displayedVMs, setDisplayedVMs] = useState<VM[]>([]);
   const [hostOptions, setHostOptions] = useState<{ name: string; id: number }[]>([]);
@@ -93,7 +93,6 @@ export default function VMsPage() {
             setFilters(f);
           }}
         />
-        {/* Optional: remove or disable refresh button since data is live */}
         <button
           disabled
           className="px-4 py-2 bg-indigo-400 text-white rounded opacity-60 cursor-not-allowed"

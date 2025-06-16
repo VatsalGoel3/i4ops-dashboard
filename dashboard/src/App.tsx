@@ -1,8 +1,8 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
-import RequireAuth from './components/RequireAuth';
-import { AuthProvider } from './context/AuthContext';
-import { DataProvider } from './context/DataContext';
+import RequireAuth from './components/RequireAuth.tsx';
+import { AuthProvider } from './context/AuthContext.tsx';
+import { DataProvider } from './context/DataContext.tsx';
 
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/Dashboard';
@@ -12,7 +12,7 @@ import VMsPage from './pages/VMsPage';
 export default function App() {
   return (
     <AuthProvider>
-      <DataProvider> {/* ✅ replaces RealTimeProvider */}
+      <DataProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/login" element={<LoginPage />} />

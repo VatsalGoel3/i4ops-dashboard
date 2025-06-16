@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/Dashboard';
 import HostsPage from './pages/HostsPage';
 import VMsPage from './pages/VMsPage';
+import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
   return (
@@ -43,6 +44,16 @@ export default function App() {
               <RequireAuth>
                 <Layout>
                   <VMsPage />
+                </Layout>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/settings"  // Add the new route for Settings page
+            element={
+              <RequireAuth>
+                <Layout>
+                  <SettingsPage />
                 </Layout>
               </RequireAuth>
             }

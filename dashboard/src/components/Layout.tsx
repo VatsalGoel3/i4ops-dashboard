@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
+import { Toaster } from 'sonner';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -10,11 +11,12 @@ export default function Layout({ children }: { children: ReactNode }) {
       <Sidebar collapsed={sidebarCollapsed} />
       <div className="flex-1 flex flex-col">
         <Header onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)} />
-        
+
         <main className="flex-1 p-6 space-y-6">
           {children}
         </main>
       </div>
+      <Toaster richColors position="bottom-right" />
     </div>
   );
 }

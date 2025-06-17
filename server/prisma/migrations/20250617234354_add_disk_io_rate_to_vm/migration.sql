@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "VM" ADD COLUMN     "diskIoRate" DOUBLE PRECISION;

@@ -66,7 +66,7 @@ model VM {
   networkIp     String?
   networkMac    String?
 
-  // 🔧 New field for telemetry matching
+  // New field for telemetry matching
   machineId     String?        @unique
 
   pipelineStage PipelineStage  @default(Unassigned)
@@ -78,6 +78,9 @@ model VM {
   host          Host           @relation(fields: [hostId], references: [id])
 
   @@unique([name, hostId])
+
+  // Added for telemetry: disk I/O bytes/sec
+  diskIoRate    Float?
 }
 
 model AuditLog {

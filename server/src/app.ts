@@ -7,6 +7,7 @@ import vmRoutes from './routes/vm.routes';
 import pollHistoryRouter from './routes/api/poll-history';
 import auditLogRoutes from './routes/auditLogs';
 import { startPollingJob } from './jobs/poll-scheduler';
+import './jobs/vm-metrics-scheduler';
 import { addClient } from './events';
 
 dotenv.config();
@@ -29,6 +30,7 @@ app.use('/api/vms', vmRoutes);
 app.use('/api', pollHistoryRouter);
 app.use('/api/audit-logs', auditLogRoutes);
 
+// Start cron-based polling for hosts
 startPollingJob();
 
 export default app;

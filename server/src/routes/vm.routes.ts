@@ -7,6 +7,9 @@ import {
   deleteVM
 } from '../controllers/vm.controller';
 
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
+
 const router = Router();
 
 /**
@@ -14,6 +17,24 @@ const router = Router();
  *   - Returns all VMs (optionally filter by hostId via query)
  */
 router.get('/', getAllVMs);
+
+/**
+ * GET /api/vms/debug/io
+ *   - Debug route to inspect VM diskIoRate
+ */
+router.get('/debug/io', async (_req, res) => {
+  const vms = await prisma.vM.findMany({
+    select: {
+      name: true,
+      hostId: true,
+      diskIoRate: true,
+      updatedAt: true
+    },
+    orderBy: { updatedAt: 'desc' }
+  });
+
+  res.json(vms);
+});
 
 /**
  * GET /api/vms/:id

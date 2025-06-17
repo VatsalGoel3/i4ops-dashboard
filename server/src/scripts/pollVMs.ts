@@ -1,4 +1,3 @@
-// src/scripts/pollVMs.ts
 import dotenv from 'dotenv';
 import { NodeSSH } from 'node-ssh';
 import { PrismaClient, VMStatus } from '@prisma/client';

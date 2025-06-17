@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = "postgresql://vt003@localhost:5432/i4ops_dashboard"
+  url      = "postgresql://vt003@localhost:5432/i4ops_dashboard"
 }
 
 enum HostStatus {
@@ -27,10 +27,10 @@ enum PipelineStage {
 }
 
 model PollHistory {
-  id        Int      @id @default(autoincrement())
-  time      DateTime @default(now())
-  up        Int
-  down      Int
+  id   Int      @id @default(autoincrement())
+  time DateTime @default(now())
+  up   Int
+  down Int
 }
 
 model Host {
@@ -38,36 +38,37 @@ model Host {
   name          String         @unique
   ip            String
   os            String
-  uptime        Int            // uptime in seconds
-  status        HostStatus     @default(up)       // "up" or "down"
-  ssh           Boolean        // true if SSH port open
-  cpu           Float          // CPU usage %
-  ram           Float          // RAM usage %
-  disk          Float          // Disk usage %
+  uptime        Int
+  status        HostStatus     @default(up)
+  ssh           Boolean
+  cpu           Float
+  ram           Float
+  disk          Float
 
-  // ─── Manual Tracking Fields ───────────────────────────────
   pipelineStage PipelineStage  @default(Unassigned)
   assignedTo    String?
   notes         String?
   updatedAt     DateTime       @default(now()) @updatedAt
 
-  vms           VM[]           // 1-to-many relation
+  vms           VM[]
 }
 
 model VM {
   id            Int            @id @default(autoincrement())
   name          String
-  status        VMStatus       @default(stopped)   // "running" / "stopped" / "offline"
-  cpu           Float          // CPU usage %
-  ram           Float          // RAM usage %
-  disk          Float          // Disk usage %
-  os            String         // guest OS
-  uptime        Int            // uptime in seconds
-  xml           String         // libvirt XML
-  networkIp     String?        // optional IP
-  networkMac    String?        // optional MAC
+  status        VMStatus       @default(stopped)
+  cpu           Float
+  ram           Float
+  disk          Float
+  os            String
+  uptime        Int
+  xml           String
+  networkIp     String?
+  networkMac    String?
 
-  // ─── Manual Tracking Fields ───────────────────────────────
+  // 🔧 New field for telemetry matching
+  machineId     String?        @unique
+
   pipelineStage PipelineStage  @default(Unassigned)
   assignedTo    String?
   notes         String?
@@ -80,13 +81,13 @@ model VM {
 }
 
 model AuditLog {
-  id        Int      @id @default(autoincrement())
-  entity    String
-  entityId  Int
-  action    String    // e.g., "update", "refresh", "create"
-  field     String    // e.g., "pipelineStage"
-  oldValue  String?   // nullable for "create" or system actions
-  newValue  String?   // nullable for "delete" actions
-  user      String    // e.g., email or "system"
-  time      DateTime  @default(now())
+  id       Int      @id @default(autoincrement())
+  entity   String
+  entityId Int
+  action   String
+  field    String
+  oldValue String?
+  newValue String?
+  user     String
+  time     DateTime @default(now())
 }

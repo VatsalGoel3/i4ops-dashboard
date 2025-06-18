@@ -7,6 +7,7 @@ import {
   createVMService,
   updateVMService,
   deleteVMService,
+  getAllVMFileTelemetry, // ✅ new
 } from '../services/vm.service';
 import { vmSchema } from '../schemas/vm.schema';
 import { broadcast } from '../events';
@@ -82,16 +83,13 @@ export async function updateVM(req: Request, res: Response) {
       }
     }
 
-    // 🔁 Re-fetch updated VM with host included
     const fullVM = await prisma.vM.findUnique({
       where: { id },
       include: { host: true },
     });
     if (!fullVM) return res.status(404).json({ error: 'VM not found after update' });
 
-    // 📡 Broadcast full VM with host
     broadcast('vm-update', fullVM);
-
     res.json(fullVM);
   } catch (err) {
     console.error('Error updating VM:', err);
@@ -107,5 +105,15 @@ export async function deleteVM(req: Request, res: Response) {
   } catch (err) {
     console.error('Error deleting VM:', err);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function getVMFileTelemetry(req: Request, res: Response) {
+  try {
+    const data = await getAllVMFileTelemetry();
+    res.json(data);
+  } catch (err) {
+    console.error('Error fetching VM telemetry from disk:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }

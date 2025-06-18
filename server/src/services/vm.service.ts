@@ -1,6 +1,9 @@
+import fs from 'fs/promises';
+import path from 'path';
 import { PrismaClient, VMStatus, PipelineStage } from '@prisma/client';
 
 const prisma = new PrismaClient();
+const TELEMETRY_DIR = '/mnt/vm-telemetry-json';
 
 export async function getAllVMsService(query: any) {
   const page = parseInt(query.page) || 1;
@@ -83,5 +86,32 @@ export async function deleteVMService(id: number) {
       return null;
     }
     throw err;
+  }
+}
+
+// ✅ NEW: Read VM telemetry files from /mnt/vm-telemetry-json
+export async function getAllVMFileTelemetry(): Promise<any[]> {
+  try {
+    const files = await fs.readdir(TELEMETRY_DIR);
+    const results = [];
+
+    for (const file of files) {
+      if (!file.endsWith('.json')) continue;
+
+      const filePath = path.join(TELEMETRY_DIR, file);
+      try {
+        const content = await fs.readFile(filePath, 'utf8');
+        const parsed = JSON.parse(content);
+        results.push(parsed);
+      } catch (err) {
+        console.warn(`Skipping file ${file}: invalid JSON or unreadable`);
+        continue;
+      }
+    }
+
+    return results;
+  } catch (err) {
+    console.error('Failed to read VM telemetry directory:', err);
+    return [];
   }
 }

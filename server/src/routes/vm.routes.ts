@@ -4,7 +4,8 @@ import {
   getVMById,
   createVM,
   updateVM,
-  deleteVM
+  deleteVM,
+  getVMFileTelemetry
 } from '../controllers/vm.controller';
 
 const router = Router();
@@ -14,6 +15,12 @@ const router = Router();
  *   - Returns all VMs (optionally filter by hostId via query)
  */
 router.get('/', getAllVMs);
+
+/**
+ * GET /api/vms/telemetry
+ *   - Returns current telemetry from disk for all VMs
+ */
+router.get('/telemetry', getVMFileTelemetry);
 
 /**
  * GET /api/vms/:id

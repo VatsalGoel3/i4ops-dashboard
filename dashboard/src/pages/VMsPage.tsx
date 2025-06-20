@@ -3,10 +3,16 @@ import { RefreshCw } from 'lucide-react';
 import type { VM, VMFilters } from '../api/types';
 import VMFiltersComponent from '../components/Filters/VMFilters';
 import VMTable from '../components/VMTable';
-import { useDataContext } from '../context/DataContext';
+import { useVMs } from '../api/queries';
 
 export default function VMsPage() {
-  const { vms: allVMs, triggerRefresh, loading } = useDataContext();
+  const { 
+    data: allVMs = [], 
+    isLoading, 
+    refetch,
+    isRefetching,
+    error 
+  } = useVMs();
 
   const [displayedVMs, setDisplayedVMs] = useState<VM[]>([]);
   const [hostOptions, setHostOptions] = useState<{ name: string; id: number }[]>([]);
@@ -85,8 +91,31 @@ export default function VMsPage() {
     setDisplayedVMs(list.slice(startIdx, startIdx + pageSize));
   }, [allVMs, filters, sortField, sortOrder, page]);
 
+  const handleRefresh = () => {
+    refetch();
+  };
+
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
+
+  // Show error state
+  if (error) {
+    return (
+      <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="text-center py-8">
+          <p className="text-red-600 dark:text-red-400 mb-4">
+            Failed to load VMs: {(error as any)?.message || 'Unknown error'}
+          </p>
+          <button
+            onClick={handleRefresh}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg"
+          >
+            Try Again
+          </button>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
@@ -105,61 +134,69 @@ export default function VMsPage() {
           }}
         />
         <button
-          onClick={triggerRefresh}
-          disabled={loading}
+          onClick={handleRefresh}
+          disabled={isLoading || isRefetching}
           className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 ${
-            loading 
+            isLoading || isRefetching
               ? 'bg-gray-400 cursor-not-allowed' 
               : 'bg-indigo-600 hover:bg-indigo-700'
           }`}
           title="Refresh data from database"
         >
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-          {loading ? 'Refreshing...' : 'Refresh'}
+          <RefreshCw size={16} className={(isLoading || isRefetching) ? 'animate-spin' : ''} />
+          {isLoading ? 'Loading...' : isRefetching ? 'Refreshing...' : 'Refresh'}
         </button>
       </div>
 
-      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
-        Showing {start}–{end} of {total} VMs
-      </p>
-      
-      <div className="overflow-x-auto">
-        <VMTable
-          vms={displayedVMs}
-          sortField={sortField}
-          sortOrder={sortOrder}
-          onSortChange={field => {
-            if (field === sortField) {
-              setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
-            } else {
-              setSortField(field);
-              setSortOrder('asc');
-            }
-          }}
-        />
-      </div>
-      
-      <div className="mt-4 flex justify-between items-center">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Page {page} of {Math.ceil(total / pageSize)}
+      {isLoading ? (
+        <div className="text-center py-8">
+          <p className="text-gray-500 dark:text-gray-400">Loading VMs...</p>
         </div>
-        <div className="flex space-x-2">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(p => Math.max(1, p - 1))}
-            className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            disabled={page * pageSize >= total}
-            onClick={() => setPage(p => p + 1)}
-            className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
+      ) : (
+        <>
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+            Showing {start}–{end} of {total} VMs
+          </p>
+          
+          <div className="overflow-x-auto">
+            <VMTable
+              vms={displayedVMs}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              onSortChange={field => {
+                if (field === sortField) {
+                  setSortOrder(o => (o === 'asc' ? 'desc' : 'asc'));
+                } else {
+                  setSortField(field);
+                  setSortOrder('asc');
+                }
+              }}
+            />
+          </div>
+          
+          <div className="mt-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Page {page} of {Math.ceil(total / pageSize)}
+            </div>
+            <div className="flex space-x-2">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <button
+                disabled={page * pageSize >= total}
+                onClick={() => setPage(p => p + 1)}
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </>
+      )}
     </section>
   );
 }

@@ -54,30 +54,20 @@ model Host {
 }
 
 model VM {
-  id            Int            @id @default(autoincrement())
-  name          String
-  status        VMStatus       @default(stopped)
-  cpu           Float
-  ram           Float
-  disk          Float
-  os            String
-  uptime        Int
-  xml           String
-  networkIp     String?
-  networkMac    String?
+  id         Int      @id @default(autoincrement())
+  name       String
+  machineId  String   @unique  // remove `?`
+  os         String
+  ip         String
+  cpu        Float
+  ram        Float
+  disk       Float
+  uptime     Int
+  status     VMStatus @default(offline)
+  updatedAt  DateTime @default(now()) @updatedAt
 
-  // 🔧 New field for telemetry matching
-  machineId     String?        @unique
-
-  pipelineStage PipelineStage  @default(Unassigned)
-  assignedTo    String?
-  notes         String?
-  updatedAt     DateTime       @default(now()) @updatedAt
-
-  hostId        Int
-  host          Host           @relation(fields: [hostId], references: [id])
-
-  @@unique([name, hostId])
+  hostId     Int
+  host       Host     @relation(fields: [hostId], references: [id])
 }
 
 model AuditLog {

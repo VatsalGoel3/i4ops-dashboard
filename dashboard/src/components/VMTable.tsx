@@ -15,6 +15,20 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
   const SortIcon = (field: keyof VM) =>
     sortField === field ? (sortOrder === 'asc' ? '▲' : '▼') : '';
 
+  const formatUptime = (seconds?: number) => {
+    if (!seconds || isNaN(seconds)) return 'N/A';
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    return `${d}d ${h}h`;
+  };
+
+  const colorClass = (val?: number) => {
+    if (val === undefined || val === null) return 'text-gray-400';
+    if (val >= 90) return 'text-red-500 font-semibold';
+    if (val >= 70) return 'text-yellow-500';
+    return 'text-green-600';
+  };
+
   return (
     <>
       <table className="min-w-full border-collapse">
@@ -60,17 +74,21 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
               onClick={() => setSelectedVM(vm)}
             >
               <td className="px-4 py-2">{vm.name}</td>
-              <td className="px-4 py-2">{vm.host?.name}</td>
-              <td className="px-4 py-2">{vm.status.charAt(0).toUpperCase() + vm.status.slice(1)}</td>
+              <td className="px-4 py-2">{vm.host?.name || '-'}</td>
+              <td className="px-4 py-2 capitalize">{vm.status}</td>
               <td className="px-4 py-2">{vm.pipelineStage}</td>
               <td className="px-4 py-2">{vm.assignedTo || '-'}</td>
-              <td className="text-right px-4 py-2">{vm.cpu}%</td>
-              <td className="text-right px-4 py-2">{vm.ram}%</td>
-              <td className="text-right px-4 py-2">{vm.disk}%</td>
-              <td className="px-4 py-2">{vm.os}</td>
-              <td className="px-4 py-2">
-                {vm.uptime ? `${Math.floor(vm.uptime / 86400)}d ${Math.floor((vm.uptime % 86400) / 3600)}h` : 'N/A'}
+              <td className={`text-right px-4 py-2 ${colorClass(vm.cpu)}`}>
+                {vm.cpu != null ? `${vm.cpu.toFixed(1)}%` : '—'}
               </td>
+              <td className={`text-right px-4 py-2 ${colorClass(vm.ram)}`}>
+                {vm.ram != null ? `${vm.ram.toFixed(1)}%` : '—'}
+              </td>
+              <td className={`text-right px-4 py-2 ${colorClass(vm.disk)}`}>
+                {vm.disk != null ? `${vm.disk.toFixed(1)}%` : '—'}
+              </td>
+              <td className="px-4 py-2">{vm.os || '-'}</td>
+              <td className="px-4 py-2">{formatUptime(vm.uptime)}</td>
             </tr>
           ))}
         </tbody>

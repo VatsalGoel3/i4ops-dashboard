@@ -21,12 +21,25 @@ export default function VMDetailModal({ vm, onClose }: Props) {
         assignedTo,
         notes
       });
-      // Optionally trigger a data refresh or toast
     } catch (err) {
       console.error('Failed to update VM:', err);
     } finally {
       setSaving(false);
     }
+  };
+
+  const formatUptime = (seconds?: number) => {
+    if (!seconds || isNaN(seconds)) return 'N/A';
+    const d = Math.floor(seconds / 86400);
+    const h = Math.floor((seconds % 86400) / 3600);
+    return `${d}d ${h}h`;
+  };
+
+  const colorClass = (val?: number) => {
+    if (val === undefined || val === null) return 'text-gray-400';
+    if (val >= 90) return 'text-red-500 font-semibold';
+    if (val >= 70) return 'text-yellow-500';
+    return 'text-green-600';
   };
 
   return (
@@ -45,11 +58,11 @@ export default function VMDetailModal({ vm, onClose }: Props) {
         <ul className="space-y-2 text-sm mb-4">
           <li><strong>Host:</strong> {vm.host?.name || 'N/A'}</li>
           <li><strong>Status:</strong> {vm.status.charAt(0).toUpperCase() + vm.status.slice(1)}</li>
-          <li><strong>OS:</strong> {vm.os}</li>
-          <li><strong>Uptime:</strong> {vm.uptime ? `${Math.floor(vm.uptime / 86400)}d ${Math.floor((vm.uptime % 86400) / 3600)}h` : 'N/A'}</li>
-          <li><strong>CPU Usage:</strong> {vm.cpu}%</li>
-          <li><strong>RAM Usage:</strong> {vm.ram}%</li>
-          <li><strong>Disk Usage:</strong> {vm.disk}%</li>
+          <li><strong>OS:</strong> {vm.os || 'N/A'}</li>
+          <li><strong>Uptime:</strong> {formatUptime(vm.uptime)}</li>
+          <li><strong>CPU Usage:</strong> <span className={colorClass(vm.cpu)}>{vm.cpu != null ? `${vm.cpu.toFixed(1)}%` : '—'}</span></li>
+          <li><strong>RAM Usage:</strong> <span className={colorClass(vm.ram)}>{vm.ram != null ? `${vm.ram.toFixed(1)}%` : '—'}</span></li>
+          <li><strong>Disk Usage:</strong> <span className={colorClass(vm.disk)}>{vm.disk != null ? `${vm.disk.toFixed(1)}%` : '—'}</span></li>
           <li><strong>IP Address:</strong> {vm.networkIp || 'N/A'}</li>
           <li><strong>MAC Address:</strong> {vm.networkMac || 'N/A'}</li>
         </ul>
@@ -58,7 +71,6 @@ export default function VMDetailModal({ vm, onClose }: Props) {
         <div className="mb-4 border-t pt-4">
           <h4 className="text-md font-medium mb-2">Manual Tracking</h4>
 
-          {/* Assigned To */}
           <div className="mb-2">
             <label className="block text-sm font-medium mb-1">Assigned To</label>
             <input
@@ -70,7 +82,6 @@ export default function VMDetailModal({ vm, onClose }: Props) {
             />
           </div>
 
-          {/* Notes */}
           <div className="mb-2">
             <label className="block text-sm font-medium mb-1">Notes</label>
             <textarea
@@ -96,7 +107,7 @@ export default function VMDetailModal({ vm, onClose }: Props) {
         <div>
           <h4 className="text-sm font-medium mb-2">VM XML:</h4>
           <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs overflow-x-auto">
-            {vm.xml}
+            {vm.xml || '<no data>'}
           </pre>
         </div>
       </div>

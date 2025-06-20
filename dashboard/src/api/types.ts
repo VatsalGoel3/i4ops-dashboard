@@ -58,3 +58,14 @@ export interface VMFilters {
   hostId?: number;
   name?: string;
 }
+
+export interface VMWithTelemetry extends VM {
+  telemetry: {
+    cpu: number;
+    ram: number;
+    disk: number;
+    uptime: number;
+    timestamp: number;
+    isStale: boolean;
+  } | null;
+}

@@ -7,7 +7,7 @@ import {
   createVMService,
   updateVMService,
   deleteVMService,
-  getAllVMFileTelemetry, // ✅ new
+  getAllVMFileTelemetry,
 } from '../services/vm.service';
 import { vmSchema } from '../schemas/vm.schema';
 import { broadcast } from '../events';
@@ -85,7 +85,7 @@ export async function updateVM(req: Request, res: Response) {
 
     const fullVM = await prisma.vM.findUnique({
       where: { id },
-      include: { host: true },
+      include: { host: { select: { name: true, ip: true } } },
     });
     if (!fullVM) return res.status(404).json({ error: 'VM not found after update' });
 

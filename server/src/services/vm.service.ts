@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { PrismaClient, VMStatus, PipelineStage } from '@prisma/client';
+import { PrismaClient, VMStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const TELEMETRY_DIR = '/mnt/vm-telemetry-json';
@@ -13,8 +13,6 @@ export async function getAllVMsService(query: any) {
   const filters: any = {};
   if (query.hostId) filters.hostId = parseInt(query.hostId);
   if (query.status) filters.status = query.status;
-  if (query.pipelineStage) filters.pipelineStage = query.pipelineStage;
-  if (query.assignedTo) filters.assignedTo = query.assignedTo;
 
   const [data, totalCount] = await Promise.all([
     prisma.vM.findMany({
@@ -48,18 +46,14 @@ export async function createVMService(data: any) {
   return prisma.vM.create({
     data: {
       name: data.name,
-      status: data.status as VMStatus || VMStatus.stopped,
+      machineId: data.machineId,
+      status: data.status as VMStatus || VMStatus.offline,
       cpu: data.cpu,
       ram: data.ram,
       disk: data.disk,
       os: data.os,
+      ip: data.ip,
       uptime: data.uptime,
-      xml: data.xml,
-      networkIp: data.networkIp,
-      networkMac: data.networkMac,
-      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.Unassigned,
-      assignedTo: data.assignedTo,
-      notes: data.notes,
       host: { connect: { id: data.hostId } }
     }
   });
@@ -69,7 +63,6 @@ export async function updateVMService(id: number, data: any) {
   const updatedData = {
     ...data,
     status: data.status as VMStatus,
-    pipelineStage: data.pipelineStage as PipelineStage
   };
   return prisma.vM.update({
     where: { id },

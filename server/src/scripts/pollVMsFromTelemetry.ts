@@ -1,83 +1,120 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { NodeSSH } from 'node-ssh';
 import { PrismaClient, VMStatus } from '@prisma/client';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const prisma = new PrismaClient();
-const TELEMETRY_DIR = '/mnt/vm-telemetry-json';
-const STALE_THRESHOLD_SECONDS = 600; // 10 minutes
+const ssh = new NodeSSH();
 
-interface TelemetryJSON {
-  hostname: string;
-  vmname: string;
-  machineId: string;
-  cpu: number;
-  ram: number;
-  disk: number;
-  uptime: number;
-  timestamp: number;
-}
+const SSH_USER = process.env.SSH_USER || 'i4ops';
+const SSH_PASSWORD = process.env.SSH_PASSWORD;
+const U0_IP = process.env.U0_IP || '100.76.195.14';
 
-async function readTelemetryFiles(): Promise<TelemetryJSON[]> {
-  const files = await fs.readdir(TELEMETRY_DIR);
-  const telemetry: TelemetryJSON[] = [];
+export async function pollVMsFromTelemetry() {
+  console.log('→ Starting VM telemetry poll via SSH from u0...');
 
-  for (const file of files) {
-    if (!file.endsWith('.json')) continue;
-
-    try {
-      const content = await fs.readFile(path.join(TELEMETRY_DIR, file), 'utf8');
-      const data = JSON.parse(content) as TelemetryJSON;
-      telemetry.push(data);
-    } catch (err) {
-      console.error(`⚠️  Failed to read ${file}:`, err);
-    }
+  if (!SSH_PASSWORD) {
+    console.error('❌ SSH_PASSWORD not set in .env');
+    return;
   }
 
-  return telemetry;
-}
-
-async function pollVMsFromTelemetry() {
-  console.log(`→ Reading telemetry from ${TELEMETRY_DIR}`);
-  const entries = await readTelemetryFiles();
-  const now = Math.floor(Date.now() / 1000);
-
-  for (const entry of entries) {
-    const age = now - entry.timestamp;
-    const isStale = age > STALE_THRESHOLD_SECONDS;
-
-    const vm = await prisma.vM.findUnique({
-      where: { machineId: entry.machineId },
+  try {
+    await ssh.connect({
+      host: U0_IP,
+      username: SSH_USER,
+      password: SSH_PASSWORD,
+      readyTimeout: 15000,
     });
 
-    if (!vm) {
-      console.warn(`⚠️  No VM found with machineId ${entry.machineId} (from ${entry.vmname})`);
-      continue;
+    const fileList = await ssh.execCommand('ls /mnt/vm-telemetry-json');
+    const files = fileList.stdout.split('\n').filter((f) => f.endsWith('.json'));
+
+    if (files.length === 0) {
+      console.warn('⚠️ No telemetry files found in /mnt/vm-telemetry-json');
     }
 
-    if (isStale) {
-      console.warn(`⚠️  Stale telemetry for ${vm.name} (age: ${age}s) → skipping`);
-      continue;
+    for (const file of files) {
+      console.log(`📄 Reading file: ${file}`);
+      const filePath = `/mnt/vm-telemetry-json/${file}`;
+      const { stdout: content } = await ssh.execCommand(`cat ${filePath}`);
+
+      try {
+        const data = JSON.parse(content);
+        console.log('🧪 Parsed data:', data);
+
+        const {
+          hostname,
+          vmname,
+          machineId,
+          ip,
+          os,
+          cpu,
+          ram,
+          disk,
+          uptime,
+        } = data;
+
+        if (!hostname || !machineId) {
+          console.warn(`⚠️ Missing hostname or machineId in file ${file}`);
+          continue;
+        }
+
+        const host = await prisma.host.findUnique({ where: { name: hostname } });
+
+        if (!host) {
+          console.warn(`⚠️ Host '${hostname}' not found in DB. Skipping VM '${vmname}'`);
+          continue;
+        }
+
+        const updated = await prisma.vM.upsert({
+          where: { machineId },
+          create: {
+            name: vmname,
+            machineId,
+            os,
+            ip,
+            cpu,
+            ram,
+            disk,
+            uptime,
+            status: VMStatus.running,
+            hostId: host.id,
+          },
+          update: {
+            name: vmname,
+            os,
+            ip,
+            cpu,
+            ram,
+            disk,
+            uptime,
+            status: VMStatus.running,
+            updatedAt: new Date(),
+            hostId: host.id,
+          },
+        });
+
+        console.log(`✔️ Synced VM '${vmname}' (${machineId}) on host '${hostname}'`);
+      } catch (err) {
+        console.error(`🚨 Failed to parse or update for file ${file}:`, err);
+      }
     }
 
-    await prisma.vM.update({
-      where: { id: vm.id },
-      data: {
-        cpu: entry.cpu,
-        ram: entry.ram,
-        disk: entry.disk,
-        uptime: entry.uptime,
-        status: VMStatus.running,
-      },
-    });
-
-    console.log(`✅ Updated ${vm.name}: CPU=${entry.cpu} RAM=${entry.ram}% Disk=${entry.disk}%`);
+    ssh.dispose();
+    console.log('✅ VM telemetry polling complete.');
+  } catch (err) {
+    console.error('🚨 Fatal error in VM telemetry poller:', err);
   }
-
-  console.log(`✓ Telemetry VM polling complete.`);
 }
 
-pollVMsFromTelemetry()
-  .catch((err) => {
-    console.error('❌ Fatal error in VM telemetry poller:', err);
-  })
-  .finally(() => prisma.$disconnect());
+// Run manually from CLI
+if (require.main === module) {
+  pollVMsFromTelemetry()
+    .then(() => {
+      console.log('📦 Finished manual run of pollVMsFromTelemetry.ts');
+    })
+    .catch((err) => {
+      console.error('🚨 Uncaught error in pollVMsFromTelemetry.ts:', err);
+    });
+}

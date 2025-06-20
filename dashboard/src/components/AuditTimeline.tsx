@@ -1,7 +1,24 @@
-import { type AuditLog } from '../api/useAuditLogs';
+import { useAuditLogs } from '../api/queries';
 
-export default function AuditTimeline({ logs }: { logs: AuditLog[] }) {
-  if (!logs.length) return <p className="text-sm text-gray-500 italic">No audit history available.</p>;
+interface Props {
+  entity: 'Host' | 'VM';
+  entityId: number;
+}
+
+export default function AuditTimeline({ entity, entityId }: Props) {
+  const { data: logs = [], isLoading, error } = useAuditLogs(entity, entityId);
+
+  if (isLoading) {
+    return <p className="text-sm text-gray-500 italic">Loading audit history...</p>;
+  }
+
+  if (error) {
+    return <p className="text-sm text-red-500 italic">Failed to load audit history.</p>;
+  }
+
+  if (!logs.length) {
+    return <p className="text-sm text-gray-500 italic">No audit history available.</p>;
+  }
 
   return (
     <ul className="space-y-2 mt-4">

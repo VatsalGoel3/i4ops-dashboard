@@ -6,15 +6,10 @@ interface Props {
 }
 
 export default function CriticalKPIs({ hosts }: Props) {
-  const totalHosts = hosts.length;
   const criticalHosts = hosts.filter(h => h.status === 'down' || h.cpu > 90 || h.ram > 90 || h.disk > 90).length;
   const unassignedHosts = hosts.filter(h => h.pipelineStage === PipelineStage.Unassigned).length;
   const brokenHosts = hosts.filter(h => h.pipelineStage === PipelineStage.Broken).length;
-  const totalVMs = hosts.reduce((sum, h) => sum + h.vms.length, 0);
   const downVMs = hosts.flatMap(h => h.vms).filter(vm => vm.status === 'down').length;
-  const resourceUtilization = totalHosts > 0 
-    ? Math.round((hosts.reduce((sum, h) => sum + Math.max(h.cpu, h.ram, h.disk), 0) / totalHosts))
-    : 0;
 
   const cards = [
     { 

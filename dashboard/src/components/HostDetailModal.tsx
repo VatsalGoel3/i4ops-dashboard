@@ -10,9 +10,8 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from 'recharts';
-import axios from 'axios';
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { useUpdateHost } from '../api/queries';
 
 interface Props {
   host: Host;
@@ -32,23 +31,22 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
   const [pipelineStage, setPipelineStage] = useState<PipelineStage>(host.pipelineStage);
   const [assignedTo, setAssignedTo] = useState<string>(host.assignedTo || '');
   const [notes, setNotes] = useState<string>(host.notes || '');
-  const [saving, setSaving] = useState(false);
+
+  const updateHostMutation = useUpdateHost();
 
   const handleSave = async () => {
-    setSaving(true);
-    try {
-      const payload = { pipelineStage, assignedTo, notes };
-      await axios.put(`http://localhost:4000/api/hosts/${host.id}`, payload);
-      const updatedHost: Host = { ...host, ...payload };
-      toast.success(`Host '${host.name}' saved successfully.`);
-      onSave(updatedHost);
-    } catch (err) {
-      console.error('Failed to update host:', err);
-      toast.error(`Failed to save host`);
-    } finally {
-      setSaving(false);
-    }
-  };  
+    const updates = { pipelineStage, assignedTo, notes };
+    
+    updateHostMutation.mutate(
+      { hostId: host.id, updates },
+      {
+        onSuccess: (updatedHost) => {
+          onSave(updatedHost);
+          onClose();
+        },
+      }
+    );
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
@@ -112,7 +110,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
               ))}
             </select>
             <p className="mt-1 text-xs text-gray-500">
-              Use the <strong>Notes</strong> field below to describe what’s being set up or debugged.
+              Use the <strong>Notes</strong> field below to describe what's being set up or debugged.
             </p>
           </div>
 
@@ -143,12 +141,12 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           <div className="flex justify-between items-center">
             <button
               onClick={handleSave}
-              disabled={saving}
+              disabled={updateHostMutation.isPending}
               className={`px-4 py-2 rounded text-white text-sm ${
-                saving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+                updateHostMutation.isPending ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
               }`}
             >
-              {saving ? 'Saving…' : 'Save Changes'}
+              {updateHostMutation.isPending ? 'Saving…' : 'Save Changes'}
             </button>
             <button
               onClick={onClose}

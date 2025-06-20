@@ -24,6 +24,7 @@ export async function getAllVMsService(query: any) {
           select: { name: true, ip: true }
         }
       },
+      orderBy: { name: 'asc' },
       skip,
       take: limit
     }),

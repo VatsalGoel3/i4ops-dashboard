@@ -37,9 +37,6 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
             <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('name')}>
               VM Name {SortIcon('name')}
             </th>
-            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('machineId')}>
-              Machine ID {SortIcon('machineId')}
-            </th>
             <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('hostId')}>
               Host {SortIcon('hostId')}
             </th>
@@ -74,11 +71,6 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
               onClick={() => setSelectedVM(vm)}
             >
               <td className="px-4 py-2 font-medium">{vm.name}</td>
-              <td className="px-4 py-2">
-                <code className="bg-gray-100 px-1 rounded text-xs">
-                  {vm.machineId.slice(0, 8)}...
-                </code>
-              </td>
               <td className="px-4 py-2">{vm.host?.name || '-'}</td>
               <td className="px-4 py-2">
                 <code className="bg-gray-100 px-1 rounded text-xs">{vm.ip}</code>

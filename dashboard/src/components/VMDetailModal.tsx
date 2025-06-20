@@ -46,10 +46,11 @@ export default function VMDetailModal({ vm, onClose }: Props) {
           </span>
         </div>
 
+        {/* ─── Basic Info ───────────────────────────── */}
         <ul className="space-y-2 text-sm mb-4">
-          <li><strong>Machine ID:</strong> <code className="bg-gray-100 px-1 rounded text-xs">{vm.machineId}</code></li>
-          <li><strong>Host:</strong> {vm.host?.name || 'N/A'} <code className="bg-gray-100 px-1 rounded text-xs">({vm.host?.ip || 'N/A'})</code></li>
-          <li><strong>VM IP:</strong> <code className="bg-gray-100 px-1 rounded">{vm.ip}</code></li>
+          <li><strong>Machine ID:</strong> <code className="bg-gray-100 dark:bg-gray-600 px-1 rounded text-xs">{vm.machineId}</code></li>
+          <li><strong>Host:</strong> {vm.host?.name || 'N/A'} {vm.host?.ip && <code className="bg-gray-100 dark:bg-gray-600 px-1 rounded text-xs">({vm.host.ip})</code>}</li>
+          <li><strong>VM IP:</strong> <code className="bg-gray-100 dark:bg-gray-600 px-1 rounded">{vm.ip}</code></li>
           <li><strong>OS:</strong> {vm.os || 'N/A'}</li>
           <li><strong>Uptime:</strong> {formatUptime(vm.uptime)}</li>
         </ul>
@@ -79,20 +80,10 @@ export default function VMDetailModal({ vm, onClose }: Props) {
           </div>
         </div>
 
-        {/* ─── Metadata ──────────────────────────────── */}
-        <div className="mb-4 border-t pt-4">
-          <h4 className="text-md font-medium mb-2">Metadata</h4>
-          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-            <li><strong>VM ID:</strong> {vm.id}</li>
-            <li><strong>Host ID:</strong> {vm.hostId}</li>
-            <li><strong>Last Updated:</strong> {new Date(vm.updatedAt).toLocaleString()}</li>
-          </ul>
-        </div>
-
         <div className="border-t pt-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            💡 <strong>Note:</strong> VM tracking (assignedTo/notes) is managed at the host level. 
-            Check the host detail modal for provisioning info.
+            💡 <strong>Note:</strong> VM provisioning details (assignedTo/notes) are managed at the host level. 
+            Check the host detail modal for deployment status.
           </p>
         </div>
       </div>

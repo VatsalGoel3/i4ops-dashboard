@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import type { VM, VMFilters } from '../api/types';
 import VMFiltersComponent from '../components/Filters/VMFilters';
 import VMTable from '../components/VMTable';
 import { useDataContext } from '../context/DataContext';
 
 export default function VMsPage() {
-  const { vms: allVMs } = useDataContext();
+  const { vms: allVMs, triggerRefresh, loading } = useDataContext();
 
   const [displayedVMs, setDisplayedVMs] = useState<VM[]>([]);
   const [hostOptions, setHostOptions] = useState<{ name: string; id: number }[]>([]);
@@ -103,9 +104,19 @@ export default function VMsPage() {
             setFilters(f);
           }}
         />
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Real-time updates enabled
-        </div>
+        <button
+          onClick={triggerRefresh}
+          disabled={loading}
+          className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 ${
+            loading 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-indigo-600 hover:bg-indigo-700'
+          }`}
+          title="Refresh data from database"
+        >
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+          {loading ? 'Refreshing...' : 'Refresh'}
+        </button>
       </div>
 
       <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">

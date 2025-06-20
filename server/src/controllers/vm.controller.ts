@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { Logger } from '../infrastructure/logger';
 
 import {
   getAllVMsService,
@@ -7,18 +8,20 @@ import {
   createVMService,
   updateVMService,
   deleteVMService,
+  getAllVMFileTelemetry,
 } from '../services/vm.service';
 import { vmSchema } from '../schemas/vm.schema';
 import { broadcast } from '../events';
 
 const prisma = new PrismaClient();
+const logger = new Logger('VMController');
 
 export async function getAllVMs(req: Request, res: Response) {
   try {
     const result = await getAllVMsService(req.query);
     res.json(result);
   } catch (err) {
-    console.error('Error fetching VMs:', err);
+    logger.error('Error fetching VMs', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
@@ -30,7 +33,7 @@ export async function getVMById(req: Request, res: Response) {
     if (!vm) return res.status(404).json({ error: 'VM not found' });
     res.json(vm);
   } catch (err) {
-    console.error('Error fetching VM by ID:', err);
+    logger.error('Error fetching VM by ID', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
@@ -45,7 +48,7 @@ export async function createVM(req: Request, res: Response) {
     const newVM = await createVMService(result.data);
     res.status(201).json(newVM);
   } catch (err) {
-    console.error('Error creating VM:', err);
+    logger.error('Error creating VM', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
@@ -82,19 +85,16 @@ export async function updateVM(req: Request, res: Response) {
       }
     }
 
-    // 🔁 Re-fetch updated VM with host included
     const fullVM = await prisma.vM.findUnique({
       where: { id },
-      include: { host: true },
+      include: { host: { select: { name: true, ip: true } } },
     });
     if (!fullVM) return res.status(404).json({ error: 'VM not found after update' });
 
-    // 📡 Broadcast full VM with host
     broadcast('vm-update', fullVM);
-
     res.json(fullVM);
   } catch (err) {
-    console.error('Error updating VM:', err);
+    logger.error('Error updating VM', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
@@ -105,7 +105,17 @@ export async function deleteVM(req: Request, res: Response) {
     await deleteVMService(id);
     return res.status(204).send();
   } catch (err) {
-    console.error('Error deleting VM:', err);
+    logger.error('Error deleting VM', err);
     return res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function getVMFileTelemetry(req: Request, res: Response) {
+  try {
+    const data = await getAllVMFileTelemetry();
+    res.json(data);
+  } catch (err) {
+    logger.error('Error fetching VM telemetry from disk', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }

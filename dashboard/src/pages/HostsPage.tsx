@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 import type { Host, HostFilters } from '../api/types';
 import HostFiltersComponent from '../components/Filters/HostFilters';
 import HostTable from '../components/HostTable';
@@ -16,7 +17,7 @@ function compareHostnames(a: string, b: string) {
 }
 
 export default function HostsPage() {
-  const { hosts: allHosts } = useDataContext();
+  const { hosts: allHosts, triggerRefresh, loading } = useDataContext();
 
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
   const [osOptions, setOsOptions] = useState<string[]>([]);
@@ -133,11 +134,17 @@ export default function HostsPage() {
             }}
           />
           <button
-            disabled
-            className="px-4 py-2 bg-indigo-400 text-white rounded-lg opacity-60 cursor-not-allowed"
-            title="Auto-refresh enabled"
+            onClick={triggerRefresh}
+            disabled={loading}
+            className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 ${
+              loading 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-indigo-600 hover:bg-indigo-700'
+            }`}
+            title="Refresh data from database"
           >
-            Refresh
+            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+            {loading ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
 

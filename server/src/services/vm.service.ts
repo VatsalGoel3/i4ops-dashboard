@@ -1,6 +1,11 @@
-import { PrismaClient, VMStatus, PipelineStage } from '@prisma/client';
+import fs from 'fs/promises';
+import path from 'path';
+import { VMStatus } from '@prisma/client';
+import { Logger } from '../infrastructure/logger';
+import { prisma } from '../infrastructure/database';
 
-const prisma = new PrismaClient();
+const logger = new Logger('VMService');
+const TELEMETRY_DIR = '/mnt/vm-telemetry-json';
 
 export async function getAllVMsService(query: any) {
   const page = parseInt(query.page) || 1;
@@ -10,8 +15,6 @@ export async function getAllVMsService(query: any) {
   const filters: any = {};
   if (query.hostId) filters.hostId = parseInt(query.hostId);
   if (query.status) filters.status = query.status;
-  if (query.pipelineStage) filters.pipelineStage = query.pipelineStage;
-  if (query.assignedTo) filters.assignedTo = query.assignedTo;
 
   const [data, totalCount] = await Promise.all([
     prisma.vM.findMany({
@@ -21,6 +24,7 @@ export async function getAllVMsService(query: any) {
           select: { name: true, ip: true }
         }
       },
+      orderBy: { name: 'asc' },
       skip,
       take: limit
     }),
@@ -45,18 +49,14 @@ export async function createVMService(data: any) {
   return prisma.vM.create({
     data: {
       name: data.name,
-      status: data.status as VMStatus || VMStatus.stopped,
+      machineId: data.machineId,
+      status: data.status as VMStatus || VMStatus.offline,
       cpu: data.cpu,
       ram: data.ram,
       disk: data.disk,
       os: data.os,
+      ip: data.ip,
       uptime: data.uptime,
-      xml: data.xml,
-      networkIp: data.networkIp,
-      networkMac: data.networkMac,
-      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.Unassigned,
-      assignedTo: data.assignedTo,
-      notes: data.notes,
       host: { connect: { id: data.hostId } }
     }
   });
@@ -66,7 +66,6 @@ export async function updateVMService(id: number, data: any) {
   const updatedData = {
     ...data,
     status: data.status as VMStatus,
-    pipelineStage: data.pipelineStage as PipelineStage
   };
   return prisma.vM.update({
     where: { id },
@@ -84,4 +83,10 @@ export async function deleteVMService(id: number) {
     }
     throw err;
   }
+}
+
+// This should be REMOVED - telemetry is handled by TelemetryService now
+export async function getAllVMFileTelemetry(): Promise<any[]> {
+  logger.warn('Deprecated function called - use TelemetryService instead');
+  return [];
 }

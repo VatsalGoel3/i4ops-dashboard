@@ -1,22 +1,27 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
-
+import { env } from './config/env';
 import hostRoutes from './routes/host.routes';
 import vmRoutes from './routes/vm.routes';
 import pollHistoryRouter from './routes/api/poll-history';
 import auditLogRoutes from './routes/auditLogs';
+import healthRoutes from './routes/health.routes';
 import { startPollingJob } from './jobs/poll-scheduler';
 import { addClient } from './events';
+import { Logger } from './infrastructure/logger';
 
-dotenv.config();
+const logger = new Logger('App');
 const app = express();
 
 app.use(cors({ origin: 'http://localhost:8888' }));
 app.use(express.json());
 
 app.get('/', (_req, res) => {
-  res.send('i4ops Dashboard Backend is up and running.');
+  res.json({ 
+    message: 'i4ops Dashboard Backend',
+    version: '1.0.0',
+    environment: env.NODE_ENV
+  });
 });
 
 // SSE endpoint
@@ -28,7 +33,12 @@ app.use('/api/hosts', hostRoutes);
 app.use('/api/vms', vmRoutes);
 app.use('/api', pollHistoryRouter);
 app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api', healthRoutes);
 
-startPollingJob();
+// Start polling only after routes are set up
+setTimeout(() => {
+  startPollingJob();
+  logger.info('Polling services started');
+}, 1000);
 
 export default app;

@@ -67,11 +67,15 @@ export class VMSyncService {
       throw new Error(`Host ${data.hostname} not found`);
     }
 
+    // Create a unique identifier from hostname and vmname since the telemetry machineId 
+    // may not be unique across different VMs (same base image/template)
+    const uniqueIdentifier = `${data.hostname}-${data.vmname}`;
+    
     await tx.vM.upsert({
-      where: { machineId: data.machineId },
+      where: { machineId: uniqueIdentifier },
       create: {
         name: data.vmname,
-        machineId: data.machineId,
+        machineId: uniqueIdentifier,
         os: data.os,
         ip: data.ip,
         cpu: data.cpu,

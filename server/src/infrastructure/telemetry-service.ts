@@ -9,14 +9,47 @@ const TelemetrySchema = z.object({
   machineId: z.string(),
   ip: z.string().ip(),
   os: z.string(),
-  cpu: z.number(),
-  ram: z.number(),
-  disk: z.number(),
-  uptime: z.number(),
+  cpu: z.object({
+    usage_percent: z.number(),
+    count: z.number().optional(),
+    frequency_mhz: z.number().optional()
+  }),
+  memory: z.object({
+    usage_percent: z.number(),
+    total_gb: z.number().optional(),
+    available_gb: z.number().optional(),
+    used_gb: z.number().optional()
+  }),
+  disk: z.object({
+    usage_percent: z.number(),
+    total_gb: z.number().optional(),
+    free_gb: z.number().optional(),
+    used_gb: z.number().optional()
+  }),
+  system: z.object({
+    uptime_seconds: z.number(),
+    boot_time: z.string().optional(),
+    load_average: z.array(z.number()).optional(),
+    process_count: z.number().optional()
+  }),
   timestamp: z.number()
 });
 
-export type TelemetryData = z.infer<typeof TelemetrySchema>;
+// Derived type for easier consumption by other services
+export type TelemetryData = {
+  hostname: string;
+  vmname: string;
+  machineId: string;
+  ip: string;
+  os: string;
+  cpu: number;
+  ram: number;
+  disk: number;
+  uptime: number;
+  timestamp: number;
+};
+
+type RawTelemetryData = z.infer<typeof TelemetrySchema>;
 
 export class TelemetryService {
   private ssh: NodeSSH;
@@ -71,7 +104,20 @@ export class TelemetryService {
           
           const result = TelemetrySchema.safeParse(item);
           if (result.success) {
-            validData.push(result.data);
+            // Transform nested structure to flat structure
+            const transformedData: TelemetryData = {
+              hostname: result.data.hostname,
+              vmname: result.data.vmname,
+              machineId: result.data.machineId,
+              ip: result.data.ip,
+              os: result.data.os,
+              cpu: result.data.cpu.usage_percent,
+              ram: result.data.memory.usage_percent,
+              disk: result.data.disk.usage_percent,
+              uptime: result.data.system.uptime_seconds,
+              timestamp: result.data.timestamp
+            };
+            validData.push(transformedData);
           } else {
             this.logger.warn('Invalid telemetry data', { file, errors: result.error.errors });
           }

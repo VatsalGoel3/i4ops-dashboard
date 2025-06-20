@@ -1,7 +1,7 @@
 import HostStatusPie from '../components/charts/HostStatusPie';
 import HostUptimeHistory from '../components/charts/HostUptimeHistory';
-import TopVMsChart from '../components/charts/TopVMsChart';
-import HostKPI from '../components/HostKPI';
+import ResourceDistribution from '../components/charts/ResourceDistribution';
+import CriticalKPIs from '../components/CriticalKPIs';
 import { useDataContext } from '../context/DataContext';
 import { PipelineStage } from '../api/types';
 
@@ -32,21 +32,26 @@ export default function Dashboard() {
       </header>
 
       <main className="p-6 space-y-8">
-        {/* ── Pipeline Stage Summary ───────────────────── */}
+        {/* ── Pipeline Stage Summary - Fixed layout ─── */}
         <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-          <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
             Pipeline Stage Summary
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="flex flex-wrap gap-3 justify-center">
             {Object.values(PipelineStage).map((stage) => (
               <div
                 key={stage}
-                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 flex flex-col items-center"
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 flex flex-col items-center min-w-[120px]"
               >
-                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
+                <span className={`
+                  text-2xl font-bold
+                  ${stage === PipelineStage.Broken ? 'text-red-600 dark:text-red-400' : 
+                    stage === PipelineStage.Active ? 'text-green-600 dark:text-green-400' :
+                    'text-indigo-600 dark:text-indigo-400'}
+                `}>
                   {stageCounts[stage] || 0}
                 </span>
-                <span className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                <span className="mt-1 text-sm text-gray-600 dark:text-gray-300 text-center">
                   {stage}
                 </span>
               </div>
@@ -54,10 +59,10 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* ── Host KPIs ─────────────────────────────── */}
-        <HostKPI hosts={hosts} />
+        {/* ── Critical KPIs - Actually useful metrics ─── */}
+        <CriticalKPIs hosts={hosts} />
 
-        {/* ── Host & VM Charts ───────────────────────── */}
+        {/* ── Actionable Insights & Status ───────────── */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
@@ -73,9 +78,9 @@ export default function Dashboard() {
           </div>
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
-              Top VMs by CPU
+              Resource Distribution
             </h2>
-            <TopVMsChart hosts={hosts} />
+            <ResourceDistribution hosts={hosts} />
           </div>
         </section>
       </main>

@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import axios from 'axios';
 import type { Host, VM } from '../api/types';
-import { useRealTime } from '../api/useRealTime';
 
 interface DataContextType {
   hosts: Host[];
@@ -40,28 +39,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
     fetchData();
   }, []);
 
-  useRealTime(
-    (updatedHosts) => {
-      setHosts(updatedHosts);
-      setLastUpdated(new Date());
-    },
-    (updatedVMs) => {
-      setVMs(updatedVMs);
-      setLastUpdated(new Date());
-    },
-    (singleHost) => {
-      setHosts((prev) =>
-        prev.map((h) => (h.id === singleHost.id ? singleHost : h))
-      );
-      setLastUpdated(new Date());
-    },
-    (singleVM) => {
-      setVMs((prev) =>
-        prev.map((v) => (v.id === singleVM.id ? singleVM : v))
-      );
-      setLastUpdated(new Date());
-    }
-  );
+  // Note: Real-time updates are now handled by TanStack Query + SSE
+  // This context is kept for backward compatibility but will be removed
 
   return (
     <DataContext.Provider value={{ hosts, vms, lastUpdated, loading, triggerRefresh: fetchData }}>

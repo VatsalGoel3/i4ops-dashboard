@@ -4,13 +4,13 @@ import { toast } from 'sonner';
 
 import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
-import { useDataContext } from '../context/DataContext';
+import { useHosts } from '../api/queries';
 import SettingsSection from '../components/SettingsSection';
 
 export default function SettingsPage() {
   const { signOut, user } = useAuth();
   const { darkMode, toggleDarkMode, pageSize, setPageSize } = useUI();
-  const { hosts } = useDataContext();
+  const { data: hosts = [] } = useHosts();
 
   const [version, setVersion] = useState('...');
   const [health, setHealth] = useState('...');

@@ -1,4 +1,4 @@
-import type { Host, VM } from '../../api/types';
+import type { Host } from '../../api/types';
 import { PipelineStage } from '../../api/types';
 
 interface Props {

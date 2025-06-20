@@ -37,17 +37,17 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
             <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('name')}>
               VM Name {SortIcon('name')}
             </th>
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('machineId')}>
+              Machine ID {SortIcon('machineId')}
+            </th>
             <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('hostId')}>
               Host {SortIcon('hostId')}
             </th>
+            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('ip')}>
+              IP {SortIcon('ip')}
+            </th>
             <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('status')}>
               Status {SortIcon('status')}
-            </th>
-            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('pipelineStage')}>
-              Stage {SortIcon('pipelineStage')}
-            </th>
-            <th className="text-left px-4 py-2 cursor-pointer" onClick={() => onSortChange('assignedTo')}>
-              Assigned {SortIcon('assignedTo')}
             </th>
             <th className="text-right px-4 py-2 cursor-pointer" onClick={() => onSortChange('cpu')}>
               CPU% {SortIcon('cpu')}
@@ -73,11 +73,27 @@ export default function VMTable({ vms, sortField, sortOrder, onSortChange }: Pro
               className="border-t hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
               onClick={() => setSelectedVM(vm)}
             >
-              <td className="px-4 py-2">{vm.name}</td>
+              <td className="px-4 py-2 font-medium">{vm.name}</td>
+              <td className="px-4 py-2">
+                <code className="bg-gray-100 px-1 rounded text-xs">
+                  {vm.machineId.slice(0, 8)}...
+                </code>
+              </td>
               <td className="px-4 py-2">{vm.host?.name || '-'}</td>
-              <td className="px-4 py-2 capitalize">{vm.status}</td>
-              <td className="px-4 py-2">{vm.pipelineStage}</td>
-              <td className="px-4 py-2">{vm.assignedTo || '-'}</td>
+              <td className="px-4 py-2">
+                <code className="bg-gray-100 px-1 rounded text-xs">{vm.ip}</code>
+              </td>
+              <td className="px-4 py-2">
+                <span
+                  className={`inline-block px-2 py-1 text-xs rounded-full ${
+                    vm.status === 'up'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}
+                >
+                  {vm.status.toUpperCase()}
+                </span>
+              </td>
               <td className={`text-right px-4 py-2 ${colorClass(vm.cpu)}`}>
                 {vm.cpu != null ? `${vm.cpu.toFixed(1)}%` : '—'}
               </td>

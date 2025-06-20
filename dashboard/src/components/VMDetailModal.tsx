@@ -1,7 +1,5 @@
 import { X } from 'lucide-react';
 import type { VM } from '../api/types';
-import { useState } from 'react';
-import axios from 'axios';
 
 interface Props {
   vm: VM;
@@ -9,25 +7,6 @@ interface Props {
 }
 
 export default function VMDetailModal({ vm, onClose }: Props) {
-  const [assignedTo, setAssignedTo] = useState<string>(vm.assignedTo || '');
-  const [notes, setNotes] = useState<string>(vm.notes || '');
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await axios.put(`/api/vms/${vm.id}`, {
-        ...vm,
-        assignedTo,
-        notes
-      });
-    } catch (err) {
-      console.error('Failed to update VM:', err);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const formatUptime = (seconds?: number) => {
     if (!seconds || isNaN(seconds)) return 'N/A';
     const d = Math.floor(seconds / 86400);
@@ -55,60 +34,66 @@ export default function VMDetailModal({ vm, onClose }: Props) {
           </button>
         </div>
 
-        <ul className="space-y-2 text-sm mb-4">
-          <li><strong>Host:</strong> {vm.host?.name || 'N/A'}</li>
-          <li><strong>Status:</strong> {vm.status.charAt(0).toUpperCase() + vm.status.slice(1)}</li>
-          <li><strong>OS:</strong> {vm.os || 'N/A'}</li>
-          <li><strong>Uptime:</strong> {formatUptime(vm.uptime)}</li>
-          <li><strong>CPU Usage:</strong> <span className={colorClass(vm.cpu)}>{vm.cpu != null ? `${vm.cpu.toFixed(1)}%` : '—'}</span></li>
-          <li><strong>RAM Usage:</strong> <span className={colorClass(vm.ram)}>{vm.ram != null ? `${vm.ram.toFixed(1)}%` : '—'}</span></li>
-          <li><strong>Disk Usage:</strong> <span className={colorClass(vm.disk)}>{vm.disk != null ? `${vm.disk.toFixed(1)}%` : '—'}</span></li>
-          <li><strong>IP Address:</strong> {vm.networkIp || 'N/A'}</li>
-          <li><strong>MAC Address:</strong> {vm.networkMac || 'N/A'}</li>
-        </ul>
-
-        {/* ─── Manual Tracking Section ───────────────────── */}
-        <div className="mb-4 border-t pt-4">
-          <h4 className="text-md font-medium mb-2">Manual Tracking</h4>
-
-          <div className="mb-2">
-            <label className="block text-sm font-medium mb-1">Assigned To</label>
-            <input
-              type="text"
-              className="border rounded p-1 w-full text-sm"
-              placeholder="e.g. diana"
-              value={assignedTo}
-              onChange={e => setAssignedTo(e.target.value)}
-            />
-          </div>
-
-          <div className="mb-2">
-            <label className="block text-sm font-medium mb-1">Notes</label>
-            <textarea
-              className="border rounded p-1 w-full text-sm"
-              rows={3}
-              placeholder="Add VM notes here…"
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-            />
-          </div>
-
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className={`px-4 py-2 rounded text-white text-sm ${
-              saving ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+        <div className="flex items-center gap-4 mb-4">
+          <span
+            className={`inline-block px-2 py-1 text-xs rounded-full ${
+              vm.status === 'up'
+                ? 'bg-green-100 text-green-800'
+                : 'bg-red-100 text-red-800'
             }`}
           >
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
+            {vm.status.toUpperCase()}
+          </span>
         </div>
 
-        <div>
-          <h4 className="text-sm font-medium mb-2">VM XML:</h4>
-          <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded text-xs overflow-x-auto">
-            {vm.xml || '<no data>'}
-          </pre>
+        <ul className="space-y-2 text-sm mb-4">
+          <li><strong>Machine ID:</strong> <code className="bg-gray-100 px-1 rounded text-xs">{vm.machineId}</code></li>
+          <li><strong>Host:</strong> {vm.host?.name || 'N/A'} <code className="bg-gray-100 px-1 rounded text-xs">({vm.host?.ip || 'N/A'})</code></li>
+          <li><strong>VM IP:</strong> <code className="bg-gray-100 px-1 rounded">{vm.ip}</code></li>
+          <li><strong>OS:</strong> {vm.os || 'N/A'}</li>
+          <li><strong>Uptime:</strong> {formatUptime(vm.uptime)}</li>
+        </ul>
+
+        {/* ─── Performance Metrics ──────────────────────── */}
+        <div className="mb-4 border-t pt-4">
+          <h4 className="text-md font-medium mb-2">Performance</h4>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="bg-gray-50 dark:bg-gray-700 rounded p-3">
+              <div className={`text-lg font-bold ${colorClass(vm.cpu)}`}>
+                {vm.cpu != null ? `${vm.cpu.toFixed(1)}%` : '—'}
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">CPU Usage</div>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded p-3">
+              <div className={`text-lg font-bold ${colorClass(vm.ram)}`}>
+                {vm.ram != null ? `${vm.ram.toFixed(1)}%` : '—'}
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">RAM Usage</div>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700 rounded p-3">
+              <div className={`text-lg font-bold ${colorClass(vm.disk)}`}>
+                {vm.disk != null ? `${vm.disk.toFixed(1)}%` : '—'}
+              </div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">Disk Usage</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── Metadata ──────────────────────────────── */}
+        <div className="mb-4 border-t pt-4">
+          <h4 className="text-md font-medium mb-2">Metadata</h4>
+          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+            <li><strong>VM ID:</strong> {vm.id}</li>
+            <li><strong>Host ID:</strong> {vm.hostId}</li>
+            <li><strong>Last Updated:</strong> {new Date(vm.updatedAt).toLocaleString()}</li>
+          </ul>
+        </div>
+
+        <div className="border-t pt-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            💡 <strong>Note:</strong> VM tracking (assignedTo/notes) is managed at the host level. 
+            Check the host detail modal for provisioning info.
+          </p>
         </div>
       </div>
     </div>

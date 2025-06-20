@@ -9,19 +9,15 @@ export enum PipelineStage {
 export interface VM {
   id: number;
   name: string;
-  status: string;
+  machineId: string;
+  status: 'up' | 'down';
   cpu: number;
   ram: number;
   disk: number;
   os: string;
+  ip: string;
   uptime: number;
-  xml: string;
-  networkIp: string | null;
-  networkMac: string | null;
   hostId: number;
-  pipelineStage: PipelineStage;
-  assignedTo?: string | null;
-  notes?: string | null;
   updatedAt: string;
   host?: {
     name: string;
@@ -35,7 +31,7 @@ export interface Host {
   ip: string;
   os: string;
   uptime: number;
-  status: string;
+  status: 'up' | 'down';
   ssh: boolean;
   cpu: number;
   ram: number;
@@ -54,18 +50,7 @@ export interface HostFilters {
 }
 
 export interface VMFilters {
-  status?: string;
+  status?: 'up' | 'down';
   hostId?: number;
   name?: string;
-}
-
-export interface VMWithTelemetry extends VM {
-  telemetry: {
-    cpu: number;
-    ram: number;
-    disk: number;
-    uptime: number;
-    timestamp: number;
-    isStale: boolean;
-  } | null;
 }

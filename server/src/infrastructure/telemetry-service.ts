@@ -96,14 +96,35 @@ export class TelemetryService {
 
       const files = stdout.split('\n').filter(f => f.endsWith('.json'));
       const validData: TelemetryData[] = [];
+      const staleThresholdMs = 10 * 60 * 1000; // 10 minutes threshold for stale data
 
       for (const file of files) {
         try {
+          // Get file modification time (stat command)
+          const { stdout: statOutput } = await this.ssh.execCommand(`stat -c %Y "${file}"`);
+          const fileModTimeSeconds = parseInt(statOutput.trim());
+          const fileModTimeMs = fileModTimeSeconds * 1000;
+          const now = Date.now();
+          
+          // Check if file is too old based on modification time
+          if (now - fileModTimeMs > staleThresholdMs) {
+            this.logger.info(`Skipping stale file ${file} (modified ${Math.round((now - fileModTimeMs) / 60000)} minutes ago)`);
+            continue;
+          }
+
           const { stdout: content } = await this.ssh.execCommand(`cat "${file}"`);
           const item = JSON.parse(content);
           
           const result = TelemetrySchema.safeParse(item);
           if (result.success) {
+            // Also check the timestamp within the JSON data
+            // Convert timestamp from seconds to milliseconds
+            const jsonTimestampMs = result.data.timestamp * 1000;
+            if (now - jsonTimestampMs > staleThresholdMs) {
+              this.logger.info(`Skipping file ${file} with stale JSON timestamp (${Math.round((now - jsonTimestampMs) / 60000)} minutes old)`);
+              continue;
+            }
+
             // Transform nested structure to flat structure
             const transformedData: TelemetryData = {
               hostname: result.data.hostname,
@@ -126,6 +147,7 @@ export class TelemetryService {
         }
       }
 
+      this.logger.info(`Processed ${files.length} files, ${validData.length} valid, ${files.length - validData.length} stale/invalid`);
       return validData;
     }, 3);
   }

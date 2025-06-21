@@ -10,7 +10,7 @@ export interface VM {
   id: number;
   name: string;
   machineId: string;
-  status: 'up' | 'down';
+  status: 'running' | 'stopped' | 'offline';
   cpu: number;
   ram: number;
   disk: number;
@@ -50,7 +50,7 @@ export interface HostFilters {
 }
 
 export interface VMFilters {
-  status?: 'up' | 'down';
+  status?: 'running' | 'stopped' | 'offline';
   hostId?: number;
   name?: string;
 }

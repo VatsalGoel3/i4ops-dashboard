@@ -19,7 +19,7 @@ export default function VMsPage() {
 
   const [displayedVMs, setDisplayedVMs] = useState<VM[]>([]);
   const [hostOptions, setHostOptions] = useState<{ name: string; id: number }[]>([]);
-  const [statusOptions] = useState<('up' | 'down')[]>(['up', 'down']);
+  const [statusOptions] = useState<('running' | 'stopped' | 'offline')[]>(['running', 'stopped', 'offline']);
   const [filters, setFilters] = useState<VMFilters>({});
   const [sortField, setSortField] = useState<keyof VM>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');

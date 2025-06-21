@@ -3,7 +3,7 @@ import type { VMFilters } from '../../api/types';
 interface Props {
   filters: VMFilters;
   hostOptions: { name: string; id: number }[];
-  statusOptions: ('up' | 'down')[];
+  statusOptions: ('running' | 'stopped' | 'offline')[];
   onChange: (f: VMFilters) => void;
 }
 
@@ -45,7 +45,7 @@ export default function VMFiltersComponent({
           className="mt-1 block w-36 px-2 py-1 bg-white dark:bg-gray-700 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring focus:border-indigo-300"
           value={filters.status || ''}
           onChange={(e) =>
-            onChange({ ...filters, status: (e.target.value as 'up' | 'down') || undefined })
+            onChange({ ...filters, status: (e.target.value as 'running' | 'stopped' | 'offline') || undefined })
           }
         >
           <option value="">All Status</option>

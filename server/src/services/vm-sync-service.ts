@@ -21,25 +21,36 @@ export class VMSyncService {
     try {
       const telemetryData = await this.telemetry.getAllTelemetryData();
       
+      this.logger.info(`Found ${telemetryData.length} fresh telemetry records`);
+      
       if (telemetryData.length === 0) {
-        this.logger.warn('No telemetry data found');
-        return { synced: 0, errors: 0 };
+        this.logger.warn('No fresh telemetry data found - marking all VMs as offline');
+        // If no fresh telemetry data, mark all running VMs as offline
+        await this.markAllVMsOffline();
+      } else {
+        // Track which VMs we've seen in fresh data
+        const freshVMIdentifiers = new Set<string>();
+
+        // Batch process with transaction
+        await prisma.$transaction(async (tx) => {
+          for (const data of telemetryData) {
+            try {
+              const vmIdentifier = `${data.hostname}-${data.vmname}`;
+              freshVMIdentifiers.add(vmIdentifier);
+              await this.syncSingleVM(tx, data);
+              synced++;
+            } catch (error) {
+              this.logger.error(`Failed to sync VM ${data.vmname}`, error);
+              errors++;
+            }
+          }
+        });
+
+        // Mark VMs that weren't in fresh telemetry as offline
+        await this.markMissingVMsOffline(freshVMIdentifiers);
       }
 
-      // Batch process with transaction
-      await prisma.$transaction(async (tx) => {
-        for (const data of telemetryData) {
-          try {
-            await this.syncSingleVM(tx, data);
-            synced++;
-          } catch (error) {
-            this.logger.error(`Failed to sync VM ${data.vmname}`, error);
-            errors++;
-          }
-        }
-      });
-
-      // Mark stale VMs as offline
+      // Also mark stale VMs as offline (backup safety net)
       await this.markStaleVMsOffline();
 
       // Broadcast updates
@@ -102,16 +113,71 @@ export class VMSyncService {
   private async markStaleVMsOffline(): Promise<void> {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
     
-    const staleCount = await prisma.vM.updateMany({
+    // Get stale VMs first to log their actual last seen times
+    const staleVMs = await prisma.vM.findMany({
       where: {
         updatedAt: { lt: fiveMinutesAgo },
         status: VMStatus.running
       },
-      data: { status: VMStatus.offline }
+      select: { machineId: true, updatedAt: true }
     });
 
-    if (staleCount.count > 0) {
-      this.logger.info(`Marked ${staleCount.count} VMs as offline (stale)`);
+    if (staleVMs.length > 0) {
+      // Update only status, preserve updatedAt to show true last seen time
+      await prisma.vM.updateMany({
+        where: {
+          updatedAt: { lt: fiveMinutesAgo },
+          status: VMStatus.running
+        },
+        data: { 
+          status: VMStatus.offline
+          // Deliberately NOT updating updatedAt to preserve last seen time
+        }
+      });
+
+      this.logger.info(`Marked ${staleVMs.length} VMs as offline (stale) - preserving last seen times`);
+    }
+  }
+
+  private async markAllVMsOffline(): Promise<void> {
+    // Update only status, preserve updatedAt to show true last seen time
+    await prisma.vM.updateMany({
+      where: {
+        status: VMStatus.running
+      },
+      data: { 
+        status: VMStatus.offline
+        // Deliberately NOT updating updatedAt to preserve last seen time
+      }
+    });
+
+    this.logger.info('Marked all VMs as offline - preserving last seen times');
+  }
+
+  private async markMissingVMsOffline(freshVMIdentifiers: Set<string>): Promise<void> {
+    // Get missing VMs first to log their details
+    const missingVMs = await prisma.vM.findMany({
+      where: {
+        machineId: { notIn: Array.from(freshVMIdentifiers) },
+        status: VMStatus.running
+      },
+      select: { machineId: true, updatedAt: true }
+    });
+
+    if (missingVMs.length > 0) {
+      // Update only status, preserve updatedAt to show true last seen time
+      await prisma.vM.updateMany({
+        where: {
+          machineId: { notIn: Array.from(freshVMIdentifiers) },
+          status: VMStatus.running
+        },
+        data: { 
+          status: VMStatus.offline
+          // Deliberately NOT updating updatedAt to preserve last seen time
+        }
+      });
+
+      this.logger.info(`Marked ${missingVMs.length} VMs as offline (missing from fresh telemetry) - preserving last seen times`);
     }
   }
 } 

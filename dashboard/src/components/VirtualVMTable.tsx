@@ -12,8 +12,14 @@ interface Props {
 
 const ROW_HEIGHT = 48;
 
-const formatUptime = (seconds?: number) => {
+const formatUptime = (seconds?: number, status?: string) => {
   if (!seconds || isNaN(seconds)) return 'N/A';
+  
+  // For offline/stopped VMs, don't show uptime as it's misleading
+  if (status === 'offline' || status === 'stopped') {
+    return status === 'offline' ? 'Offline' : 'Stopped';
+  }
+  
   const d = Math.floor(seconds / 86400);
   const h = Math.floor((seconds % 86400) / 3600);
   return `${d}d ${h}h`;
@@ -184,8 +190,10 @@ export default function VirtualVMTable({
       render: (value: string) => (
         <span
           className={`inline-block px-2 py-1 text-xs rounded-full ${
-            value === 'up'
+            value === 'running'
               ? 'bg-green-100 text-green-800'
+              : value === 'stopped'
+              ? 'bg-yellow-100 text-yellow-800'
               : 'bg-red-100 text-red-800'
           }`}
         >
@@ -241,7 +249,7 @@ export default function VirtualVMTable({
       title: 'Uptime',
       width: 100,
       sortable: true,
-      render: (value: number) => formatUptime(value)
+      render: (value: number, row: VM) => formatUptime(value, row.status)
     }
   ], []);
 

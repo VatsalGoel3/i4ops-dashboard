@@ -13,6 +13,7 @@ import DashboardPage from './pages/Dashboard';
 import HostsPage from './pages/HostsPage';
 import VMsPage from './pages/VMsPage';
 import SettingsPage from './pages/SettingsPage';
+import DeveloperPage from './pages/DeveloperPage';
 
 function AppWithRealTime() {
   // Enable real-time updates globally
@@ -62,7 +63,7 @@ function AppWithRealTime() {
         }
       />
       <Route
-        path="/settings"  // Add the new route for Settings page
+        path="/settings"
         element={
           <RequireAuth>
             <Layout>
@@ -70,7 +71,17 @@ function AppWithRealTime() {
             </Layout>
           </RequireAuth>
         }
-              />
+      />
+      <Route
+        path="/developer"
+        element={
+          <RequireAuth>
+            <Layout>
+              <DeveloperPage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
       </Routes>
     </SearchProvider>
   );

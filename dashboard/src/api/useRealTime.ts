@@ -1,17 +1,27 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from './queries';
+import { useConnection } from '../context/ConnectionContext';
 import type { Host, VM } from './types';
 
 export function useRealTime() {
   const queryClient = useQueryClient();
+  const { recordUpdate, setConnected, setDisconnected, setConnecting } = useConnection();
 
   useEffect(() => {
+    setConnecting();
     const es = new EventSource('http://localhost:4000/api/events');
+
+    // Connection opened successfully
+    es.onopen = () => {
+      setConnected();
+      recordUpdate(true);
+    };
 
     // Handle hosts update
     es.addEventListener('hosts-update', (e) => {
       try {
+        const startTime = Date.now();
         const updatedHosts: Host[] = JSON.parse((e as any).data);
         
         // Update the cache directly with new data
@@ -22,14 +32,20 @@ export function useRealTime() {
           queryKey: queryKeys.hosts(),
           exact: true 
         });
+
+        // Record successful update with latency
+        const latency = Date.now() - startTime;
+        recordUpdate(true, latency);
       } catch (error) {
         console.error('Failed to parse hosts-update SSE data:', error);
+        recordUpdate(false);
       }
     });
 
     // Handle VMs update
     es.addEventListener('vms-update', (e) => {
       try {
+        const startTime = Date.now();
         const updatedVMs: VM[] = JSON.parse((e as any).data);
         
         // Update the cache directly with new data
@@ -40,8 +56,13 @@ export function useRealTime() {
           queryKey: queryKeys.vms(),
           exact: true 
         });
+
+        // Record successful update with latency
+        const latency = Date.now() - startTime;
+        recordUpdate(true, latency);
       } catch (error) {
         console.error('Failed to parse vms-update SSE data:', error);
+        recordUpdate(false);
       }
     });
 
@@ -82,7 +103,8 @@ export function useRealTime() {
     // Handle connection errors
     es.onerror = (error) => {
       console.warn('SSE connection error:', error);
-      // TanStack Query will handle refetching when connection is restored
+      setDisconnected('SSE connection failed');
+      recordUpdate(false);
     };
 
     return () => {

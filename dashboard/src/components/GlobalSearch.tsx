@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import { Search, X, Server, Monitor } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../context/SearchContext';
-import { useDebounce } from '../hooks/useDebounce';
+// import { useDebounce } from '../hooks/useDebounce';
 
 export default function GlobalSearch() {
   const navigate = useNavigate();
@@ -20,10 +20,10 @@ export default function GlobalSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
   
-  const debouncedQuery = useDebounce(query, 200);
-
   useEffect(() => {
-    setSearchInputRef(inputRef);
+    if (inputRef.current) {
+      setSearchInputRef(inputRef as React.RefObject<HTMLInputElement>);
+    }
   }, [setSearchInputRef]);
 
   useEffect(() => {

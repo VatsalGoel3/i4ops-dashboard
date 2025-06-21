@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, memo } from 'react';
+import { useCallback, useMemo, memo } from 'react';
 import { FixedSizeList as List } from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import { ChevronUp, ChevronDown, Loader } from 'lucide-react';
@@ -8,7 +8,7 @@ import type { VirtualTableProps, VirtualTableColumn } from './types';
 const TableRow = memo(({ 
   index, 
   style, 
-  data: { items, columns, onRowClick, sortConfig } 
+  data: { items, columns, onRowClick } 
 }: any) => {
   const item = items[index];
   

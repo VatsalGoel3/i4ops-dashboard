@@ -135,7 +135,7 @@ export default function ConnectionStatus({ showDetailed = false, size = 'medium'
         />
         <span className="text-sm font-medium">{config.label}</span>
         
-        {lastUpdated && size !== 'small' && (
+        {lastUpdated && size === 'large' && (
           <span className="text-xs text-gray-500 dark:text-gray-400">
             {formatLastUpdated()}
           </span>

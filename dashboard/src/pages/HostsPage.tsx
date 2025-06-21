@@ -5,6 +5,7 @@ import HostFiltersComponent from '../components/Filters/HostFilters';
 import HostTable from '../components/HostTable';
 import VirtualHostTable from '../components/VirtualHostTable';
 import HostDetailModal from '../components/HostDetailModal';
+import PerformanceDashboard from '../components/PerformanceDashboard';
 import { useHosts } from '../api/queries';
 
 function compareHostnames(a: string, b: string) {
@@ -273,6 +274,11 @@ export default function HostsPage() {
           onSave={handleHostSave}
         />
       )}
+
+      <PerformanceDashboard 
+        isVirtual={useVirtualTable}
+        itemCount={useVirtualTable ? allHosts.length : displayedHosts.length}
+      />
     </>
   );
 }

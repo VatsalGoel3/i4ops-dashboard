@@ -1,5 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState, useCallback } from 'react';
 import { VirtualTable, type VirtualTableColumn, type SortConfig } from './VirtualTable';
 import { useInfinitePagination, flattenInfiniteData } from '../api/pagination';
 import type { Host, HostFilters } from '../api/types';
@@ -22,7 +21,6 @@ export default function VirtualHostTable({
   onRowClick, 
   height = 600 
 }: Props) {
-  const queryClient = useQueryClient();
   const [sortConfig, setSortConfig] = useState<SortConfig<Host>>({
     field: 'name',
     direction: 'asc'

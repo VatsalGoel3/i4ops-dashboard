@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { 
   Activity, 
   Database, 
-  Wifi, 
   Clock, 
   TrendingUp, 
   AlertTriangle,
@@ -14,13 +13,12 @@ import {
 } from 'lucide-react';
 import { useConnection } from '../context/ConnectionContext';
 import { useHosts, useVMs } from '../api/queries';
-import { formatDistanceToNow } from 'date-fns';
 import SettingsSection from '../components/SettingsSection';
 import ConnectionStatus from '../components/ConnectionStatus';
 import DataFreshnessIndicator from '../components/DataFreshnessIndicator';
 
 export default function DeveloperPage() {
-  const { state, stats, lastUpdated, error, retryCount } = useConnection();
+  const { stats, lastUpdated, error, retryCount } = useConnection();
   const { data: hosts = [], isLoading: hostsLoading } = useHosts();
   const { data: vms = [], isLoading: vmsLoading } = useVMs();
 
@@ -153,7 +151,7 @@ export default function DeveloperPage() {
                 </div>
               </div>
             </div>
-            <DataFreshnessIndicator lastUpdated={lastUpdated} />
+            <DataFreshnessIndicator lastUpdated={lastUpdated || undefined} />
           </div>
 
           {/* Connection Metrics Grid */}

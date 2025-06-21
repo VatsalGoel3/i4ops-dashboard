@@ -1,4 +1,4 @@
-import { useInfiniteQuery, UseInfiniteQueryOptions } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import type { PaginatedResponse } from '../components/VirtualTable/types';
 
@@ -53,7 +53,7 @@ export function useInfinitePagination<T>(
   
   return useInfiniteQuery({
     queryKey: [...queryKey, { sortBy, sortOrder, filters }],
-    queryFn: ({ pageParam }) =>
+    queryFn: ({ pageParam }: { pageParam: string | undefined }) =>
       fetchPaginatedData<T>(endpoint, {
         cursor: pageParam,
         limit,
@@ -61,8 +61,9 @@ export function useInfinitePagination<T>(
         sortOrder,
         filters,
       }),
-    getNextPageParam: (lastPage) => lastPage.pagination.nextCursor,
-    getPreviousPageParam: (firstPage) => firstPage.pagination.prevCursor,
+    getNextPageParam: (lastPage: PaginatedResponse<T>) => lastPage.pagination.nextCursor,
+    getPreviousPageParam: (firstPage: PaginatedResponse<T>) => firstPage.pagination.prevCursor,
+    initialPageParam: undefined as string | undefined,
     enabled,
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 5 * 60 * 1000, // 5 minutes (formerly cacheTime)

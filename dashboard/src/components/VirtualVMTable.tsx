@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { VirtualTable, type VirtualTableColumn, type SortConfig } from './VirtualTable';
 import { useInfinitePagination, flattenInfiniteData } from '../api/pagination';
 import type { VM, VMFilters } from '../api/types';

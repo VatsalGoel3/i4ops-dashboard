@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { useState } from 'react';
 import GlobalSearch from './GlobalSearch';
+import ConnectionStatus from './ConnectionStatus';
 
 export default function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const { signOut } = useAuth();
@@ -34,8 +35,9 @@ export default function Header({ onToggleSidebar }: { onToggleSidebar: () => voi
         <GlobalSearch />
       </div>
 
-      {/* Dark mode, Notifications, Profile */}
+      {/* Connection Status, Dark mode, Notifications, Profile */}
       <div className="flex items-center gap-4 relative">
+        <ConnectionStatus size="small" showDetailed />
         <button
           onClick={toggleDarkMode}
           className="p-2 rounded-lg focus:outline-none focus:ring bg-gray-200 dark:bg-gray-700"

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getAllVMs,
+  getAllVMsPaginated,
   getVMById,
   createVM,
   updateVM,
@@ -15,6 +16,13 @@ const router = Router();
  *   - Returns all VMs (optionally filter by hostId via query)
  */
 router.get('/', getAllVMs);
+
+/**
+ * GET /api/vms/paginated
+ *   - Returns paginated VMs with cursor-based pagination
+ *   - Query params: cursor, limit, sortBy, sortOrder, status, hostId, name
+ */
+router.get('/paginated', getAllVMsPaginated);
 
 /**
  * GET /api/vms/telemetry

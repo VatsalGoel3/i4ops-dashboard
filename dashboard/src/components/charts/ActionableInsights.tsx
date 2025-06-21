@@ -101,16 +101,16 @@ export default function ActionableInsights({ hosts }: Props) {
 
   const getSeverityIcon = (severity: Issue['severity']) => {
     switch (severity) {
-      case 'critical': return '🚨';
-      case 'warning': return '⚠️';
-      case 'info': return 'ℹ️';
+      case 'critical': return '!';
+      case 'warning': return '!';
+      case 'info': return 'i';
     }
   };
 
   if (issues.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-48 text-gray-500 dark:text-gray-400">
-        <span className="text-4xl mb-2">✅</span>
+        <span className="text-4xl mb-2 text-green-500">✓</span>
         <span className="text-sm font-medium">All systems healthy</span>
         <span className="text-xs">No issues requiring attention</span>
       </div>

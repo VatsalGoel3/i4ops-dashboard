@@ -3,7 +3,9 @@ import { RefreshCw } from 'lucide-react';
 import type { Host, HostFilters } from '../api/types';
 import HostFiltersComponent from '../components/Filters/HostFilters';
 import HostTable from '../components/HostTable';
+import VirtualHostTable from '../components/VirtualHostTable';
 import HostDetailModal from '../components/HostDetailModal';
+import PerformanceDashboard from '../components/PerformanceDashboard';
 import { useHosts } from '../api/queries';
 
 function compareHostnames(a: string, b: string) {
@@ -39,6 +41,9 @@ export default function HostsPage() {
 
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  
+  // Get virtual table preference from developer settings
+  const useVirtualTable = localStorage.getItem('dev_virtual_tables') === 'true';
 
   useEffect(() => {
     setOsOptions(Array.from(new Set(allHosts.map((h) => h.os))).sort());
@@ -162,29 +167,37 @@ export default function HostsPage() {
               setFilters(f);
             }}
           />
-          <button
-            onClick={handleRefresh}
-            disabled={isLoading || isRefetching}
-            className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 ${
-              isLoading || isRefetching
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : 'bg-indigo-600 hover:bg-indigo-700'
-            }`}
-            title="Refresh data from database"
-          >
-            <RefreshCw size={16} className={(isLoading || isRefetching) ? 'animate-spin' : ''} />
-            {isLoading ? 'Loading...' : isRefetching ? 'Refreshing...' : 'Refresh'}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleRefresh}
+              disabled={isLoading || isRefetching}
+              className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 ${
+                isLoading || isRefetching
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-indigo-600 hover:bg-indigo-700'
+              }`}
+              title="Refresh data from database"
+            >
+              <RefreshCw size={16} className={(isLoading || isRefetching) ? 'animate-spin' : ''} />
+              {isLoading ? 'Loading...' : isRefetching ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
           <div className="text-center py-8">
             <p className="text-gray-500 dark:text-gray-400">Loading hosts...</p>
           </div>
+        ) : useVirtualTable ? (
+          <VirtualHostTable
+            filters={filters}
+            onRowClick={handleRowClick}
+            height={600}
+          />
         ) : (
           <>
             <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-              Showing {start}–{end} of {total} hosts
+              Showing {start}–{end} of {total} hosts (Legacy Mode)
             </p>
             <HostTable
               hosts={displayedHosts}
@@ -231,6 +244,13 @@ export default function HostsPage() {
           host={selectedHost}
           onClose={() => setModalVisible(false)}
           onSave={handleHostSave}
+        />
+      )}
+
+      {localStorage.getItem('dev_performance_monitor') === 'true' && (
+        <PerformanceDashboard 
+          isVirtual={useVirtualTable}
+          itemCount={useVirtualTable ? allHosts.length : displayedHosts.length}
         />
       )}
     </>

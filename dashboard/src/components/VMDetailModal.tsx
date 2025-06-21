@@ -82,7 +82,7 @@ export default function VMDetailModal({ vm, onClose }: Props) {
 
         <div className="border-t pt-4">
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            💡 <strong>Note:</strong> VM provisioning details (assignedTo/notes) are managed at the host level. 
+            <strong>Note:</strong> VM provisioning details (assignedTo/notes) are managed at the host level. 
             Check the host detail modal for deployment status.
           </p>
         </div>

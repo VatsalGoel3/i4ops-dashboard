@@ -119,3 +119,91 @@ export async function getVMFileTelemetry(req: Request, res: Response) {
     res.status(500).json({ error: 'Internal server error' });
   }
 }
+
+export async function getAllVMsPaginated(req: Request, res: Response) {
+  try {
+    const { 
+      cursor, 
+      limit = '50', 
+      sortBy = 'name', 
+      sortOrder = 'asc',
+      status,
+      hostId,
+      name
+    } = req.query;
+
+    const take = Math.min(parseInt(limit as string), 100); // Max 100 per page
+    const orderDirection = sortOrder === 'desc' ? 'desc' : 'asc';
+
+    // Build where clause with filters
+    const where: any = {};
+    if (status) where.status = status;
+    if (hostId) where.hostId = parseInt(hostId as string);
+    if (name) {
+      where.name = {
+        contains: name as string,
+        mode: 'insensitive'
+      };
+    }
+
+    // Build cursor clause
+    const cursorClause = cursor ? {
+      cursor: { id: parseInt(cursor as string) },
+      skip: 1 // Skip the cursor record itself
+    } : {};
+
+    // Build orderBy clause
+    const orderBy: any = {};
+    if (sortBy === 'name' || sortBy === 'machineId' || sortBy === 'ip' || sortBy === 'os' || sortBy === 'status') {
+      orderBy[sortBy as string] = orderDirection;
+    } else if (sortBy === 'uptime' || sortBy === 'cpu' || sortBy === 'ram' || sortBy === 'disk') {
+      orderBy[sortBy as string] = orderDirection;
+    } else if (sortBy === 'hostId') {
+      orderBy.host = { name: orderDirection };
+    } else {
+      orderBy.name = orderDirection; // Default sort
+    }
+
+    const baseQuery = {
+      where,
+      include: {
+        host: {
+          select: {
+            name: true,
+            ip: true
+          }
+        }
+      },
+      orderBy,
+      take: take + 1, // Fetch one extra to check if there are more
+    };
+
+    const vms = await prisma.vM.findMany(
+      cursor ? { ...baseQuery, ...cursorClause } : baseQuery
+    );
+
+    // Check if there are more records
+    const hasMore = vms.length > take;
+    const data = hasMore ? vms.slice(0, take) : vms;
+
+    // Generate next cursor
+    const nextCursor = hasMore && data.length > 0 
+      ? data[data.length - 1].id.toString() 
+      : undefined;
+
+    res.json({
+      data,
+      pagination: {
+        nextCursor,
+        hasMore,
+        total: undefined // We don't calculate total for performance
+      }
+    });
+  } catch (error) {
+    console.error('Error in getAllVMsPaginated:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch paginated VMs',
+      details: (error as Error).message 
+    });
+  }
+}

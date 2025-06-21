@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import {
   getAllHosts,
+  getAllHostsPaginated,
   getHostById,
   createHost,
   updateHost,
@@ -14,6 +15,13 @@ const router = Router();
  *   - Returns all hosts (including associated VMs)
  */
 router.get('/', getAllHosts);
+
+/**
+ * GET /api/hosts/paginated
+ *   - Returns paginated hosts with cursor-based pagination
+ *   - Query params: cursor, limit, sortBy, sortOrder, os, status, vmCount
+ */
+router.get('/paginated', getAllHostsPaginated);
 
 /**
  * GET /api/hosts/:id

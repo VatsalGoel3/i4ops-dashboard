@@ -13,26 +13,12 @@ export default function SettingsPage() {
   const { data: hosts = [] } = useHosts();
 
   const [version, setVersion] = useState('...');
-  const [health, setHealth] = useState('...');
-  const [sseStatus, setSseStatus] = useState<'connected' | 'disconnected'>('connected');
-  const [lastPoll, setLastPoll] = useState<string>('Loading...');
 
   useEffect(() => {
     fetch('/version.txt')
       .then(res => res.text())
       .then(setVersion)
       .catch(() => setVersion('unknown'));
-
-    fetch('/healthz')
-      .then(res => res.ok ? setHealth('Healthy') : setHealth('Unavailable'))
-      .catch(() => setHealth('Unavailable'));
-
-    const timer = setInterval(() => {
-      setSseStatus(Math.random() > 0.05 ? 'connected' : 'disconnected');
-      setLastPoll(new Date().toLocaleTimeString());
-    }, 5000);
-
-    return () => clearInterval(timer);
   }, []);
 
   const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -70,100 +56,90 @@ export default function SettingsPage() {
     <div className="p-6 space-y-6">
       <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h2>
 
-      {/* GENERAL */}
-      <SettingsSection title="General">
-        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <li>
-            <strong>Real-time updates:</strong>{' '}
-            <span
-              className={`inline-block px-2 py-1 text-xs rounded-full ${
-                sseStatus === 'connected'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {sseStatus === 'connected' ? 'Connected (SSE)' : 'Disconnected'}
-            </span>
-          </li>
-          <li><strong>Polling interval:</strong> 30s (read-only)</li>
-          <li><strong>Last poll:</strong> {lastPoll}</li>
-        </ul>
-      </SettingsSection>
-
-      {/* USER INFO */}
-      <SettingsSection title="User Info">
-        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <li><strong>Email:</strong> {user?.email || 'unknown'}</li>
-          <li><strong>Role:</strong> {user?.user_metadata?.role || 'viewer'}</li>
-        </ul>
-        <button
-          className="mt-3 px-3 py-1 bg-red-500 text-white rounded text-xs"
-          onClick={signOut}
-        >
-          Log out
-        </button>
+      {/* USER ACCOUNT */}
+      <SettingsSection title="Account">
+        <div className="space-y-3">
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            <strong>Email:</strong> {user?.email || 'unknown'}
+          </div>
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            <strong>Role:</strong> {user?.user_metadata?.role || 'viewer'}
+          </div>
+          <button
+            className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
+            onClick={signOut}
+          >
+            Sign Out
+          </button>
+        </div>
       </SettingsSection>
 
       {/* APPEARANCE */}
       <SettingsSection title="Appearance">
-        <div className="flex items-center gap-4 flex-wrap">
-          <label className="flex items-center space-x-2">
+        <div className="space-y-4">
+          <label className="flex items-center space-x-3">
             <input
               type="checkbox"
               checked={darkMode}
               onChange={toggleDarkMode}
-              className="form-checkbox"
+              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
             />
-            <span className="text-sm">Dark Mode</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
           </label>
-          <label className="flex items-center space-x-2">
-            <span className="text-sm">Table Page Size</span>
+          
+          <div className="flex items-center space-x-3">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Items per page:
+            </label>
             <select
               value={pageSize}
               onChange={handlePageSizeChange}
-              className="bg-gray-200 dark:bg-gray-700 p-1 rounded"
+              className="px-3 py-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value={15}>15</option>
               <option value={25}>25</option>
               <option value={50}>50</option>
             </select>
-          </label>
+          </div>
         </div>
       </SettingsSection>
 
-      {/* DIAGNOSTICS */}
-      <SettingsSection title="Diagnostics">
-        <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
-          <li><strong>App Version:</strong> {version}</li>
-          <li><strong>Backend Health:</strong> {health}</li>
-        </ul>
-      </SettingsSection>
-
-      {/* ADMIN TOOLS */}
-      <SettingsSection title="Admin Tools">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+      {/* DATA EXPORT */}
+      <SettingsSection title="Data Export">
+        <div className="space-y-3">
           <button
-            className="bg-indigo-500 text-white px-3 py-1 rounded flex items-center justify-center"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition-colors text-sm"
             onClick={exportHostsCSV}
           >
-            <Download className="w-4 h-4 mr-2" /> Export Hosts CSV
+            <Download className="w-4 h-4" />
+            Export Hosts CSV
           </button>
           <button
-            className="bg-indigo-500 text-white px-3 py-1 rounded opacity-50 cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-400 text-white rounded cursor-not-allowed text-sm"
             disabled
           >
+            <Download className="w-4 h-4" />
             Export Audit Logs (coming soon)
           </button>
+        </div>
+      </SettingsSection>
+
+      {/* SYSTEM */}
+      <SettingsSection title="System">
+        <div className="space-y-3">
+          <div className="text-sm text-gray-700 dark:text-gray-300">
+            <strong>App Version:</strong> {version}
+          </div>
           <button
-            className="bg-gray-700 text-white px-3 py-1 rounded"
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors text-sm"
             onClick={() => {
               localStorage.removeItem('dark-mode');
               localStorage.removeItem('ui-page-size');
-              toast.success('UI preferences reset');
+              toast.success('Settings reset to defaults');
               window.location.reload();
             }}
           >
-            Reset UI Preferences
+            Reset to Defaults
           </button>
         </div>
       </SettingsSection>

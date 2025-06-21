@@ -24,7 +24,7 @@ export default function PerformanceDashboard({
           onClick={() => setIsExpanded(true)}
           className="bg-black/80 text-white px-3 py-2 rounded-lg text-xs hover:bg-black/90 transition-colors"
         >
-          📊 Performance
+          Performance
         </button>
       </div>
     );
@@ -177,7 +177,7 @@ export default function PerformanceDashboard({
       {/* Founding Engineer Note */}
       <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
         <div className="text-xs text-gray-500 dark:text-gray-400 italic">
-          💡 Founding Engineer Feature: Compare performance between virtual and legacy tables to see the scalability improvements.
+          Founding Engineer Feature: Compare performance between virtual and legacy tables to see the scalability improvements.
         </div>
       </div>
     </div>

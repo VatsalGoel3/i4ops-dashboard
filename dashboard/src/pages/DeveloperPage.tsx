@@ -378,7 +378,7 @@ export default function DeveloperPage() {
               <Zap className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div>
                 <div className="font-medium text-blue-800 dark:text-blue-200 mb-1">
-                  🚀 Founding Engineer Features
+                  Founding Engineer Features
                 </div>
                 <div className="text-sm text-blue-700 dark:text-blue-300">
                   Virtual scrolling with infinite pagination - designed for 100x scale.
@@ -483,11 +483,11 @@ export default function DeveloperPage() {
           <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
             <div className="text-sm">
               <div className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-                🏗️ Implementation Status
+                Implementation Status
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-yellow-700 dark:text-yellow-300">
                 <div>
-                  <div className="font-medium mb-1">✅ Completed:</div>
+                  <div className="font-medium mb-1">Completed:</div>
                   <ul className="text-xs space-y-1 ml-2">
                     <li>• Virtual table components</li>
                     <li>• Infinite scroll hooks</li>
@@ -496,7 +496,7 @@ export default function DeveloperPage() {
                   </ul>
                 </div>
                 <div>
-                  <div className="font-medium mb-1">🏗️ Pending:</div>
+                  <div className="font-medium mb-1">Pending:</div>
                   <ul className="text-xs space-y-1 ml-2">
                     <li>• Backend pagination endpoints</li>
                     <li>• Cursor-based queries</li>

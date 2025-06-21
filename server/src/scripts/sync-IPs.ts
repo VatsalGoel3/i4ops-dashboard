@@ -90,7 +90,7 @@ export async function updateIPsFromTailscale() {
   }
 
   await Promise.all(updates);
-  console.log(`✅ Updated ${updates.length} host IPs from Tailscale`);
+  console.log(`Updated ${updates.length} host IPs from Tailscale`);
 }
 
 if (require.main === module) {

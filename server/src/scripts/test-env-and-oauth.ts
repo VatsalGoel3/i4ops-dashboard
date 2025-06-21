@@ -8,9 +8,9 @@ const CLIENT_SECRET = process.env.TS_OAUTH_CLIENT_SECRET;
 const TAILNET = process.env.TAILNET;
 
 async function main() {
-  console.log('✅ .env Loaded Values:');
+  console.log('.env Loaded Values:');
   console.log('TS_OAUTH_CLIENT_ID:', CLIENT_ID);
-  console.log('TS_OAUTH_CLIENT_SECRET:', CLIENT_SECRET ? '***SET***' : '❌ MISSING');
+      console.log('TS_OAUTH_CLIENT_SECRET:', CLIENT_SECRET ? '***SET***' : 'MISSING');
   console.log('TAILNET:', TAILNET);
 
   if (!CLIENT_ID || !CLIENT_SECRET || !TAILNET) {
@@ -38,7 +38,7 @@ async function main() {
     }
 
     const { access_token } = await tokenRes.json() as { access_token: string };
-    console.log('✅ OAuth token fetched successfully.');
+    console.log('OAuth token fetched successfully.');
 
     const devRes = await fetch(`https://api.tailscale.com/api/v2/tailnet/${TAILNET}/devices`, {
       headers: {
@@ -52,7 +52,7 @@ async function main() {
     }
 
     const { devices } = await devRes.json() as { devices: any[] };
-    console.log(`✅ Got ${devices.length} devices from Tailscale.`);
+          console.log(`Got ${devices.length} devices from Tailscale.`);
 
   } catch (err: any) {
     console.error('❌ Test failed:', err.message);

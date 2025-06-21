@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { VirtualTable, type VirtualTableColumn, type SortConfig } from './VirtualTable';
 import { useInfinitePagination, flattenInfiniteData } from '../api/pagination';
+import { useHosts } from '../api/queries'; // Fallback to existing API
 import type { Host, HostFilters } from '../api/types';
 import { PipelineStage } from '../api/types';
 
@@ -26,14 +27,14 @@ export default function VirtualHostTable({
     direction: 'asc'
   });
 
-  // Infinite query for hosts with pagination
+  // Try infinite pagination first, fall back to existing API
   const {
-    data,
-    isLoading,
+    data: infiniteData,
+    isLoading: infiniteLoading,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
-    error
+    error: infiniteError
   } = useInfinitePagination<Host>(
     ['hosts', 'paginated'],
     'hosts/paginated',
@@ -49,8 +50,51 @@ export default function VirtualHostTable({
     }
   );
 
-  // Flatten paginated data for virtual table
-  const hosts = useMemo(() => flattenInfiniteData<Host>(data), [data]);
+  // Fallback to existing hosts API if paginated fails
+  const {
+    data: fallbackHosts = [],
+    isLoading: fallbackLoading,
+    error: fallbackError
+  } = useHosts();
+
+  // Determine which data source to use
+  const useInfinite = !infiniteError && infiniteData;
+  const isLoading = useInfinite ? infiniteLoading : fallbackLoading;
+  const error = useInfinite ? infiniteError : fallbackError;
+
+  // Process data based on source
+  const hosts = useMemo(() => {
+    if (useInfinite && infiniteData) {
+      return flattenInfiniteData<Host>(infiniteData);
+    }
+    
+    // Fallback: filter and sort existing data locally
+    let filtered = [...fallbackHosts];
+    
+    // Apply filters
+    if (filters.os) filtered = filtered.filter(h => h.os === filters.os);
+    if (filters.status) filtered = filtered.filter(h => h.status === filters.status);
+    if (filters.vmCount !== undefined) {
+      filtered = filtered.filter(h => (h.vms?.length ?? 0) === filters.vmCount);
+    }
+    
+    // Apply sorting
+    filtered.sort((a, b) => {
+      const aVal = a[sortConfig.field];
+      const bVal = b[sortConfig.field];
+      
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      }
+      
+      const aStr = String(aVal || '');
+      const bStr = String(bVal || '');
+      const comparison = aStr.localeCompare(bStr);
+      return sortConfig.direction === 'asc' ? comparison : -comparison;
+    });
+    
+    return filtered;
+  }, [useInfinite, infiniteData, fallbackHosts, filters, sortConfig]);
 
   // Handle sorting
   const handleSort = useCallback((field: keyof Host) => {
@@ -60,12 +104,12 @@ export default function VirtualHostTable({
     }));
   }, []);
 
-  // Load more data for infinite scroll
+  // Load more data for infinite scroll (only works with paginated API)
   const handleLoadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
+    if (useInfinite && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [useInfinite, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Column definitions optimized for virtual scrolling
   const columns: VirtualTableColumn<Host>[] = useMemo(() => [
@@ -210,31 +254,50 @@ export default function VirtualHostTable({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64 text-red-500">
-        <p>Error loading hosts: {error.message}</p>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-500 mb-2">
+            {useInfinite ? 'Paginated API not available' : 'Error loading hosts'}
+          </p>
+          <p className="text-sm text-gray-500">
+            {useInfinite ? 'Using existing data source as fallback' : 'Please try refreshing'}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <VirtualTable
-      data={hosts}
-      columns={columns}
-      height={height}
-      itemSize={ROW_HEIGHT}
-      sortConfig={sortConfig}
-      onSort={handleSort}
-      onRowClick={onRowClick}
-      pagination={{
-        pageSize: 50,
-        hasNextPage: hasNextPage ?? false,
-        hasPreviousPage: false,
-        isLoading,
-        isFetchingNextPage
-      }}
-      onLoadMore={handleLoadMore}
-      loading={isLoading}
-      className="w-full"
-    />
+    <div className="space-y-4">
+      {/* Backend Status Indicator */}
+      {!useInfinite && (
+        <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <div className="flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
+            <span>⚠️</span>
+            <span>Using fallback mode - Paginated API endpoints not yet available</span>
+          </div>
+        </div>
+      )}
+      
+      <VirtualTable
+        data={hosts}
+        columns={columns}
+        height={height}
+        itemSize={ROW_HEIGHT}
+        sortConfig={sortConfig}
+        onSort={handleSort}
+        onRowClick={onRowClick}
+        pagination={useInfinite ? {
+          pageSize: 50,
+          hasNextPage: hasNextPage ?? false,
+          hasPreviousPage: false,
+          isLoading,
+          isFetchingNextPage
+        } : undefined}
+        onLoadMore={useInfinite ? handleLoadMore : undefined}
+        loading={isLoading}
+        className="w-full"
+      />
+    </div>
   );
 } 

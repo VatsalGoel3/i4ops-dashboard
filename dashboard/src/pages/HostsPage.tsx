@@ -42,8 +42,8 @@ export default function HostsPage() {
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   
-  // Toggle for virtual table (founding engineer feature flag)
-  const [useVirtualTable, setUseVirtualTable] = useState(true);
+  // Get virtual table preference from developer settings
+  const useVirtualTable = localStorage.getItem('dev_virtual_tables') === 'true';
 
   useEffect(() => {
     setOsOptions(Array.from(new Set(allHosts.map((h) => h.os))).sort());
@@ -168,22 +168,6 @@ export default function HostsPage() {
             }}
           />
           <div className="flex items-center gap-4">
-            {/* Founding Engineer Toggle */}
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600 dark:text-gray-400">
-                Virtual Table:
-              </label>
-              <button
-                onClick={() => setUseVirtualTable(!useVirtualTable)}
-                className={`px-3 py-1 text-xs rounded-full border transition-colors ${
-                  useVirtualTable 
-                    ? 'bg-green-100 text-green-800 border-green-300' 
-                    : 'bg-gray-100 text-gray-600 border-gray-300'
-                }`}
-              >
-                {useVirtualTable ? '🚀 ON' : 'OFF'}
-              </button>
-            </div>
             <button
               onClick={handleRefresh}
               disabled={isLoading || isRefetching}
@@ -205,23 +189,11 @@ export default function HostsPage() {
             <p className="text-gray-500 dark:text-gray-400">Loading hosts...</p>
           </div>
         ) : useVirtualTable ? (
-          <>
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-              <div className="flex items-center gap-2">
-                <span className="text-blue-600 dark:text-blue-400 text-sm font-medium">
-                  🚀 Virtual Table Active
-                </span>
-                <span className="text-xs text-blue-600 dark:text-blue-400">
-                  Infinite scroll • Sub-100ms renders • Memory optimized
-                </span>
-              </div>
-            </div>
-            <VirtualHostTable
-              filters={filters}
-              onRowClick={handleRowClick}
-              height={600}
-            />
-          </>
+          <VirtualHostTable
+            filters={filters}
+            onRowClick={handleRowClick}
+            height={600}
+          />
         ) : (
           <>
             <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
@@ -275,10 +247,12 @@ export default function HostsPage() {
         />
       )}
 
-      <PerformanceDashboard 
-        isVirtual={useVirtualTable}
-        itemCount={useVirtualTable ? allHosts.length : displayedHosts.length}
-      />
+      {localStorage.getItem('dev_performance_monitor') === 'true' && (
+        <PerformanceDashboard 
+          isVirtual={useVirtualTable}
+          itemCount={useVirtualTable ? allHosts.length : displayedHosts.length}
+        />
+      )}
     </>
   );
 }

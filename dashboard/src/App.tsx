@@ -3,7 +3,9 @@ import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth.tsx';
 import { AuthProvider } from './context/AuthContext.tsx';
 import { SearchProvider } from './context/SearchContext.tsx';
+import { ConnectionProvider } from './context/ConnectionContext.tsx';
 import { useRealTime } from './api/useRealTime';
+import { useConnectionHealth } from './hooks/useConnectionHealth';
 import { useHosts, useVMs } from './api/queries';
 
 import LoginPage from './pages/LoginPage';
@@ -15,6 +17,9 @@ import SettingsPage from './pages/SettingsPage';
 function AppWithRealTime() {
   // Enable real-time updates globally
   useRealTime();
+  
+  // Enable connection health monitoring
+  useConnectionHealth();
 
   // Get data for search context
   const { data: hosts = [] } = useHosts();
@@ -74,7 +79,9 @@ function AppWithRealTime() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppWithRealTime />
+      <ConnectionProvider>
+        <AppWithRealTime />
+      </ConnectionProvider>
     </AuthProvider>
   );
 }

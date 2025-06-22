@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useConnection } from '../context/ConnectionContext';
+import { config as appConfig } from '../lib/config';
 
 interface RetryConfig {
   maxRetries: number;
@@ -41,7 +42,7 @@ export function useConnectionHealth(retryConfig: Partial<RetryConfig> = {}) {
       const startTime = Date.now();
       
       // Test connectivity to the API
-      const response = await fetch('http://localhost:4000/api/health', {
+              const response = await fetch(`${appConfig.api.baseUrl}/health`, {
         method: 'GET',
         timeout: 5000, // 5 second timeout
       } as RequestInit);

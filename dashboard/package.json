@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "build:production": "tsc -b && vite build --mode production",
+    "build:u0": "tsc -b && vite build --mode u0",
+    "preview": "vite preview",
+    "preview:u0": "vite preview --mode u0",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.8",

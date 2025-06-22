@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { config } from '../lib/config';
 
 export interface AuditLog {
   id: number;
@@ -19,7 +20,7 @@ export function useAuditLogs(entity: 'Host' | 'VM', entityId: number) {
 
   useEffect(() => {
     axios
-      .get<{ data: AuditLog[] }>(`http://localhost:4000/api/audit-logs?entity=${entity}&entityId=${entityId}`)
+      .get<{ data: AuditLog[] }>(`${config.api.baseUrl}/audit-logs?entity=${entity}&entityId=${entityId}`)
       .then((res) => setLogs(res.data.data))
       .catch((err) => console.error('Failed to load audit logs:', err))
       .finally(() => setLoading(false));

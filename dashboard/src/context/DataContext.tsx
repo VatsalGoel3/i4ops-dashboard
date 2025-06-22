@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import axios from 'axios';
 import type { Host, VM } from '../api/types';
+import { config } from '../lib/config';
 
 interface DataContextType {
   hosts: Host[];
@@ -16,14 +17,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [hosts, setHosts] = useState<Host[]>([]);
   const [vms, setVMs] = useState<VM[]>([]);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [hostRes, vmRes] = await Promise.all([
-        axios.get<{ data: Host[] }>('http://localhost:4000/api/hosts'),
-        axios.get<{ data: VM[] }>('http://localhost:4000/api/vms'),
+        axios.get<{ data: Host[] }>(`${config.api.baseUrl}/hosts`),
+        axios.get<{ data: VM[] }>(`${config.api.baseUrl}/vms`),
       ]);
       setHosts(hostRes.data.data);
       setVMs(vmRes.data.data);

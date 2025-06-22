@@ -3,8 +3,9 @@ import axios from 'axios';
 import { toast } from 'sonner';
 import type { Host, VM } from './types';
 import type { AuditLog } from './useAuditLogs';
+import { config } from '../lib/config';
 
-const API_BASE = 'http://localhost:4000/api';
+const API_BASE = config.api.baseUrl;
 
 // ================================
 // QUERY KEYS - Centralized key management

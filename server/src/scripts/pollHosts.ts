@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 import { NodeSSH, Config as SSHConfig } from 'node-ssh';
 import { PrismaClient, Host, HostStatus, VMStatus } from '@prisma/client';
 import { updateIPsFromTailscale } from './sync-IPs';
-import pLimit from 'p-limit';
 
 dotenv.config();
 
@@ -80,11 +79,11 @@ export async function pollAllHosts(): Promise<void> {
   console.log('Starting poll at', new Date().toISOString());
   const hosts: Host[] = await prisma.host.findMany({ include: { vms: true } });
 
-  const limit = pLimit(5);
-
-  await Promise.all(
-    hosts.map((host) =>
-      limit(async () => {
+  // Process hosts in batches of 5 for concurrency control
+  for (let i = 0; i < hosts.length; i += 5) {
+    const batch = hosts.slice(i, i + 5);
+    await Promise.all(
+      batch.map(async (host) => {
         console.log(`→ Polling host ${host.name} (${host.ip})`);
 
         const uptimeOut = await runSSHCommand(host.ip, 'cat /proc/uptime');
@@ -166,8 +165,8 @@ export async function pollAllHosts(): Promise<void> {
           `   • Updated host ${host.name}: load=${cpuLoad}, RAM=${ramUsage}%, Disk=${diskUsage}%`
         );
       })
-    )
-  );
+    );
+  }
 
   console.log('Poll complete at', new Date().toISOString());
 

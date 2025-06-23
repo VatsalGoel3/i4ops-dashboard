@@ -4,11 +4,9 @@ import { prisma } from '../infrastructure/database';
 import { env } from '../config/env';
 import { updateIPsFromTailscale } from '../scripts/sync-IPs';
 import { HostStatus, VMStatus } from '@prisma/client';
-import pLimit from 'p-limit';
 
 export class HostSyncService {
   private logger: Logger;
-  private concurrencyLimit = pLimit(5);
 
   constructor() {
     this.logger = new Logger('HostSyncService');
@@ -25,9 +23,11 @@ export class HostSyncService {
 
       const hosts = await prisma.host.findMany();
       
-      await Promise.all(
-        hosts.map(host => 
-          this.concurrencyLimit(async () => {
+      // Process hosts in batches of 5 for concurrency control
+      for (let i = 0; i < hosts.length; i += 5) {
+        const batch = hosts.slice(i, i + 5);
+        await Promise.all(
+          batch.map(async (host) => {
             try {
               await this.syncSingleHost(host);
               synced++;
@@ -36,8 +36,8 @@ export class HostSyncService {
               errors++;
             }
           })
-        )
-      );
+        );
+      }
 
       // Log poll history
       const upCount = hosts.filter(h => h.status === 'up').length;

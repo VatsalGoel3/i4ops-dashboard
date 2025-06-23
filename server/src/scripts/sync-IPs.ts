@@ -1,7 +1,6 @@
 // sync-IPs.ts
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import fetch from 'node-fetch';
 
 dotenv.config();
 

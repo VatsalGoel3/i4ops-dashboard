@@ -99,9 +99,15 @@ if systemctl is-active --quiet postgresql; then
     DB_TYPE="postgresql"
     # Test if i4ops can connect with peer authentication
     if sudo -u i4ops psql -d i4ops_dashboard -c "SELECT 1;" > /dev/null 2>&1; then
-        # Use peer authentication (no password needed)
-        DATABASE_URL="postgresql:///i4ops_dashboard"
+        # Use explicit localhost connection for Prisma compatibility
+        DATABASE_URL="postgresql://i4ops@localhost:5432/i4ops_dashboard"
         print_status "Using peer authentication for database connection"
+        
+        # Ensure proper database permissions for Prisma
+        sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON SCHEMA public TO i4ops;" 2>/dev/null || true
+        sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO i4ops;" 2>/dev/null || true
+        sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO i4ops;" 2>/dev/null || true
+        sudo -u postgres psql -d i4ops_dashboard -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO i4ops;" 2>/dev/null || true
     else
         # Fall back to password authentication
         DATABASE_URL="postgresql://i4ops:i4ops123@localhost:5432/i4ops_dashboard"

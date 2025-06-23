@@ -31,7 +31,7 @@ FRONTEND_PORT=8888
 BACKEND_PORT=4000
 USER="i4ops"
 
-echo -e "${BLUE}🚀 Starting i4ops Dashboard Installation on u0${NC}"
+echo -e "${BLUE}Starting i4ops Dashboard Installation on u0${NC}"
 echo "============================================================"
 
 # Function to print status
@@ -55,12 +55,12 @@ if [ "$USER" != "i4ops" ]; then
 fi
 
 # Create app directory
-echo -e "${BLUE}📁 Setting up directories...${NC}"
+echo -e "${BLUE}Setting up directories...${NC}"
 mkdir -p "$APP_DIR"
 cd "$APP_DIR"
 
 # Install Node.js 18 if not present
-echo -e "${BLUE}📦 Installing Node.js...${NC}"
+echo -e "${BLUE}Installing Node.js...${NC}"
 if ! command -v node &> /dev/null || [[ $(node -v | cut -d'v' -f2 | cut -d'.' -f1) -lt 18 ]]; then
     curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
     sudo apt-get install -y nodejs
@@ -68,7 +68,7 @@ fi
 print_status "Node.js $(node -v) installed"
 
 # Install PM2 globally for process management
-echo -e "${BLUE}🔧 Installing PM2...${NC}"
+echo -e "${BLUE}Installing PM2...${NC}"
 if ! command -v pm2 &> /dev/null; then
     sudo npm install -g pm2
     pm2 startup systemd -u $USER --hp /home/$USER
@@ -76,7 +76,7 @@ fi
 print_status "PM2 installed"
 
 # Install nginx if not present
-echo -e "${BLUE}🌐 Installing nginx...${NC}"
+echo -e "${BLUE}Installing nginx...${NC}"
 if ! command -v nginx &> /dev/null; then
     sudo apt-get update
     sudo apt-get install -y nginx
@@ -84,7 +84,7 @@ fi
 print_status "Nginx installed"
 
 # Clone or update repository
-echo -e "${BLUE}📥 Getting latest code...${NC}"
+echo -e "${BLUE}Getting latest code...${NC}"
 if [ -d ".git" ]; then
     git pull
 else
@@ -93,7 +93,7 @@ else
 fi
 
 # Detect and configure database
-echo -e "${BLUE}🔍 Detecting database setup...${NC}"
+echo -e "${BLUE}Detecting database setup...${NC}"
 if systemctl is-active --quiet postgresql; then
     print_status "PostgreSQL detected and running"
     DB_TYPE="postgresql"
@@ -126,7 +126,7 @@ else
 fi
 
 # Create environment file for server
-echo -e "${BLUE}⚙️  Configuring environment...${NC}"
+echo -e "${BLUE}Configuring environment...${NC}"
 cat > server/.env << EOF
 NODE_ENV=production
 PORT=$BACKEND_PORT
@@ -143,15 +143,15 @@ TS_OAUTH_CLIENT_SECRET=your_client_secret_here
 TAILNET=your_tailnet_here
 EOF
 
-print_warning "⚠️  You need to update Tailscale OAuth credentials in server/.env"
+print_warning "You need to update Tailscale OAuth credentials in server/.env"
 
 # Install server dependencies
-echo -e "${BLUE}📦 Installing server dependencies...${NC}"
+echo -e "${BLUE}Installing server dependencies...${NC}"
 cd server
 npm install
 
 # Setup database
-echo -e "${BLUE}🗄️  Setting up database...${NC}"
+echo -e "${BLUE}Setting up database...${NC}"
 if [ "$DB_TYPE" = "postgresql" ]; then
     print_status "Using existing PostgreSQL database"
     
@@ -168,22 +168,25 @@ if [ "$DB_TYPE" = "postgresql" ]; then
         sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE i4ops_dashboard TO i4ops;" 2>/dev/null || true
     fi
     
-    npx prisma generate
+    # Clean and regenerate Prisma client to fix TypeScript errors
+    rm -rf node_modules/.prisma/client 2>/dev/null || true
+    npx prisma generate --force
     npx prisma db push
 else
     # SQLite setup (if PostgreSQL not available)
     print_warning "Setting up SQLite database"
-    npx prisma generate
+    rm -rf node_modules/.prisma/client 2>/dev/null || true
+    npx prisma generate --force
     npx prisma db push
 fi
 print_status "Database setup complete"
 
 # Build server
-echo -e "${BLUE}🔨 Building server...${NC}"
+echo -e "${BLUE}Building server...${NC}"
 npm run build
 
 # Create local telemetry service (modified for local file access)
-echo -e "${BLUE}📊 Creating local telemetry service...${NC}"
+echo -e "${BLUE}Creating local telemetry service...${NC}"
 cat > src/infrastructure/local-telemetry-service.ts << 'EOF'
 import { promises as fs } from 'fs';
 import { z } from 'zod';
@@ -310,7 +313,7 @@ npm run build
 cd ..
 
 # Setup frontend
-echo -e "${BLUE}🎨 Setting up frontend...${NC}"
+echo -e "${BLUE}Setting up frontend...${NC}"
 cd dashboard
 
 # Install frontend dependencies
@@ -326,14 +329,14 @@ VITE_API_PORT=$BACKEND_PORT
 EOF
 
 # Build frontend
-echo -e "${BLUE}🔨 Building frontend...${NC}"
+echo -e "${BLUE}Building frontend...${NC}"
 npm run build:u0
 
 # Go back to root
 cd ..
 
 # Create PM2 ecosystem file
-echo -e "${BLUE}🔧 Creating PM2 configuration...${NC}"
+echo -e "${BLUE}Creating PM2 configuration...${NC}"
 cat > ecosystem.config.js << EOF
 module.exports = {
   apps: [{
@@ -360,7 +363,7 @@ EOF
 mkdir -p logs
 
 # Configure nginx for frontend
-echo -e "${BLUE}🌐 Configuring nginx...${NC}"
+echo -e "${BLUE}Configuring nginx...${NC}"
 sudo tee /etc/nginx/sites-available/i4ops-dashboard << EOF
 server {
     listen $FRONTEND_PORT;
@@ -406,7 +409,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 
 # Start services with PM2
-echo -e "${BLUE}🚀 Starting services...${NC}"
+echo -e "${BLUE}Starting services...${NC}"
 pm2 start ecosystem.config.js
 pm2 save
 pm2 startup
@@ -415,7 +418,7 @@ print_status "Backend started on port $BACKEND_PORT"
 print_status "Frontend available on port $FRONTEND_PORT"
 
 # Create management script
-echo -e "${BLUE}📝 Creating management commands...${NC}"
+echo -e "${BLUE}Creating management commands...${NC}"
 cat > manage.sh << 'EOF'
 #!/bin/bash
 
@@ -423,17 +426,17 @@ case "$1" in
     start)
         pm2 start ecosystem.config.js
         sudo systemctl start nginx
-        echo "✅ Services started"
+        echo "Services started"
         ;;
     stop)
         pm2 stop all
         sudo systemctl stop nginx
-        echo "🛑 Services stopped"
+        echo "Services stopped"
         ;;
     restart)
         pm2 restart all
         sudo systemctl reload nginx
-        echo "🔄 Services restarted"
+        echo "Services restarted"
         ;;
     status)
         echo "PM2 Status:"
@@ -446,14 +449,14 @@ case "$1" in
         pm2 logs
         ;;
     update)
-        echo "🔄 Updating application..."
+        echo "Updating application..."
         pm2 stop all
         git pull
         cd server && npm install && npm run build && cd ..
         cd dashboard && npm install && npm run build:u0 && cd ..
         pm2 start ecosystem.config.js
         sudo systemctl reload nginx
-        echo "✅ Update complete"
+        echo "Update complete"
         ;;
     *)
         echo "Usage: $0 {start|stop|restart|status|logs|update}"
@@ -465,13 +468,13 @@ EOF
 chmod +x manage.sh
 
 # Final status check
-echo -e "${BLUE}🔍 Final status check...${NC}"
+echo -e "${BLUE}Final status check...${NC}"
 sleep 5
 pm2 status
 
 echo ""
 echo "============================================================"
-echo -e "${GREEN}🎉 Installation Complete!${NC}"
+echo -e "${GREEN}Installation Complete!${NC}"
 echo "============================================================"
 echo -e "${BLUE}Dashboard URL:${NC} http://100.76.195.14:$FRONTEND_PORT"
 echo -e "${BLUE}API URL:${NC} http://100.76.195.14:$BACKEND_PORT"

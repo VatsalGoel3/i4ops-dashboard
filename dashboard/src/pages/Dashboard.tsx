@@ -9,7 +9,7 @@ export default function Dashboard() {
   const { data: hosts = [], isLoading, error } = useHosts();
 
   const stageCounts = hosts.reduce((counts, h) => {
-    const stage = h.pipelineStage || PipelineStage.Unassigned;
+    const stage = h.pipelineStage || PipelineStage.unassigned;
     counts[stage] = (counts[stage] || 0) + 1;
     return counts;
   }, {} as Record<PipelineStage, number>);
@@ -71,8 +71,8 @@ export default function Dashboard() {
                   >
                     <span className={`
                       text-2xl font-bold
-                      ${stage === PipelineStage.Broken ? 'text-red-600 dark:text-red-400' : 
-                        stage === PipelineStage.Active ? 'text-green-600 dark:text-green-400' :
+                              ${stage === PipelineStage.broken ? 'text-red-600 dark:text-red-400' :
+        stage === PipelineStage.active ? 'text-green-600 dark:text-green-400' :
                         'text-indigo-600 dark:text-indigo-400'}
                     `}>
                       {stageCounts[stage] || 0}

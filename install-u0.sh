@@ -169,15 +169,21 @@ if [ "$DB_TYPE" = "postgresql" ]; then
     fi
     
     # Clean and regenerate Prisma client to fix TypeScript errors
+    print_status "Updating database enum values"
     rm -rf node_modules/.prisma/client 2>/dev/null || true
+    
+    # Apply enum updates to database
+    PGPASSWORD=i4ops123 psql -h localhost -U i4ops -d i4ops_dashboard -f update-enums.sql 2>/dev/null || true
+    
+    # Force schema sync and regenerate client
+    npx prisma db push --accept-data-loss
     npx prisma generate
-    npx prisma db push
 else
     # SQLite setup (if PostgreSQL not available)
     print_warning "Setting up SQLite database"
     rm -rf node_modules/.prisma/client 2>/dev/null || true
+    npx prisma db push --accept-data-loss
     npx prisma generate
-    npx prisma db push
 fi
 print_status "Database setup complete"
 

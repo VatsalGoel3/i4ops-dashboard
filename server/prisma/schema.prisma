@@ -19,11 +19,11 @@ enum VMStatus {
 }
 
 enum PipelineStage {
-  Active
-  Installing
-  Broken
-  Reserved
-  Unassigned
+  active
+  installing
+  broken
+  reserved
+  unassigned
 }
 
 model PollHistory {
@@ -45,7 +45,7 @@ model Host {
   ram           Float
   disk          Float
 
-  pipelineStage PipelineStage  @default(Unassigned)
+  pipelineStage PipelineStage  @default(unassigned)
   assignedTo    String?
   notes         String?
   updatedAt     DateTime       @default(now()) @updatedAt

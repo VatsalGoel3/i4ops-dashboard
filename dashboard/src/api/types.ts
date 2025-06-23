@@ -1,9 +1,9 @@
 export enum PipelineStage {
-  Unassigned = 'Unassigned',
-  Active = 'Active',
-  Installing = 'Installing',
-  Reserved = 'Reserved',
-  Broken = 'Broken',
+  unassigned = 'unassigned',
+  active = 'active',
+  installing = 'installing',
+  reserved = 'reserved',
+  broken = 'broken',
 }
 
 export interface VM {

@@ -60,7 +60,7 @@ export default function ActionableInsights({ hosts }: Props) {
   });
 
   // Broken pipeline
-  hosts.filter(h => h.pipelineStage === PipelineStage.Broken).forEach(host => {
+      hosts.filter(h => h.pipelineStage === PipelineStage.broken).forEach(host => {
     issues.push({
       type: 'broken_pipeline',
       title: 'Pipeline Broken',
@@ -72,7 +72,7 @@ export default function ActionableInsights({ hosts }: Props) {
   });
 
   // Unassigned capacity
-  const unassignedCount = hosts.filter(h => h.pipelineStage === PipelineStage.Unassigned).length;
+      const unassignedCount = hosts.filter(h => h.pipelineStage === PipelineStage.unassigned).length;
   if (unassignedCount > 0) {
     issues.push({
       type: 'unassigned',

@@ -228,10 +228,10 @@ export default function VirtualHostTable({
       sortable: true,
       render: (value: PipelineStage) => (
         <span className={`text-xs px-2 py-1 rounded-full ${
-          value === PipelineStage.Active ? 'bg-green-100 text-green-800' :
-          value === PipelineStage.Broken ? 'bg-red-100 text-red-800' :
-          value === PipelineStage.Installing ? 'bg-blue-100 text-blue-800' :
-          value === PipelineStage.Reserved ? 'bg-purple-100 text-purple-800' :
+                value === PipelineStage.active ? 'bg-green-100 text-green-800' :
+      value === PipelineStage.broken ? 'bg-red-100 text-red-800' :
+      value === PipelineStage.installing ? 'bg-blue-100 text-blue-800' :
+      value === PipelineStage.reserved ? 'bg-purple-100 text-purple-800' :
           'bg-gray-100 text-gray-800'
         }`}>
           {value}

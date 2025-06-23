@@ -30,7 +30,7 @@ export default function ActionableInsights({ hosts }: Props) {
   });
 
   // Critical: VMs down
-  const downVMs = hosts.flatMap(h => h.vms.filter(vm => vm.status === 'down'));
+  const downVMs = hosts.flatMap(h => h.vms.filter(vm => vm.status === 'offline'));
   downVMs.slice(0, 3).forEach(vm => {
     issues.push({
       type: 'vm_down',

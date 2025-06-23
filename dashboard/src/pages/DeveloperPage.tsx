@@ -351,15 +351,15 @@ export default function DeveloperPage() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Up VMs:</span>
+                <span>Running VMs:</span>
                 <span className="font-medium text-green-600">
-                  {vms.filter(vm => vm.status === 'up').length}
+                  {vms.filter(vm => vm.status === 'running').length}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span>Down VMs:</span>
+                <span>Offline VMs:</span>
                 <span className="font-medium text-red-600">
-                  {vms.filter(vm => vm.status === 'down').length}
+                  {vms.filter(vm => vm.status === 'offline').length}
                 </span>
               </div>
             </div>

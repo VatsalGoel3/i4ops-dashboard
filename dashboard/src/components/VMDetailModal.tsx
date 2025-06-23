@@ -37,7 +37,7 @@ export default function VMDetailModal({ vm, onClose }: Props) {
         <div className="flex items-center gap-4 mb-4">
           <span
             className={`inline-block px-2 py-1 text-xs rounded-full ${
-              vm.status === 'up'
+              vm.status === 'running'
                 ? 'bg-green-100 text-green-800'
                 : 'bg-red-100 text-red-800'
             }`}

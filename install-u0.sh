@@ -150,14 +150,23 @@ echo -e "${BLUE}Installing server dependencies...${NC}"
 cd server
 npm install
 
-# Setup database
-echo -e "${BLUE}Setting up database...${NC}"
+# Setup database - SAFE VERSION (no data loss)
+echo -e "${BLUE}Setting up database safely...${NC}"
 if [ "$DB_TYPE" = "postgresql" ]; then
     print_status "Using existing PostgreSQL database"
     
     # Test connection first
-    if npx prisma db pull --force > /dev/null 2>&1; then
+    if PGPASSWORD=i4ops123 psql -h localhost -U i4ops -d i4ops_dashboard -c "SELECT 1;" > /dev/null 2>&1; then
         print_status "Database connection successful"
+        
+        # Check if we need to run migrations safely
+        if npx prisma migrate status 2>/dev/null; then
+            print_status "Database schema is up to date"
+        else
+            print_warning "Running safe database migrations..."
+            # Only deploy migrations, don't reset schema
+            npx prisma migrate deploy 2>/dev/null || true
+        fi
     else
         print_warning "Database connection failed, attempting to create/setup..."
         # Try to ensure database exists
@@ -166,153 +175,26 @@ if [ "$DB_TYPE" = "postgresql" ]; then
         
         # Ensure user has access
         sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE i4ops_dashboard TO i4ops;" 2>/dev/null || true
+        
+        # Deploy schema if database is new
+        npx prisma migrate deploy
     fi
     
-    # Clean and regenerate Prisma client to fix TypeScript errors
-    print_status "Updating database enum values"
+    # Clean and regenerate Prisma client for TypeScript compatibility
+    print_status "Regenerating Prisma client"
     rm -rf node_modules/.prisma/client 2>/dev/null || true
-    
-    # Apply enum updates to database
-    PGPASSWORD=i4ops123 psql -h localhost -U i4ops -d i4ops_dashboard -f update-enums.sql 2>/dev/null || true
-    
-    # Force schema sync and regenerate client
-    npx prisma db push --accept-data-loss
     npx prisma generate
 else
     # SQLite setup (if PostgreSQL not available)
     print_warning "Setting up SQLite database"
     rm -rf node_modules/.prisma/client 2>/dev/null || true
-    npx prisma db push --accept-data-loss
+    npx prisma migrate deploy
     npx prisma generate
 fi
-print_status "Database setup complete"
+print_status "Database setup complete (no data lost)"
 
 # Build server
 echo -e "${BLUE}Building server...${NC}"
-npm run build
-
-# Create local telemetry service (modified for local file access)
-echo -e "${BLUE}Creating local telemetry service...${NC}"
-cat > src/infrastructure/local-telemetry-service.ts << 'EOF'
-import { promises as fs } from 'fs';
-import { z } from 'zod';
-import { Logger } from './logger';
-
-const TelemetrySchema = z.object({
-  hostname: z.string(),
-  vmname: z.string(),
-  machineId: z.string(),
-  ip: z.string().ip(),
-  os: z.string(),
-  cpu: z.object({
-    usage_percent: z.number(),
-    count: z.number().optional(),
-    frequency_mhz: z.number().optional()
-  }),
-  memory: z.object({
-    usage_percent: z.number(),
-    total_gb: z.number().optional(),
-    available_gb: z.number().optional(),
-    used_gb: z.number().optional()
-  }),
-  disk: z.object({
-    usage_percent: z.number(),
-    total_gb: z.number().optional(),
-    free_gb: z.number().optional(),
-    used_gb: z.number().optional()
-  }),
-  system: z.object({
-    uptime_seconds: z.number(),
-    boot_time: z.string().optional(),
-    load_average: z.array(z.number()).optional(),
-    process_count: z.number().optional()
-  }),
-  timestamp: z.number()
-});
-
-export type TelemetryData = {
-  hostname: string;
-  vmname: string;
-  machineId: string;
-  ip: string;
-  os: string;
-  cpu: number;
-  ram: number;
-  disk: number;
-  uptime: number;
-  timestamp: number;
-};
-
-export class LocalTelemetryService {
-  private logger: Logger;
-  private telemetryDir = '/mnt/vm-telemetry-json';
-
-  constructor() {
-    this.logger = new Logger('LocalTelemetryService');
-  }
-
-  async getAllTelemetryData(): Promise<TelemetryData[]> {
-    try {
-      const files = await fs.readdir(this.telemetryDir);
-      const jsonFiles = files.filter(f => f.endsWith('.json'));
-      const validData: TelemetryData[] = [];
-      const staleThresholdMs = 10 * 60 * 1000; // 10 minutes
-
-      for (const file of jsonFiles) {
-        try {
-          const filePath = `${this.telemetryDir}/${file}`;
-          const stats = await fs.stat(filePath);
-          const now = Date.now();
-          
-          // Check if file is too old
-          if (now - stats.mtime.getTime() > staleThresholdMs) {
-            continue;
-          }
-
-          const content = await fs.readFile(filePath, 'utf8');
-          const item = JSON.parse(content);
-          
-          const result = TelemetrySchema.safeParse(item);
-          if (result.success) {
-            const jsonTimestampMs = result.data.timestamp * 1000;
-            if (now - jsonTimestampMs > staleThresholdMs) {
-              continue;
-            }
-
-            const transformedData: TelemetryData = {
-              hostname: result.data.hostname,
-              vmname: result.data.vmname,
-              machineId: result.data.machineId,
-              ip: result.data.ip,
-              os: result.data.os,
-              cpu: result.data.cpu.usage_percent,
-              ram: result.data.memory.usage_percent,
-              disk: result.data.disk.usage_percent,
-              uptime: result.data.system.uptime_seconds,
-              timestamp: result.data.timestamp
-            };
-            validData.push(transformedData);
-          }
-        } catch (error) {
-          this.logger.warn(`Failed to read file ${file}`, error);
-        }
-      }
-
-      this.logger.info(`Processed ${jsonFiles.length} files, ${validData.length} valid`);
-      return validData;
-    } catch (error) {
-      this.logger.error('Failed to read telemetry directory', error);
-      return [];
-    }
-  }
-}
-EOF
-
-# Update vm-sync-service to use local telemetry
-sed -i "s/TelemetryService/LocalTelemetryService/g" src/services/vm-sync-service.ts
-sed -i "s|'../infrastructure/telemetry-service'|'../infrastructure/local-telemetry-service'|g" src/services/vm-sync-service.ts
-
-# Rebuild after changes
 npm run build
 
 # Go back to root
@@ -325,12 +207,12 @@ cd dashboard
 # Install frontend dependencies
 npm install
 
-# Create production environment for u0
+# Create production environment for u0 - FIXED API URLs
 cat > .env.u0 << EOF
 VITE_SUPABASE_URL=https://emzmgfesjqlmikvtseqa.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtem1nZmVzanFsbWlrdnRzZXFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg4MjM3NDEsImV4cCI6MjA2NDM5OTc0MX0.khn-4iBTbzVdIz13fzFZ4JTtWbopkbSoV2_y-V6KgAY
-VITE_API_BASE_URL=http://localhost:$BACKEND_PORT/api
-VITE_API_HOST=localhost
+VITE_API_BASE_URL=http://100.76.195.14:$BACKEND_PORT/api
+VITE_API_HOST=100.76.195.14
 VITE_API_PORT=$BACKEND_PORT
 EOF
 
@@ -368,7 +250,7 @@ EOF
 # Create logs directory
 mkdir -p logs
 
-# Configure nginx for frontend
+# Configure nginx for frontend - FIXED CONFIGURATION
 echo -e "${BLUE}Configuring nginx...${NC}"
 sudo tee /etc/nginx/sites-available/i4ops-dashboard << EOF
 server {
@@ -377,20 +259,38 @@ server {
     root $APP_DIR/dashboard/dist;
     index index.html;
 
+    # Security headers
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header X-Content-Type-Options "nosniff" always;
+
     # Gzip compression
     gzip on;
     gzip_vary on;
     gzip_min_length 1024;
-    gzip_types text/plain text/css text/xml text/javascript application/javascript application/xml+rss application/json;
+    gzip_types 
+        text/plain 
+        text/css 
+        text/xml 
+        text/javascript 
+        application/javascript 
+        application/xml+rss 
+        application/json
+        application/manifest+json;
 
-    # Handle client-side routing
+    # Handle client-side routing (React Router)
     location / {
         try_files \$uri \$uri/ /index.html;
+        
+        # Cache control for HTML files
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+        add_header Pragma "no-cache";
+        add_header Expires "0";
     }
 
     # Proxy API requests to backend
     location /api/ {
-        proxy_pass http://localhost:$BACKEND_PORT;
+        proxy_pass http://127.0.0.1:$BACKEND_PORT;
         proxy_http_version 1.1;
         proxy_set_header Upgrade \$http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -399,20 +299,44 @@ server {
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
         proxy_cache_bypass \$http_upgrade;
+        proxy_read_timeout 60s;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
     }
 
-    # Cache static assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+    # Cache static assets aggressively
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+        access_log off;
     }
+
+    # Handle manifest.json and other JSON files
+    location ~* \.json$ {
+        add_header Cache-Control "no-cache, no-store, must-revalidate";
+    }
+
+    # Error pages
+    error_page 404 /index.html;
+    error_page 500 502 503 504 /index.html;
 }
 EOF
 
+# Remove default nginx site if it exists
+sudo rm -f /etc/nginx/sites-enabled/default
+
 # Enable the site
 sudo ln -sf /etc/nginx/sites-available/i4ops-dashboard /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
+
+# Test nginx configuration
+if sudo nginx -t; then
+    print_status "Nginx configuration test passed"
+    sudo systemctl reload nginx
+    sudo systemctl enable nginx
+else
+    print_error "Nginx configuration test failed"
+    exit 1
+fi
 
 # Start services with PM2
 echo -e "${BLUE}Starting services...${NC}"
@@ -450,9 +374,17 @@ case "$1" in
         echo ""
         echo "Nginx Status:"
         sudo systemctl status nginx --no-pager -l
+        echo ""
+        echo "Frontend Test:"
+        curl -s -o /dev/null -w "%{http_code}" http://localhost:8888/ && echo " - Frontend responding" || echo " - Frontend not responding"
+        echo "Backend Test:"
+        curl -s -o /dev/null -w "%{http_code}" http://localhost:4000/ && echo " - Backend responding" || echo " - Backend not responding"
         ;;
     logs)
         pm2 logs
+        ;;
+    nginx-logs)
+        sudo tail -f /var/log/nginx/error.log
         ;;
     update)
         echo "Updating application..."
@@ -464,8 +396,16 @@ case "$1" in
         sudo systemctl reload nginx
         echo "Update complete"
         ;;
+    fix-frontend)
+        echo "Rebuilding frontend..."
+        cd dashboard
+        npm run build:u0
+        cd ..
+        sudo systemctl reload nginx
+        echo "Frontend rebuilt and nginx reloaded"
+        ;;
     *)
-        echo "Usage: $0 {start|stop|restart|status|logs|update}"
+        echo "Usage: $0 {start|stop|restart|status|logs|nginx-logs|update|fix-frontend}"
         exit 1
         ;;
 esac
@@ -477,6 +417,20 @@ chmod +x manage.sh
 echo -e "${BLUE}Final status check...${NC}"
 sleep 5
 pm2 status
+
+# Test both services
+echo -e "${BLUE}Testing services...${NC}"
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:$BACKEND_PORT/ | grep -q "200"; then
+    print_status "Backend is responding on port $BACKEND_PORT"
+else
+    print_warning "Backend may not be responding correctly"
+fi
+
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:$FRONTEND_PORT/ | grep -q "200"; then
+    print_status "Frontend is responding on port $FRONTEND_PORT"
+else
+    print_warning "Frontend may not be responding correctly"
+fi
 
 echo ""
 echo "============================================================"
@@ -491,11 +445,19 @@ echo "2. Access dashboard at: http://100.76.195.14:$FRONTEND_PORT"
 echo "3. Use ./manage.sh for service management"
 echo ""
 echo -e "${YELLOW}Management Commands:${NC}"
-echo "  ./manage.sh start     - Start all services"
-echo "  ./manage.sh stop      - Stop all services"
-echo "  ./manage.sh restart   - Restart all services"
-echo "  ./manage.sh status    - Check service status"
-echo "  ./manage.sh logs      - View application logs"
-echo "  ./manage.sh update    - Update from git and restart"
+echo "  ./manage.sh start         - Start all services"
+echo "  ./manage.sh stop          - Stop all services"
+echo "  ./manage.sh restart       - Restart all services"
+echo "  ./manage.sh status        - Check service status (with tests)"
+echo "  ./manage.sh logs          - View application logs"
+echo "  ./manage.sh nginx-logs    - View nginx error logs"
+echo "  ./manage.sh update        - Update from git and restart"
+echo "  ./manage.sh fix-frontend  - Rebuild frontend only"
+echo ""
+echo -e "${YELLOW}Troubleshooting:${NC}"
+echo "- If frontend doesn't load: ./manage.sh fix-frontend"
+echo "- Check logs: ./manage.sh logs"
+echo "- Check nginx: ./manage.sh nginx-logs"
+echo "- Full status: ./manage.sh status"
 echo ""
 echo -e "${GREEN}Services are now running persistently and will survive SSH disconnection!${NC}" 

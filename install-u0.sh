@@ -8,7 +8,7 @@
 # 
 # What it does:
 # - Installs Node.js, npm, PM2
-# - Sets up the database (SQLite)
+# - Detects and configures database (PostgreSQL preferred, SQLite fallback)
 # - Configures environment variables
 # - Builds and deploys frontend + backend
 # - Sets up persistent services with PM2
@@ -92,12 +92,31 @@ else
     print_warning "Assuming code is already present in $APP_DIR"
 fi
 
+# Detect and configure database
+echo -e "${BLUE}🔍 Detecting database setup...${NC}"
+if systemctl is-active --quiet postgresql; then
+    print_status "PostgreSQL detected and running"
+    DB_TYPE="postgresql"
+    # Try to determine the correct password or use peer authentication
+    if sudo -u postgres psql -d i4ops_dashboard -c "SELECT 1;" > /dev/null 2>&1; then
+        # If postgres user can connect, try peer authentication for i4ops
+        DATABASE_URL="postgresql://i4ops@localhost:5432/i4ops_dashboard"
+    else
+        # Use common password (you may need to update this)
+        DATABASE_URL="postgresql://i4ops:i4ops123@localhost:5432/i4ops_dashboard"
+    fi
+else
+    print_warning "PostgreSQL not detected, using SQLite"
+    DB_TYPE="sqlite"
+    DATABASE_URL="file:$DB_PATH"
+fi
+
 # Create environment file for server
 echo -e "${BLUE}⚙️  Configuring environment...${NC}"
 cat > server/.env << EOF
 NODE_ENV=production
 PORT=$BACKEND_PORT
-DATABASE_URL=file:$DB_PATH
+DATABASE_URL=$DATABASE_URL
 
 # SSH credentials (not needed for local telemetry, but kept for compatibility)
 SSH_USER=i4ops
@@ -119,8 +138,30 @@ npm install
 
 # Setup database
 echo -e "${BLUE}🗄️  Setting up database...${NC}"
-npx prisma generate
-npx prisma db push
+if [ "$DB_TYPE" = "postgresql" ]; then
+    print_status "Using existing PostgreSQL database"
+    
+    # Test connection first
+    if npx prisma db pull --force > /dev/null 2>&1; then
+        print_status "Database connection successful"
+    else
+        print_warning "Database connection failed, attempting to create/setup..."
+        # Try to ensure database exists
+        sudo -u postgres psql -c "SELECT 1 FROM pg_database WHERE datname='i4ops_dashboard';" | grep -q 1 || \
+        sudo -u postgres createdb i4ops_dashboard 2>/dev/null || true
+        
+        # Ensure user has access
+        sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE i4ops_dashboard TO i4ops;" 2>/dev/null || true
+    fi
+    
+    npx prisma generate
+    npx prisma db push
+else
+    # SQLite setup (if PostgreSQL not available)
+    print_warning "Setting up SQLite database"
+    npx prisma generate
+    npx prisma db push
+fi
 print_status "Database setup complete"
 
 # Build server

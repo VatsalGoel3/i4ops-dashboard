@@ -170,13 +170,13 @@ if [ "$DB_TYPE" = "postgresql" ]; then
     
     # Clean and regenerate Prisma client to fix TypeScript errors
     rm -rf node_modules/.prisma/client 2>/dev/null || true
-    npx prisma generate --force
+    npx prisma generate
     npx prisma db push
 else
     # SQLite setup (if PostgreSQL not available)
     print_warning "Setting up SQLite database"
     rm -rf node_modules/.prisma/client 2>/dev/null || true
-    npx prisma generate --force
+    npx prisma generate
     npx prisma db push
 fi
 print_status "Database setup complete"

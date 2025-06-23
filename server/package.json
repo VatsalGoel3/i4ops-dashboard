@@ -11,6 +11,7 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "poll": "ts-node src/scripts/pollHosts.ts",
     "sync:ips": "ts-node src/scripts/sync-IPs.ts",
+    "populate:hosts": "ts-node src/scripts/populate-hosts.ts",
     "test:env": "ts-node src/scripts/test-env-and-oauth.ts"
   },
   "dependencies": {

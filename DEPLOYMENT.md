@@ -166,6 +166,14 @@ npm install -g pm2
 sudo -u postgres createuser -s i4ops
 sudo -u postgres createdb i4ops_dashboard
 sudo -u postgres psql -c "ALTER USER i4ops PASSWORD 'your_password';"
+
+# Run database migrations
+cd server
+npx prisma migrate deploy
+
+# Populate hosts from Tailscale (IMPORTANT!)
+npm run populate:hosts
+# This will automatically discover and add all u0-u12 hosts from your Tailscale network
 ```
 
 ### **Deployment Steps**
@@ -178,6 +186,47 @@ ssh i4ops@your.server.ip
 pm2 status
 pm2 logs
 ```
+
+---
+
+## 🔧 **Initial Setup Scripts**
+
+After deploying the application, you need to populate the database with hosts and configure monitoring:
+
+### **1. Populate Hosts from Tailscale**
+```bash
+cd server
+
+# This script will:
+# - Connect to Tailscale API using your OAuth credentials
+# - Discover all hosts matching pattern u0, u1, u2, etc.
+# - Add them to the database with current IP addresses
+npm run populate:hosts
+```
+
+### **2. Manual Host Polling (Optional)**
+```bash
+# Trigger immediate host status polling instead of waiting for scheduled polls
+npm run poll
+```
+
+### **3. Test Environment & OAuth**
+```bash
+# Verify your environment variables and Tailscale API connection
+npm run test:env
+```
+
+### **4. Sync IP Addresses**
+```bash
+# Update host IP addresses from Tailscale (runs automatically during polling)
+npm run sync:ips
+```
+
+**⚠️ Important Notes:**
+- Run `populate:hosts` **after** your first deployment to ensure the dashboard has data
+- The system will automatically poll hosts every 30 minutes and VMs every 2 minutes
+- VM data comes from telemetry files in `/mnt/vm-telemetry-json/`
+- Hosts must exist in the database before VM telemetry can be associated with them
 
 ---
 

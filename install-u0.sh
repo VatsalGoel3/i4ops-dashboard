@@ -36,15 +36,15 @@ echo "============================================================"
 
 # Function to print status
 print_status() {
-    echo -e "${GREEN}✅ $1${NC}"
+    echo -e "${GREEN}[OK] $1${NC}"
 }
 
 print_warning() {
-    echo -e "${YELLOW}⚠️  $1${NC}"
+    echo -e "${YELLOW}[WARN] $1${NC}"
 }
 
 print_error() {
-    echo -e "${RED}❌ $1${NC}"
+    echo -e "${RED}[ERROR] $1${NC}"
 }
 
 # Check if running as correct user
@@ -97,21 +97,27 @@ echo -e "${BLUE}🔍 Detecting database setup...${NC}"
 if systemctl is-active --quiet postgresql; then
     print_status "PostgreSQL detected and running"
     DB_TYPE="postgresql"
-    # Test if i4ops can connect with peer authentication
-    if sudo -u i4ops psql -d i4ops_dashboard -c "SELECT 1;" > /dev/null 2>&1; then
-        # Use explicit localhost connection for Prisma compatibility
-        DATABASE_URL="postgresql://i4ops@localhost:5432/i4ops_dashboard"
-        print_status "Using peer authentication for database connection"
-        
-        # Ensure proper database permissions for Prisma
-        sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON SCHEMA public TO i4ops;" 2>/dev/null || true
-        sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO i4ops;" 2>/dev/null || true
-        sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO i4ops;" 2>/dev/null || true
-        sudo -u postgres psql -d i4ops_dashboard -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO i4ops;" 2>/dev/null || true
+    # Set up database authentication for Prisma
+    print_status "Configuring database authentication"
+    
+    # Set a password for i4ops user for Prisma compatibility
+    sudo -u postgres psql -c "ALTER USER i4ops PASSWORD 'i4ops123';" 2>/dev/null || true
+    
+    # Ensure proper database permissions
+    sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON SCHEMA public TO i4ops;" 2>/dev/null || true
+    sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON ALL TABLES IN SCHEMA public TO i4ops;" 2>/dev/null || true
+    sudo -u postgres psql -d i4ops_dashboard -c "GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO i4ops;" 2>/dev/null || true
+    sudo -u postgres psql -d i4ops_dashboard -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO i4ops;" 2>/dev/null || true
+    
+    # Use password authentication for Prisma
+    DATABASE_URL="postgresql://i4ops:i4ops123@localhost:5432/i4ops_dashboard"
+    
+    # Test the connection format Prisma will use
+    if PGPASSWORD=i4ops123 psql -h localhost -U i4ops -d i4ops_dashboard -c "SELECT 1;" > /dev/null 2>&1; then
+        print_status "Database connection configured successfully"
     else
-        # Fall back to password authentication
-        DATABASE_URL="postgresql://i4ops:i4ops123@localhost:5432/i4ops_dashboard"
-        print_warning "Using password authentication for database connection"
+        print_error "Database connection test failed"
+        exit 1
     fi
 else
     print_warning "PostgreSQL not detected, using SQLite"

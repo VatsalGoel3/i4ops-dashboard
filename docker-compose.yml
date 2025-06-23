@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: i4ops-postgres
+    environment:
+      POSTGRES_DB: i4ops_dashboard
+      POSTGRES_USER: i4ops
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-defaultpassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./server/prisma/migrations:/docker-entrypoint-initdb.d/migrations:ro
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U i4ops -d i4ops_dashboard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API Server
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: i4ops-backend
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 4000
+      DATABASE_URL: postgresql://i4ops:${DB_PASSWORD:-defaultpassword}@postgres:5432/i4ops_dashboard
+      SSH_USER: ${SSH_USER}
+      SSH_PASSWORD: ${SSH_PASSWORD}
+      U0_IP: ${U0_IP:-100.76.195.14}
+      TS_OAUTH_CLIENT_ID: ${TS_OAUTH_CLIENT_ID}
+      TS_OAUTH_CLIENT_SECRET: ${TS_OAUTH_CLIENT_SECRET}
+      TAILNET: ${TAILNET}
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - /mnt/vm-telemetry-json:/mnt/vm-telemetry-json:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend Dashboard
+  frontend:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://${DEPLOYMENT_HOST:-localhost}:4000/api
+        - VITE_API_HOST=${DEPLOYMENT_HOST:-localhost}
+        - VITE_API_PORT=4000
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+    container_name: i4ops-frontend
+    ports:
+      - "8888:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy (Production)
+  nginx:
+    image: nginx:alpine
+    container_name: i4ops-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    profiles: ["production"]
+
+volumes:
+  postgres_data:
+    driver: local 

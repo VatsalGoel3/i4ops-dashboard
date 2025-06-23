@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { useEffect, useState } from 'react';
+import { config } from '../../lib/config';
 
 interface HistoryPoint {
   time: string;
@@ -13,7 +14,7 @@ export default function HostUptimeHistory() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await fetch('http://localhost:4000/api/poll-history');
+        const res = await fetch(`${config.api.baseUrl}/poll-history`);
         const json = await res.json();
         setData(json);
       } catch (e) {

@@ -13,7 +13,13 @@ import { Logger } from './infrastructure/logger';
 const logger = new Logger('App');
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:8888' }));
+app.use(cors({ 
+  origin: [
+    'http://localhost:8888',      // Development
+    'http://100.76.195.14:8888',  // u0 deployment
+    /^http:\/\/192\.168\.\d+\.\d+:8888$/,  // Local network
+  ] 
+}));
 app.use(express.json());
 
 app.get('/', (_req, res) => {

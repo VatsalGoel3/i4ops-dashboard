@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://vt003@localhost:5432/i4ops_dashboard"
+  url      = env("DATABASE_URL")
 }
 
 enum HostStatus {

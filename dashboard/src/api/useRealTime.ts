@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from './queries';
 import { useConnection } from '../context/ConnectionContext';
 import type { Host, VM } from './types';
+import { config } from '../lib/config';
 
 export function useRealTime() {
   const queryClient = useQueryClient();
@@ -10,7 +11,7 @@ export function useRealTime() {
 
   useEffect(() => {
     setConnecting();
-    const es = new EventSource('http://localhost:4000/api/events');
+    const es = new EventSource(`${config.api.baseUrl.replace('/api', '')}/api/events`);
 
     // Connection opened successfully
     es.onopen = () => {

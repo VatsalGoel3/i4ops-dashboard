@@ -16,6 +16,7 @@ import { useHosts, useVMs } from '../api/queries';
 import SettingsSection from '../components/SettingsSection';
 import ConnectionStatus from '../components/ConnectionStatus';
 import DataFreshnessIndicator from '../components/DataFreshnessIndicator';
+import { config } from '../lib/config';
 
 export default function DeveloperPage() {
   const { stats, lastUpdated, error, retryCount } = useConnection();
@@ -68,7 +69,7 @@ export default function DeveloperPage() {
         const version = await versionRes.text();
 
         // Backend health
-        const healthRes = await fetch('http://localhost:4000/api/health');
+        const healthRes = await fetch(`${config.api.baseUrl}/health`);
         const health = healthRes.ok ? 'Healthy' : 'Degraded';
 
         setSystemInfo(prev => ({
@@ -95,7 +96,7 @@ export default function DeveloperPage() {
         apiEndpoints.map(async (endpoint) => {
           const startTime = Date.now();
           try {
-            const response = await fetch(`http://localhost:4000${endpoint.url}`, {
+            const response = await fetch(`${config.api.baseUrl.replace('/api', '')}${endpoint.url}`, {
               method: 'GET',
               timeout: 5000,
             } as RequestInit);

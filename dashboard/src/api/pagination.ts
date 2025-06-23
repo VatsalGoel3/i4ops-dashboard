@@ -1,8 +1,9 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import type { PaginatedResponse } from '../components/VirtualTable/types';
+import { config } from '../lib/config';
 
-const API_BASE = 'http://localhost:4000/api';
+const API_BASE = config.api.baseUrl;
 
 // Generic cursor-based pagination fetcher
 export async function fetchPaginatedData<T>(

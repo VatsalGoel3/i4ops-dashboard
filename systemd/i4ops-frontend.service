@@ -1,0 +1,40 @@
+[Unit]
+Description=i4ops Dashboard Frontend
+Documentation=https://github.com/your-org/i4ops-dashboard
+After=network.target i4ops-backend.service
+Wants=i4ops-backend.service
+
+[Service]
+Type=simple
+User=i4ops
+Group=i4ops
+WorkingDirectory=/home/i4ops/i4ops-dashboard/frontend
+ExecStart=/usr/bin/python3 -m http.server 8888
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=mixed
+KillSignal=SIGINT
+TimeoutStopSec=10
+Restart=always
+RestartSec=5
+
+# Security settings
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/home/i4ops/i4ops-dashboard/frontend
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+
+# Resource limits
+LimitNOFILE=1024
+LimitNPROC=256
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=i4ops-frontend
+
+[Install]
+WantedBy=multi-user.target 

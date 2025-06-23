@@ -97,13 +97,15 @@ echo -e "${BLUE}🔍 Detecting database setup...${NC}"
 if systemctl is-active --quiet postgresql; then
     print_status "PostgreSQL detected and running"
     DB_TYPE="postgresql"
-    # Try to determine the correct password or use peer authentication
-    if sudo -u postgres psql -d i4ops_dashboard -c "SELECT 1;" > /dev/null 2>&1; then
-        # If postgres user can connect, try peer authentication for i4ops
-        DATABASE_URL="postgresql://i4ops@localhost:5432/i4ops_dashboard"
+    # Test if i4ops can connect with peer authentication
+    if sudo -u i4ops psql -d i4ops_dashboard -c "SELECT 1;" > /dev/null 2>&1; then
+        # Use peer authentication (no password needed)
+        DATABASE_URL="postgresql:///i4ops_dashboard"
+        print_status "Using peer authentication for database connection"
     else
-        # Use common password (you may need to update this)
+        # Fall back to password authentication
         DATABASE_URL="postgresql://i4ops:i4ops123@localhost:5432/i4ops_dashboard"
+        print_warning "Using password authentication for database connection"
     fi
 else
     print_warning "PostgreSQL not detected, using SQLite"

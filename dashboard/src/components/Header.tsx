@@ -99,12 +99,14 @@ export default function Header({ onToggleSidebar }: { onToggleSidebar: () => voi
                 </div>
               </div>
               <button 
+                onClick={() => {
+                  setShowProfileMenu(false);
+                  window.location.href = '/profile';
+                }}
                 className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm flex items-center gap-2 transition-colors"
-                disabled
-                title="Profile management coming soon"
+                title="Manage your profile"
               >
                 <User size={14} /> My Profile
-                <span className="ml-auto text-xs text-gray-400">Soon</span>
               </button>
               <button
                 onClick={handleLogout}

@@ -1,11 +1,13 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import { env } from './config/env';
 import hostRoutes from './routes/host.routes';
 import vmRoutes from './routes/vm.routes';
 import pollHistoryRouter from './routes/api/poll-history';
 import auditLogRoutes from './routes/auditLogs';
 import healthRoutes from './routes/health.routes';
+import uploadRoutes from './routes/upload.routes';
 import { startPollingJob } from './jobs/poll-scheduler';
 import { addClient } from './events';
 import { Logger } from './infrastructure/logger';
@@ -21,6 +23,9 @@ app.use(cors({
   ] 
 }));
 app.use(express.json());
+
+// Serve uploaded files statically
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 app.get('/', (_req, res) => {
   res.json({ 
@@ -40,6 +45,7 @@ app.use('/api/vms', vmRoutes);
 app.use('/api', pollHistoryRouter);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api', healthRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Start polling only after routes are set up
 setTimeout(() => {

@@ -14,6 +14,7 @@ import HostsPage from './pages/HostsPage';
 import VMsPage from './pages/VMsPage';
 import SettingsPage from './pages/SettingsPage';
 import DeveloperPage from './pages/DeveloperPage';
+import ProfilePage from './pages/ProfilePage';
 
 function AppWithRealTime() {
   // Enable real-time updates globally
@@ -78,6 +79,16 @@ function AppWithRealTime() {
           <RequireAuth>
             <Layout>
               <DeveloperPage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <RequireAuth>
+            <Layout>
+              <ProfilePage />
             </Layout>
           </RequireAuth>
         }

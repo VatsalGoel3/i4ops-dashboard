@@ -4,7 +4,6 @@ import {
   Palette, 
   Monitor, 
   Bell, 
-  Eye,
   Moon,
   Sun,
   Computer,
@@ -21,26 +20,13 @@ interface PreferencesSettingsProps {
 
 interface PreferencesData {
   theme: 'light' | 'dark' | 'system';
-  language: string;
   timezone: string;
   pageSize: number;
-  notifications: {
-    email: boolean;
-    desktop: boolean;
-    hostDown: boolean;
-    vmStatusChange: boolean;
-    systemAlerts: boolean;
-  };
   dashboard: {
     defaultView: 'grid' | 'table';
     showWelcomeMessage: boolean;
     autoRefresh: boolean;
     refreshInterval: number;
-  };
-  accessibility: {
-    reduceMotion: boolean;
-    highContrast: boolean;
-    largeText: boolean;
   };
 }
 
@@ -49,26 +35,13 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
   const [loading, setLoading] = useState(false);
   const [preferences, setPreferences] = useState<PreferencesData>({
     theme: darkMode ? 'dark' : 'light',
-    language: user?.user_metadata?.language || 'en',
     timezone: user?.user_metadata?.timezone || 'UTC',
     pageSize: pageSize,
-    notifications: {
-      email: true,
-      desktop: false,
-      hostDown: true,
-      vmStatusChange: true,
-      systemAlerts: true,
-    },
     dashboard: {
       defaultView: 'table',
       showWelcomeMessage: true,
       autoRefresh: true,
       refreshInterval: 30,
-    },
-    accessibility: {
-      reduceMotion: false,
-      highContrast: false,
-      largeText: false,
     },
   });
 
@@ -90,7 +63,6 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
       const { error } = await supabase.auth.updateUser({
         data: {
           preferences: preferences,
-          language: preferences.language,
           timezone: preferences.timezone,
         }
       });
@@ -163,15 +135,6 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
     { value: 'Australia/Sydney', label: 'Australian Eastern Time (AET)' },
   ];
 
-  const languages = [
-    { value: 'en', label: 'English' },
-    { value: 'es', label: 'Spanish' },
-    { value: 'fr', label: 'French' },
-    { value: 'de', label: 'German' },
-    { value: 'ja', label: 'Japanese' },
-    { value: 'zh', label: 'Chinese' },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Appearance */}
@@ -215,23 +178,6 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Language
-            </label>
-            <select
-              value={preferences.language}
-              onChange={(e) => handleDirectChange('language', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            >
-              {languages.map((lang) => (
-                <option key={lang.value} value={lang.value}>
-                  {lang.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Timezone
             </label>
             <select
@@ -247,7 +193,7 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
             </select>
           </div>
 
-          <div>
+          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Page Size
             </label>
@@ -267,14 +213,19 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
 
       {/* Notifications */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center mb-4">
-          <Bell size={20} className="text-gray-600 dark:text-gray-400 mr-3" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Notifications
-          </h3>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center">
+            <Bell size={20} className="text-gray-600 dark:text-gray-400 mr-3" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Notifications
+            </h3>
+          </div>
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+            Coming Soon
+          </span>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 opacity-50">
           <div className="flex items-center justify-between">
             <div>
               <label className="text-sm font-medium text-gray-900 dark:text-white">
@@ -286,26 +237,8 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
             </div>
             <input
               type="checkbox"
-              checked={preferences.notifications.email}
-              onChange={(e) => handlePreferenceChange('notifications', 'email', e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
-                Desktop Notifications
-              </label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Show browser notifications for real-time updates
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={preferences.notifications.desktop}
-              onChange={(e) => handlePreferenceChange('notifications', 'desktop', e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              disabled
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-not-allowed"
             />
           </div>
 
@@ -320,9 +253,8 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
             </div>
             <input
               type="checkbox"
-              checked={preferences.notifications.hostDown}
-              onChange={(e) => handlePreferenceChange('notifications', 'hostDown', e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              disabled
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-not-allowed"
             />
           </div>
 
@@ -337,12 +269,15 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
             </div>
             <input
               type="checkbox"
-              checked={preferences.notifications.vmStatusChange}
-              onChange={(e) => handlePreferenceChange('notifications', 'vmStatusChange', e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+              disabled
+              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded cursor-not-allowed"
             />
           </div>
         </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 italic">
+          Notification system is currently under development
+        </p>
       </div>
 
       {/* Dashboard */}
@@ -389,52 +324,6 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
               </select>
             </div>
           )}
-        </div>
-      </div>
-
-      {/* Accessibility */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center mb-4">
-          <Eye size={20} className="text-gray-600 dark:text-gray-400 mr-3" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Accessibility
-          </h3>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
-                Reduce Motion
-              </label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Minimize animations and transitions
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={preferences.accessibility.reduceMotion}
-              onChange={(e) => handlePreferenceChange('accessibility', 'reduceMotion', e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <label className="text-sm font-medium text-gray-900 dark:text-white">
-                High Contrast
-              </label>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Increase contrast for better visibility
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={preferences.accessibility.highContrast}
-              onChange={(e) => handlePreferenceChange('accessibility', 'highContrast', e.target.checked)}
-              className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-            />
-          </div>
         </div>
       </div>
 

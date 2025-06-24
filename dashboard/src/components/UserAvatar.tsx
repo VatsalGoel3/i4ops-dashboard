@@ -4,7 +4,7 @@ import { getBestAvatarUrl, getUserDisplayName, getUserInitials } from '../lib/us
 
 interface UserAvatarProps {
   user: User | null;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   className?: string;
   showInitialsFallback?: boolean;
 }
@@ -15,6 +15,7 @@ const sizeMap = {
   md: { wrapper: 'w-10 h-10', text: 'text-base' },
   lg: { wrapper: 'w-12 h-12', text: 'text-lg' },
   xl: { wrapper: 'w-16 h-16', text: 'text-xl' },
+  '2xl': { wrapper: 'w-24 h-24', text: 'text-2xl' },
 };
 
 const sizePixels = {
@@ -23,6 +24,7 @@ const sizePixels = {
   md: 40,
   lg: 48,
   xl: 64,
+  '2xl': 96,
 };
 
 export default function UserAvatar({ 
@@ -58,7 +60,7 @@ export default function UserAvatar({
           ${sizeClasses.wrapper} 
           rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 
           flex items-center justify-center text-white font-semibold
-          shadow-sm border-2 border-white dark:border-gray-700
+          shadow-sm
           ${className}
         `}
         title={displayName}
@@ -79,7 +81,6 @@ export default function UserAvatar({
             ${sizeClasses.wrapper} 
             rounded-full bg-gray-200 dark:bg-gray-700 
             animate-pulse absolute inset-0
-            border-2 border-gray-300 dark:border-gray-600
           `}
         />
       )}
@@ -91,7 +92,6 @@ export default function UserAvatar({
         className={`
           ${sizeClasses.wrapper} 
           rounded-full object-cover 
-          border-2 border-gray-300 dark:border-gray-600 
           shadow-sm
           ${imageLoading ? 'opacity-0' : 'opacity-100'}
           transition-opacity duration-200

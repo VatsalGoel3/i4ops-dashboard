@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js';
 import { Upload, X, Camera, Trash2, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabaseClient';
+import { config } from '../lib/config';
 import UserAvatar from './UserAvatar';
 
 interface AvatarUploadProps {
@@ -71,30 +72,26 @@ export default function AvatarUpload({ user, onClose, onSuccess }: AvatarUploadP
     setUploading(true);
 
     try {
-      // Generate unique filename
-      const fileExt = selectedFile.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      // Upload to local server using the correct API configuration
+      const formData = new FormData();
+      formData.append('avatar', selectedFile);
+      formData.append('userId', user.id);
 
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      const response = await fetch(`${config.api.baseUrl}/upload/avatar`, {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (uploadError) throw uploadError;
+      if (!response.ok) {
+        throw new Error('Failed to upload avatar');
+      }
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(filePath);
+      const { avatarUrl } = await response.json();
 
-      // Update user metadata with avatar URL
+      // Update user metadata with new avatar URL
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
-          avatar_url: urlData.publicUrl
+          avatar_url: avatarUrl
         }
       });
 
@@ -273,11 +270,11 @@ export default function AvatarUpload({ user, onClose, onSuccess }: AvatarUploadP
           )}
         </div>
 
-        {/* Help Text */}
+        {/* Note about local storage */}
         <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
           <p className="text-xs text-blue-600 dark:text-blue-400">
-            💡 <strong>Tip:</strong> Use a square image (1:1 ratio) for best results. 
-            Your avatar will be automatically resized and cropped to fit.
+            📝 <strong>Note:</strong> Avatar images are stored locally on the server. 
+            Use square images for best results.
           </p>
         </div>
       </div>

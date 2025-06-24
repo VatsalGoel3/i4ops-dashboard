@@ -11,7 +11,8 @@ import {
   CheckCircle,
   Loader,
   Calendar,
-  MapPin
+  MapPin,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabaseClient';
@@ -39,44 +40,36 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
     confirm: false,
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [sessions] = useState([
-    {
-      id: '1',
-      device: 'Chrome on MacOS',
-      location: 'San Francisco, CA',
-      ip: '192.168.1.100',
-      lastActive: '2 minutes ago',
-      current: true,
-    },
-    {
-      id: '2', 
-      device: 'Safari on iPhone',
-      location: 'San Francisco, CA', 
-      ip: '192.168.1.101',
-      lastActive: '1 hour ago',
-      current: false,
-    },
-    {
-      id: '3',
-      device: 'Edge on Windows',
-      location: 'New York, NY',
-      ip: '10.0.0.50', 
-      lastActive: '2 days ago',
-      current: false,
-    },
-  ]);
+  const [formErrors, setFormErrors] = useState<Partial<PasswordForm>>({});
+
+  const validatePasswords = () => {
+    const errors: Partial<PasswordForm> = {};
+    
+    if (!passwordForm.currentPassword) {
+      errors.currentPassword = 'Current password is required';
+    }
+    
+    if (!passwordForm.newPassword) {
+      errors.newPassword = 'New password is required';
+    } else if (passwordForm.newPassword.length < 8) {
+      errors.newPassword = 'Password must be at least 8 characters';
+    }
+    
+    if (!passwordForm.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your new password';
+    } else if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      toast.error('New passwords do not match');
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters');
+    if (!validatePasswords()) {
+      toast.error('Please fix the form errors');
       return;
     }
 
@@ -96,6 +89,7 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
         newPassword: '',
         confirmPassword: '',
       });
+      setFormErrors({});
     } catch (error: any) {
       console.error('Error updating password:', error);
       toast.error(error.message || 'Failed to update password');
@@ -127,13 +121,22 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
     return 'bg-green-500';
   };
 
-  const signOutAllDevices = async () => {
-    try {
-      // Sign out from all devices
-      await supabase.auth.signOut({ scope: 'global' });
-      toast.success('Signed out from all devices');
-    } catch (error: any) {
-      toast.error('Failed to sign out from all devices');
+  const handleFormChange = (field: keyof PasswordForm, value: string) => {
+    setPasswordForm(prev => ({ ...prev, [field]: value }));
+    
+    // Clear error when user starts typing
+    if (formErrors[field]) {
+      setFormErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+
+    // Real-time validation for confirm password
+    if (field === 'confirmPassword' || field === 'newPassword') {
+      const newForm = { ...passwordForm, [field]: value };
+      if (newForm.newPassword && newForm.confirmPassword && newForm.newPassword !== newForm.confirmPassword) {
+        setFormErrors(prev => ({ ...prev, confirmPassword: 'Passwords do not match' }));
+      } else if (field === 'confirmPassword' && formErrors.confirmPassword) {
+        setFormErrors(prev => ({ ...prev, confirmPassword: undefined }));
+      }
     }
   };
 
@@ -178,8 +181,10 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                 <input
                   type={showPasswords.current ? 'text' : 'password'}
                   value={passwordForm.currentPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  onChange={(e) => handleFormChange('currentPassword', e.target.value)}
+                  className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                    formErrors.currentPassword ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   required
                   disabled={passwordLoading}
                 />
@@ -191,6 +196,9 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                   {showPasswords.current ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {formErrors.currentPassword && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.currentPassword}</p>
+              )}
             </div>
 
             {/* New Password */}
@@ -202,8 +210,10 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                 <input
                   type={showPasswords.new ? 'text' : 'password'}
                   value={passwordForm.newPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  onChange={(e) => handleFormChange('newPassword', e.target.value)}
+                  className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                    formErrors.newPassword ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   required
                   disabled={passwordLoading}
                 />
@@ -215,6 +225,9 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                   {showPasswords.new ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {formErrors.newPassword && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.newPassword}</p>
+              )}
               
               {/* Password Strength Indicator */}
               {passwordForm.newPassword && (
@@ -243,8 +256,10 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                 <input
                   type={showPasswords.confirm ? 'text' : 'password'}
                   value={passwordForm.confirmPassword}
-                  onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                  className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  onChange={(e) => handleFormChange('confirmPassword', e.target.value)}
+                  className={`w-full px-3 py-2 pr-10 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+                    formErrors.confirmPassword ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   required
                   disabled={passwordLoading}
                 />
@@ -255,7 +270,13 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                 >
                   {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
+                {passwordForm.confirmPassword && passwordForm.newPassword === passwordForm.confirmPassword && (
+                  <CheckCircle size={16} className="absolute right-10 top-1/2 transform -translate-y-1/2 text-green-500" />
+                )}
               </div>
+              {formErrors.confirmPassword && (
+                <p className="text-red-500 text-sm mt-1">{formErrors.confirmPassword}</p>
+              )}
             </div>
 
             <div className="flex justify-end">
@@ -290,105 +311,53 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
               </p>
             </div>
           </div>
-          <button className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
-            Enable 2FA
-          </button>
+          <div className="flex items-center space-x-3">
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+              Coming Soon
+            </span>
+            <button 
+              disabled
+              className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 rounded-lg cursor-not-allowed"
+            >
+              Enable 2FA
+            </button>
+          </div>
         </div>
         <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-          <AlertTriangle size={16} className="mr-2 text-yellow-500" />
-          Two-factor authentication is not enabled
+          <X size={16} className="mr-2 text-red-500" />
+          Two-factor authentication is not available yet
         </div>
       </div>
 
-      {/* Active Sessions */}
+      {/* Current Session Info */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center">
-            <Smartphone size={20} className="text-gray-600 dark:text-gray-400 mr-3" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Active Sessions
-            </h3>
+        <div className="flex items-center mb-4">
+          <Shield size={20} className="text-gray-600 dark:text-gray-400 mr-3" />
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Current Session
+          </h3>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Session ID:</span>
+            <span className="text-sm font-mono text-gray-900 dark:text-white">
+              {Math.random().toString(36).substr(2, 12)}
+            </span>
           </div>
-          <button
-            onClick={signOutAllDevices}
-            className="px-4 py-2 text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-          >
-            Sign Out All Devices
-          </button>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Started:</span>
+            <span className="text-sm text-gray-900 dark:text-white">
+              {new Date().toLocaleString()}
+            </span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Status:</span>
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              ● Active
+            </span>
+          </div>
         </div>
-
-        <div className="space-y-4">
-          {sessions.map((session) => (
-            <div key={session.id} className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg">
-              <div className="flex items-center space-x-4">
-                <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                  {session.device.includes('iPhone') ? (
-                    <Smartphone size={20} className="text-gray-600 dark:text-gray-400" />
-                  ) : (
-                    <Globe size={20} className="text-gray-600 dark:text-gray-400" />
-                  )}
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h4 className="font-medium text-gray-900 dark:text-white">
-                      {session.device}
-                    </h4>
-                    {session.current && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        <CheckCircle size={12} className="mr-1" />
-                        Current session
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                    <div className="flex items-center">
-                      <MapPin size={12} className="mr-1" />
-                      {session.location}
-                    </div>
-                    <div className="flex items-center">
-                      <Globe size={12} className="mr-1" />
-                      {session.ip}
-                    </div>
-                    <div className="flex items-center">
-                      <Calendar size={12} className="mr-1" />
-                      {session.lastActive}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {!session.current && (
-                <button className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium">
-                  Revoke
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Security Recommendations */}
-      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-6 border border-blue-200 dark:border-blue-800">
-        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-4">
-          Security Recommendations
-        </h3>
-        <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
-          <li className="flex items-start">
-            <CheckCircle size={16} className="mr-2 mt-0.5 text-green-600" />
-            Use a strong, unique password for your account
-          </li>
-          <li className="flex items-start">
-            <AlertTriangle size={16} className="mr-2 mt-0.5 text-yellow-600" />
-            Enable two-factor authentication for additional security
-          </li>
-          <li className="flex items-start">
-            <CheckCircle size={16} className="mr-2 mt-0.5 text-green-600" />
-            Regularly review your active sessions
-          </li>
-          <li className="flex items-start">
-            <AlertTriangle size={16} className="mr-2 mt-0.5 text-yellow-600" />
-            Sign out from devices you no longer use
-          </li>
-        </ul>
       </div>
     </div>
   );

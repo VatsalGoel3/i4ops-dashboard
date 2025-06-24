@@ -5,14 +5,9 @@ import {
   Calendar, 
   MapPin, 
   Monitor, 
-  Shield, 
   User as UserIcon,
-  Settings,
   LogIn,
-  LogOut,
-  Eye,
   Clock,
-
   Download
 } from 'lucide-react';
 
@@ -25,113 +20,46 @@ interface ActivityItem {
   action: string;
   description: string;
   timestamp: Date;
-  ipAddress: string;
-  location: string;
-  device: string;
-  type: 'login' | 'logout' | 'profile' | 'security' | 'preferences' | 'system';
-  details?: Record<string, any>;
+  type: 'login' | 'system';
 }
 
 export default function ActivityLog({ user }: ActivityLogProps) {
   const [activities, setActivities] = useState<ActivityItem[]>([]);
-  const [filter, setFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading activity data
-    const mockActivities: ActivityItem[] = [
-      {
-        id: '1',
-        action: 'Profile Updated',
-        description: 'Updated display name and bio',
-        timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
-        ipAddress: '192.168.1.100',
-        location: 'San Francisco, CA',
-        device: 'Chrome on MacOS',
-        type: 'profile',
-        details: { fields: ['display_name', 'bio'] }
-      },
-      {
-        id: '2',
-        action: 'Password Changed',
-        description: 'Account password was updated',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-        ipAddress: '192.168.1.100',
-        location: 'San Francisco, CA',
-        device: 'Chrome on MacOS',
-        type: 'security'
-      },
-      {
-        id: '3',
-        action: 'Signed In',
-        description: 'Successful login from new location',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-        ipAddress: '10.0.0.50',
-        location: 'New York, NY',
-        device: 'Edge on Windows',
-        type: 'login'
-      },
-      {
-        id: '4',
-        action: 'Preferences Updated',
-        description: 'Changed theme to dark mode and notification settings',
-        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-        ipAddress: '192.168.1.101',
-        location: 'San Francisco, CA',
-        device: 'Safari on iPhone',
-        type: 'preferences',
-        details: { theme: 'dark', notifications: true }
-      },
-      {
-        id: '5',
-        action: 'Avatar Uploaded',
-        description: 'Profile picture was updated',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-        ipAddress: '192.168.1.100',
-        location: 'San Francisco, CA',
-        device: 'Chrome on MacOS',
-        type: 'profile'
-      },
-      {
-        id: '6',
-        action: 'Signed Out',
-        description: 'Logged out from all devices',
-        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-        ipAddress: '192.168.1.100',
-        location: 'San Francisco, CA',
-        device: 'Chrome on MacOS',
-        type: 'logout'
-      },
-      {
-        id: '7',
+    // Generate minimal real activity data based on user info
+    const realActivities: ActivityItem[] = [];
+
+    if (user?.created_at) {
+      realActivities.push({
+        id: 'account_created',
         action: 'Account Created',
-        description: 'New account was registered',
-        timestamp: new Date(user?.created_at || Date.now() - 30 * 24 * 60 * 60 * 1000),
-        ipAddress: '192.168.1.100',
-        location: 'San Francisco, CA',
-        device: 'Chrome on MacOS',
+        description: 'User account was registered',
+        timestamp: new Date(user.created_at),
         type: 'system'
-      },
-    ];
+      });
+    }
+
+    // Current session
+    realActivities.unshift({
+      id: 'current_session',
+      action: 'Current Session',
+      description: 'Active login session started',
+      timestamp: new Date(), // Current time as approximate session start
+      type: 'login'
+    });
 
     setTimeout(() => {
-      setActivities(mockActivities);
+      setActivities(realActivities);
       setLoading(false);
-    }, 1000);
+    }, 500);
   }, [user]);
 
   const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {
       case 'login':
         return <LogIn size={16} className="text-green-600" />;
-      case 'logout':
-        return <LogOut size={16} className="text-red-600" />;
-      case 'profile':
-        return <UserIcon size={16} className="text-blue-600" />;
-      case 'security':
-        return <Shield size={16} className="text-yellow-600" />;
-      case 'preferences':
-        return <Settings size={16} className="text-purple-600" />;
       case 'system':
         return <Monitor size={16} className="text-gray-600" />;
       default:
@@ -154,22 +82,14 @@ export default function ActivityLog({ user }: ActivityLogProps) {
     return timestamp.toLocaleDateString();
   };
 
-  const filteredActivities = activities.filter(activity => {
-    if (filter === 'all') return true;
-    return activity.type === filter;
-  });
-
   const exportActivities = () => {
     const csvContent = [
-      ['Timestamp', 'Action', 'Description', 'IP Address', 'Location', 'Device'].join(','),
-      ...filteredActivities.map(activity => 
+      ['Timestamp', 'Action', 'Description'].join(','),
+      ...activities.map(activity => 
         [
           activity.timestamp.toISOString(),
           activity.action,
-          activity.description,
-          activity.ipAddress,
-          activity.location,
-          activity.device
+          activity.description
         ].join(',')
       )
     ].join('\n');
@@ -189,7 +109,7 @@ export default function ActivityLog({ user }: ActivityLogProps) {
         <div className="animate-pulse space-y-4">
           <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-1/4"></div>
           <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
+            {[...Array(3)].map((_, i) => (
               <div key={i} className="flex space-x-4">
                 <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full"></div>
                 <div className="flex-1 space-y-2">
@@ -206,7 +126,7 @@ export default function ActivityLog({ user }: ActivityLogProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header with Filters */}
+      {/* Header */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
@@ -224,51 +144,29 @@ export default function ActivityLog({ user }: ActivityLogProps) {
           </button>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-2">
-          {[
-            { value: 'all', label: 'All Activity' },
-            { value: 'login', label: 'Sign Ins' },
-            { value: 'security', label: 'Security' },
-            { value: 'profile', label: 'Profile' },
-            { value: 'preferences', label: 'Preferences' },
-            { value: 'system', label: 'System' },
-          ].map((filterOption) => (
-            <button
-              key={filterOption.value}
-              onClick={() => setFilter(filterOption.value)}
-              className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
-                filter === filterOption.value
-                  ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-200'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              {filterOption.label}
-            </button>
-          ))}
-        </div>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Activity tracking is basic in this version. More detailed logging will be added in future updates.
+        </p>
       </div>
 
       {/* Activity Timeline */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
-        {filteredActivities.length === 0 ? (
+        {activities.length === 0 ? (
           <div className="text-center py-8">
             <Activity size={48} className="mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No activity found
             </h3>
             <p className="text-gray-600 dark:text-gray-400">
-              {filter === 'all' 
-                ? 'No activity has been recorded yet.' 
-                : `No ${filter} activity found.`}
+              No activity has been recorded yet.
             </p>
           </div>
         ) : (
           <div className="space-y-6">
-            {filteredActivities.map((activity, index) => (
+            {activities.map((activity, index) => (
               <div key={activity.id} className="relative">
                 {/* Timeline line */}
-                {index < filteredActivities.length - 1 && (
+                {index < activities.length - 1 && (
                   <div className="absolute left-5 top-12 w-0.5 h-6 bg-gray-200 dark:bg-gray-600"></div>
                 )}
                 
@@ -294,27 +192,9 @@ export default function ActivityLog({ user }: ActivityLogProps) {
                       {activity.description}
                     </p>
 
-                    <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500 dark:text-gray-400">
-                      <div className="flex items-center">
-                        <MapPin size={12} className="mr-1" />
-                        {activity.location}
-                      </div>
-                      <div className="flex items-center">
-                        <Monitor size={12} className="mr-1" />
-                        {activity.device}
-                      </div>
-                      <div className="flex items-center">
-                        <Eye size={12} className="mr-1" />
-                        {activity.ipAddress}
-                      </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                      {activity.timestamp.toLocaleString()}
                     </div>
-
-                    {/* Additional Details */}
-                    {activity.details && (
-                      <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded text-xs">
-                        <strong>Details:</strong> {JSON.stringify(activity.details, null, 2)}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -329,7 +209,7 @@ export default function ActivityLog({ user }: ActivityLogProps) {
           <div className="flex items-center">
             <LogIn size={20} className="text-green-600 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Total Logins</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Total Sessions</p>
               <p className="text-2xl font-bold text-green-600">
                 {activities.filter(a => a.type === 'login').length}
               </p>
@@ -339,11 +219,11 @@ export default function ActivityLog({ user }: ActivityLogProps) {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <Shield size={20} className="text-yellow-600 mr-3" />
+            <UserIcon size={20} className="text-blue-600 mr-3" />
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Security Events</p>
-              <p className="text-2xl font-bold text-yellow-600">
-                {activities.filter(a => a.type === 'security').length}
+              <p className="text-sm font-medium text-gray-900 dark:text-white">Account Age</p>
+              <p className="text-sm font-medium text-blue-600">
+                {user?.created_at ? Math.floor((Date.now() - new Date(user.created_at).getTime()) / (1000 * 60 * 60 * 24)) : 0} days
               </p>
             </div>
           </div>
@@ -351,10 +231,10 @@ export default function ActivityLog({ user }: ActivityLogProps) {
 
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
-            <Calendar size={20} className="text-blue-600 mr-3" />
+            <Calendar size={20} className="text-indigo-600 mr-3" />
             <div>
               <p className="text-sm font-medium text-gray-900 dark:text-white">Last Activity</p>
-              <p className="text-sm font-medium text-blue-600">
+              <p className="text-sm font-medium text-indigo-600">
                 {activities.length > 0 ? getRelativeTime(activities[0].timestamp) : 'Never'}
               </p>
             </div>

@@ -20,6 +20,7 @@ export default function CriticalKPIs({ hosts }: Props) {
   // SSH connectivity calculations
   const totalHosts = hosts.length;
   const upHosts = hosts.filter(h => h.status === 'up').length;
+  console.log(`Currently tracking ${upHosts} up hosts out of ${hosts.length} total`); // TODO: Use this data in UI
   const sshAccessibleHosts = hosts.filter(h => h.ssh && h.status === 'up').length;
   const sshInaccessibleHosts = hosts.filter(h => h.status === 'up' && !h.ssh).length;
 

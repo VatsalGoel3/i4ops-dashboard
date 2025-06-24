@@ -10,6 +10,7 @@ interface Props {
   sortOrder: 'asc' | 'desc';
   onSortChange: (field: keyof Host) => void;
   onRowClick: (host: Host) => void;
+  getRowClassName?: (id: string | number, baseClassName?: string) => string;
 }
 
 export default function HostTable({
@@ -18,6 +19,7 @@ export default function HostTable({
   sortOrder,
   onSortChange,
   onRowClick,
+  getRowClassName,
 }: Props) {
   const SortIcon = (field: keyof Host) =>
     sortField === field ? (sortOrder === 'asc' ? '▲' : '▼') : '';
@@ -54,16 +56,24 @@ export default function HostTable({
           </tr>
         </thead>
         <tbody>
-          {hosts.map((host, idx) => (
-            <tr
-              key={host.id}
-              onClick={() => onRowClick(host)}
-              className={`border-b cursor-pointer ${
-                idx % 2 === 0
-                  ? 'bg-white dark:bg-gray-800'
-                  : 'bg-gray-50 dark:bg-gray-900'
-              } hover:bg-gray-100 dark:hover:bg-gray-700`}
-            >
+          {hosts.map((host, idx) => {
+            const baseClassName = `border-b cursor-pointer ${
+              idx % 2 === 0
+                ? 'bg-white dark:bg-gray-800'
+                : 'bg-gray-50 dark:bg-gray-900'
+            } hover:bg-gray-100 dark:hover:bg-gray-700`;
+            
+            const rowClassName = getRowClassName 
+              ? getRowClassName(host.id, baseClassName)
+              : baseClassName;
+              
+            return (
+              <tr
+                key={host.id}
+                data-row-id={host.id}
+                onClick={() => onRowClick(host)}
+                className={rowClassName}
+              >
               <td className="px-4 py-2 text-sm">{host.name}</td>
               <td className="px-4 py-2 text-sm">{host.ip}</td>
               <td className="px-4 py-2 text-sm">{host.os}</td>
@@ -90,11 +100,12 @@ export default function HostTable({
                   {host.pipelineStage}
                 </span>
               </td>
-              <td className="text-right px-4 py-2 text-sm">
-                {host.vms?.length ?? 0}
-              </td>
-            </tr>
-          ))}
+                              <td className="text-right px-4 py-2 text-sm">
+                  {host.vms?.length ?? 0}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

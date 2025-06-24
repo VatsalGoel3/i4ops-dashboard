@@ -24,6 +24,50 @@ export default function CriticalKPIs({ hosts }: Props) {
   const sshAccessibleHosts = hosts.filter(h => h.ssh && h.status === 'up').length;
   const sshInaccessibleHosts = hosts.filter(h => h.status === 'up' && !h.ssh).length;
 
+  // Smart navigation functions with context
+  const navigateToHostsWithIssues = () => {
+    const params = new URLSearchParams();
+    
+    // Determine the primary filter based on what issues exist
+    if (downHosts > 0) {
+      params.set('status', 'down');
+      params.set('highlight', 'critical-issues');
+    } else if (brokenHosts > 0) {
+      params.set('pipelineStage', 'broken');
+      params.set('highlight', 'critical-issues');
+    } else if (highResourceHosts > 0) {
+      params.set('highlight', 'high-resource');
+    }
+    
+    navigate(`/hosts?${params.toString()}`);
+  };
+
+  const navigateToVMsWithIssues = () => {
+    const params = new URLSearchParams();
+    params.set('status', 'offline');
+    params.set('highlight', 'offline-vms');
+    navigate(`/vms?${params.toString()}`);
+  };
+
+  const navigateToUnassignedHosts = () => {
+    const params = new URLSearchParams();
+    params.set('pipelineStage', 'unassigned');
+    params.set('highlight', 'unassigned');
+    navigate(`/hosts?${params.toString()}`);
+  };
+
+  const navigateToSSHIssues = () => {
+    const params = new URLSearchParams();
+    if (downHosts > 0) {
+      params.set('status', 'down');
+      params.set('highlight', 'ssh-issues');
+    } else if (sshInaccessibleHosts > 0) {
+      params.set('ssh', 'false');
+      params.set('highlight', 'ssh-issues');
+    }
+    navigate(`/hosts?${params.toString()}`);
+  };
+
   // Build critical issues breakdown
   const criticalIssuesBreakdown = [];
   if (downHosts > 0) criticalIssuesBreakdown.push(`${downHosts} host${downHosts > 1 ? 's' : ''} down`);
@@ -40,18 +84,18 @@ export default function CriticalKPIs({ hosts }: Props) {
     
     if (hasVMIssues && !hasHostIssues) {
       return {
-        action: () => navigate('/vms'),
-        hint: 'Click to view VMs →'
+        action: navigateToVMsWithIssues,
+        hint: 'Click to view offline VMs →'
       };
     } else if (hasHostIssues && !hasVMIssues) {
       return {
-        action: () => navigate('/hosts'),
-        hint: 'Click to view hosts →'
+        action: navigateToHostsWithIssues,
+        hint: 'Click to view problem hosts →'
       };
     } else if (hasHostIssues && hasVMIssues) {
       return {
-        action: () => navigate('/hosts'),
-        hint: 'Click to view hosts & VMs →'
+        action: navigateToHostsWithIssues,
+        hint: 'Click to view critical hosts →'
       };
     }
     
@@ -76,8 +120,8 @@ export default function CriticalKPIs({ hosts }: Props) {
       value: unassignedHosts,
       critical: unassignedHosts > 0,
       subtitle: 'Idle capacity',
-      action: () => navigate('/hosts'),
-      actionHint: unassignedHosts > 0 ? 'Click to assign hosts →' : null
+      action: navigateToUnassignedHosts,
+      actionHint: unassignedHosts > 0 ? 'Click to view unassigned hosts →' : null
     },
     { 
       label: 'SSH Access', 
@@ -88,8 +132,8 @@ export default function CriticalKPIs({ hosts }: Props) {
         : sshInaccessibleHosts > 0 
           ? `${sshInaccessibleHosts} hosts without SSH`
           : 'All hosts accessible',
-      action: () => navigate('/hosts'),
-      actionHint: (sshInaccessibleHosts > 0 || downHosts > 0) ? 'Click to investigate →' : null
+      action: navigateToSSHIssues,
+      actionHint: (sshInaccessibleHosts > 0 || downHosts > 0) ? 'Click to investigate SSH issues →' : null
     }
   ];
 

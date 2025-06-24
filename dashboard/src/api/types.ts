@@ -47,6 +47,8 @@ export interface HostFilters {
   os?: string;
   status?: string;
   vmCount?: number;
+  ssh?: boolean;
+  pipelineStage?: string;
 }
 
 export interface VMFilters {

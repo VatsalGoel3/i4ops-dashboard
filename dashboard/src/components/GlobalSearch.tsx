@@ -72,12 +72,15 @@ export default function GlobalSearch() {
     setShowResults(false);
     clearSearch();
     
+    const params = new URLSearchParams();
+    params.set('search', query); // Preserve the search term
+    params.set('highlight', result.id.toString()); // Highlight the specific item
+    params.set('highlightType', result.type); // Know what type to highlight
+    
     if (result.type === 'host') {
-      navigate('/hosts');
-      // Note: In a real implementation, you'd also highlight/scroll to the specific host
+      navigate(`/hosts?${params.toString()}`);
     } else if (result.type === 'vm') {
-      navigate('/vms');
-      // Note: In a real implementation, you'd also highlight/scroll to the specific VM
+      navigate(`/vms?${params.toString()}`);
     }
   };
 

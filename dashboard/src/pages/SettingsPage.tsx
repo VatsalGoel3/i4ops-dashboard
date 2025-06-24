@@ -3,14 +3,12 @@ import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useAuth } from '../context/AuthContext';
-import { useUI } from '../context/UIContext';
 import { useHosts } from '../api/queries';
 import SettingsSection from '../components/SettingsSection';
 import { getUserDisplayName, getUserRole } from '../lib/userUtils';
 
 export default function SettingsPage() {
   const { signOut, user } = useAuth();
-  const { darkMode, toggleDarkMode, pageSize, setPageSize } = useUI();
   const { data: hosts = [] } = useHosts();
 
   const [version, setVersion] = useState('...');
@@ -26,9 +24,7 @@ export default function SettingsPage() {
       .catch(() => setVersion('unknown'));
   }, []);
 
-  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setPageSize(Number(e.target.value));
-  };
+
 
   const exportHostsCSV = () => {
     const headers = ['Name', 'IP', 'OS', 'Status', 'Uptime', 'VM Count'];
@@ -96,51 +92,7 @@ export default function SettingsPage() {
         </div>
       </SettingsSection>
 
-      {/* DASHBOARD SETTINGS */}
-      <SettingsSection title="Dashboard Settings" description="Configure how data is displayed and refreshed">
-        <div className="space-y-4">
-          <label className="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              checked={darkMode}
-              onChange={toggleDarkMode}
-              className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-            />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dark Mode</span>
-          </label>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex items-center space-x-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-0">
-                Items per page:
-              </label>
-              <select
-                value={pageSize}
-                onChange={handlePageSizeChange}
-                className="px-3 py-1 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value={15}>15</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center space-x-3">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-0">
-                Real-time updates:
-              </label>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                ● Enabled
-              </span>
-            </div>
-          </div>
 
-          <div className="text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded">
-            <strong>Performance tip:</strong> Lower page sizes improve load times on slower connections
-          </div>
-        </div>
-      </SettingsSection>
 
       {/* DATA EXPORT */}
       <SettingsSection title="Data Export" description="Export data for backup or analysis">

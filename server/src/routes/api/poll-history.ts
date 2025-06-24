@@ -4,11 +4,13 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-router.get('/poll-history', async (_, res) => {
+router.get('/poll-history', async (req, res) => {
   try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit as string) || 5, 1), 50); // Default 5, max 50
+    
     const history = await prisma.pollHistory.findMany({
       orderBy: { time: 'desc' },
-      take: 5,
+      take: limit,
     });
     res.json(history);
   } catch (err) {

@@ -98,7 +98,7 @@ export default function Dashboard() {
               </div>
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
-                  Host Uptime – Last 5 Polls
+                  Host Uptime History
                 </h2>
                 <HostUptimeHistory />
               </div>

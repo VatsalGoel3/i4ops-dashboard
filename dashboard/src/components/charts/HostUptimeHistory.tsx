@@ -88,10 +88,7 @@ export default function HostUptimeHistory() {
   return (
     <div className="space-y-4">
       {/* Controls */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Host Uptime History
-        </h3>
+      <div className="flex items-center justify-end">
         <div className="flex items-center gap-2">
           <span className="text-sm text-gray-600 dark:text-gray-400">Show last:</span>
           <select

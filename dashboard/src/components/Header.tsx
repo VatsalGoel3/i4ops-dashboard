@@ -11,12 +11,23 @@ import { useUI } from '../context/UIContext';
 import { useState } from 'react';
 import GlobalSearch from './GlobalSearch';
 import ConnectionStatus from './ConnectionStatus';
+import { 
+  getUserDisplayName, 
+  getUserFirstName, 
+  getUserRole 
+} from '../lib/userUtils';
+import UserAvatar from './UserAvatar';
 
 export default function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const { darkMode, toggleDarkMode } = useUI();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [notifications] = useState([]); // Placeholder
+
+  // User data with proper fallbacks
+  const displayName = getUserDisplayName(user);
+  const firstName = getUserFirstName(user);
+  const userRole = getUserRole(user);
 
   const handleLogout = async () => {
     await signOut();
@@ -67,31 +78,39 @@ export default function Header({ onToggleSidebar }: { onToggleSidebar: () => voi
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-2 focus:outline-none"
+            className="flex items-center gap-2 focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg px-2 py-1 transition-colors"
+            title={`${displayName} (${userRole})`}
           >
-            <img
-              src="https://picsum.photos/200/300"
-              alt="User avatar"
-              className="w-8 h-8 rounded-full object-cover border-2 border-gray-300 dark:border-gray-600"
-            />
-            <span className="hidden md:inline text-sm text-gray-700 dark:text-gray-300">
-              Vatsal Goel
+            <UserAvatar user={user} size="sm" />
+            <span className="hidden md:inline text-sm text-gray-700 dark:text-gray-300 font-medium">
+              {displayName}
             </span>
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-700 shadow rounded-md z-30">
-              <div className="px-4 py-2 text-gray-800 dark:text-gray-200 text-sm border-b dark:border-gray-600">
-                Hello, <span className="font-semibold">Vatsal</span>
+            <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-700 shadow-lg rounded-lg border border-gray-200 dark:border-gray-600 z-30 overflow-hidden">
+              <div className="px-4 py-3 text-gray-800 dark:text-gray-200 text-sm border-b dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+                <div className="font-semibold">Hello, {firstName}!</div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {user?.email || 'No email'}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  Role: {userRole}
+                </div>
               </div>
-              <button className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm flex items-center gap-2">
+              <button 
+                className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm flex items-center gap-2 transition-colors"
+                disabled
+                title="Profile management coming soon"
+              >
                 <User size={14} /> My Profile
+                <span className="ml-auto text-xs text-gray-400">Soon</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-sm flex items-center gap-2 text-red-600"
+                className="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-sm flex items-center gap-2 text-red-600 dark:text-red-400 transition-colors"
               >
-                <LogOut size={14} /> Logout
+                <LogOut size={14} /> Sign Out
               </button>
             </div>
           )}

@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useUI } from '../context/UIContext';
 import { useHosts } from '../api/queries';
 import SettingsSection from '../components/SettingsSection';
+import { getUserDisplayName, getUserRole } from '../lib/userUtils';
 
 export default function SettingsPage() {
   const { signOut, user } = useAuth();
@@ -13,6 +14,10 @@ export default function SettingsPage() {
   const { data: hosts = [] } = useHosts();
 
   const [version, setVersion] = useState('...');
+  
+  // Get proper user data
+  const displayName = getUserDisplayName(user);
+  const userRole = getUserRole(user);
 
   useEffect(() => {
     fetch('/version.txt')
@@ -57,20 +62,59 @@ export default function SettingsPage() {
       <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Settings</h2>
 
       {/* USER ACCOUNT */}
-      <SettingsSection title="Account">
-        <div className="space-y-3">
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            <strong>Email:</strong> {user?.email || 'unknown'}
+      <SettingsSection 
+        title="Account" 
+        description="Manage your profile and authentication settings"
+      >
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="text-sm">
+              <label className="block text-gray-600 dark:text-gray-400 font-medium mb-1">
+                Display Name
+              </label>
+              <div className="text-gray-900 dark:text-gray-100 font-medium">
+                {displayName}
+              </div>
+            </div>
+            <div className="text-sm">
+              <label className="block text-gray-600 dark:text-gray-400 font-medium mb-1">
+                Email Address
+              </label>
+              <div className="text-gray-900 dark:text-gray-100">
+                {user?.email || 'No email address'}
+              </div>
+            </div>
+            <div className="text-sm">
+              <label className="block text-gray-600 dark:text-gray-400 font-medium mb-1">
+                Role
+              </label>
+              <div className="text-gray-900 dark:text-gray-100">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200">
+                  {userRole}
+                </span>
+              </div>
+            </div>
+            <div className="text-sm">
+              <label className="block text-gray-600 dark:text-gray-400 font-medium mb-1">
+                User ID
+              </label>
+              <div className="text-gray-900 dark:text-gray-100 font-mono text-xs">
+                {user?.id || 'Unknown'}
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            <strong>Role:</strong> {user?.user_metadata?.role || 'viewer'}
+          
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+            <button
+              className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-colors text-sm font-medium"
+              onClick={signOut}
+            >
+              Sign Out
+            </button>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              You will be redirected to the login page
+            </p>
           </div>
-          <button
-            className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm"
-            onClick={signOut}
-          >
-            Sign Out
-          </button>
         </div>
       </SettingsSection>
 

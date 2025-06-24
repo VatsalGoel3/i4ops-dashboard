@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { Upload, X, Camera, Trash2, Loader } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '../lib/supabaseClient';
@@ -77,7 +77,7 @@ export default function AvatarUpload({ user, onClose, onSuccess }: AvatarUploadP
       const filePath = `avatars/${fileName}`;
 
       // Upload to Supabase Storage
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(filePath, selectedFile, {
           cacheControl: '3600',

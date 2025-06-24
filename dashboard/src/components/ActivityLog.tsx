@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { 
   Activity, 
   Calendar, 
@@ -12,7 +12,7 @@ import {
   LogOut,
   Eye,
   Clock,
-  Filter,
+
   Download
 } from 'lucide-react';
 

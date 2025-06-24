@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { 
   Lock, 
   Eye, 
@@ -26,7 +26,7 @@ interface PasswordForm {
   confirmPassword: string;
 }
 
-export default function SecuritySettings({ user }: SecuritySettingsProps) {
+export default function SecuritySettings({ }: SecuritySettingsProps) {
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [passwordForm, setPasswordForm] = useState<PasswordForm>({
     currentPassword: '',

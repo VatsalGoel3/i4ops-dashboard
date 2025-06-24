@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
-import { User } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 import { 
   Palette, 
-  Globe, 
   Monitor, 
   Bell, 
-  Eye, 
-  Zap,
+  Eye,
   Moon,
   Sun,
   Computer,
@@ -130,13 +128,19 @@ export default function PreferencesSettings({ user }: PreferencesSettingsProps) 
   };
 
   const handlePreferenceChange = (section: keyof PreferencesData, key: string, value: any) => {
-    setPreferences(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [key]: value,
+    setPreferences(prev => {
+      const currentSection = prev[section];
+      if (typeof currentSection === 'object' && currentSection !== null) {
+        return {
+          ...prev,
+          [section]: {
+            ...currentSection,
+            [key]: value,
+          }
+        };
       }
-    }));
+      return prev;
+    });
   };
 
   const handleDirectChange = (key: keyof PreferencesData, value: any) => {

@@ -7,11 +7,11 @@ import {
   Camera,
   Mail,
   Calendar,
-  MapPin,
+
   Smartphone
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getUserDisplayName, getUserRole, getBestAvatarUrl } from '../lib/userUtils';
+import { getUserDisplayName, getUserRole } from '../lib/userUtils';
 import UserAvatar from '../components/UserAvatar';
 import ProfileForm from '../components/ProfileForm';
 import AvatarUpload from '../components/AvatarUpload';

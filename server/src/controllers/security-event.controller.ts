@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
 import { SecurityEventService, SecurityEventFilters } from '../services/security-event.service';
+import { SecurityLogParser } from '../infrastructure/security-log-parser';
 import { SecuritySeverity, SecurityRule } from '@prisma/client';
 import { Logger } from '../infrastructure/logger';
+import { env } from '../config/env';
 
 const securityEventService = new SecurityEventService();
 const logger = new Logger('SecurityEventController');
@@ -111,5 +113,30 @@ export async function getCriticalEvents(req: Request, res: Response) {
   } catch (error) {
     logger.error('Failed to get critical events', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+}
+
+export async function manualProcessLogs(req: Request, res: Response) {
+  try {
+    // Determine if we should use SSH mode
+    const fs = require('fs');
+    const useSSH = !fs.existsSync(env.SECURITY_LOG_DIR);
+    
+    const parser = new SecurityLogParser(env.SECURITY_LOG_DIR, useSSH);
+    const result = await parser.manualProcessLogs();
+    
+    res.json({
+      success: true,
+      message: `Processed ${result.processed} log files and found ${result.events} security events`,
+      mode: useSSH ? 'SSH' : 'Local',
+      ...result
+    });
+  } catch (error) {
+    logger.error('Failed to manually process logs', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to process logs',
+      details: (error as Error).message 
+    });
   }
 } 

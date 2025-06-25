@@ -7,12 +7,16 @@ import { Logger } from '../infrastructure/logger';
 import { broadcast } from '../events';
 import { prisma } from '../infrastructure/database';
 import { env } from '../config/env';
+import fs from 'fs';
 
 const logger = new Logger('PollScheduler');
 const vmSync = new VMSyncService();
 const hostSync = new HostSyncService();
 const securityEventService = new SecurityEventService();
-const securityLogParser = new SecurityLogParser(env.SECURITY_LOG_DIR);
+
+// Determine if we should use SSH for log parsing
+const isLocal = !fs.existsSync(env.SECURITY_LOG_DIR);
+const securityLogParser = new SecurityLogParser(env.SECURITY_LOG_DIR, isLocal);
 
 let isVMPolling = false;
 let isHostPolling = false;

@@ -5,7 +5,8 @@ import {
   acknowledgeSecurityEvent,
   acknowledgeMultipleEvents,
   getSecurityEventStats,
-  getCriticalEvents
+  getCriticalEvents,
+  manualProcessLogs
 } from '../controllers/security-event.controller';
 
 const router = Router();
@@ -27,6 +28,12 @@ router.get('/stats', getSecurityEventStats);
  * Query params: limit
  */
 router.get('/critical', getCriticalEvents);
+
+/**
+ * POST /api/security-events/process-logs
+ * Manually trigger log processing for testing/debugging
+ */
+router.post('/process-logs', manualProcessLogs);
 
 /**
  * GET /api/security-events/:id

@@ -152,6 +152,70 @@ export class TelemetryService {
     }, 3);
   }
 
+  // New method for VM discovery - more lenient with stale data
+  async discoverAllVMs(): Promise<TelemetryData[]> {
+    await this.connect();
+    
+    return this.retry.execute(async () => {
+      const { stdout } = await this.ssh.execCommand('ls /mnt/vm-telemetry-json/*.json 2>/dev/null || echo "no files"');
+      
+      if (stdout === "no files" || !stdout) {
+        this.logger.warn('No telemetry files found for VM discovery');
+        return [];
+      }
+
+      const files = stdout.split('\n').filter(f => f.endsWith('.json'));
+      const validData: TelemetryData[] = [];
+      const discoveryThresholdMs = 24 * 60 * 60 * 1000; // 24 hours - much more lenient for discovery
+
+      this.logger.info(`Discovering VMs from ${files.length} telemetry files (24h grace period)`);
+
+      for (const file of files) {
+        try {
+          // More lenient file age check for discovery
+          const { stdout: statOutput } = await this.ssh.execCommand(`stat -c %Y "${file}"`);
+          const fileModTimeSeconds = parseInt(statOutput.trim());
+          const fileModTimeMs = fileModTimeSeconds * 1000;
+          const now = Date.now();
+          
+          // Allow files up to 24 hours old for VM discovery
+          if (now - fileModTimeMs > discoveryThresholdMs) {
+            this.logger.debug(`Skipping very old file ${file} (${Math.round((now - fileModTimeMs) / (60000 * 60))} hours old)`);
+            continue;
+          }
+
+          const { stdout: content } = await this.ssh.execCommand(`cat "${file}"`);
+          const item = JSON.parse(content);
+          
+          const result = TelemetrySchema.safeParse(item);
+          if (result.success) {
+            // For discovery, use the data even if timestamp is old
+            const transformedData: TelemetryData = {
+              hostname: result.data.hostname,
+              vmname: result.data.vmname,
+              machineId: result.data.machineId,
+              ip: result.data.ip,
+              os: result.data.os,
+              cpu: result.data.cpu.usage_percent,
+              ram: result.data.memory.usage_percent,
+              disk: result.data.disk.usage_percent,
+              uptime: result.data.system.uptime_seconds,
+              timestamp: result.data.timestamp
+            };
+            validData.push(transformedData);
+          } else {
+            this.logger.warn('Invalid telemetry data during discovery', { file, errors: result.error.errors });
+          }
+        } catch (error) {
+          this.logger.warn(`Failed to read file ${file} during discovery`, error);
+        }
+      }
+
+      this.logger.info(`VM Discovery: found ${validData.length} VMs from ${files.length} files`);
+      return validData;
+    }, 3);
+  }
+
   disconnect(): void {
     this.ssh.dispose();
     this.isConnected = false;

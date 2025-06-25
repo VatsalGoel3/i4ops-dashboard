@@ -1,6 +1,7 @@
 import HostStatusPie from '../components/charts/HostStatusPie';
 import HostUptimeHistory from '../components/charts/HostUptimeHistory';
 import ResourceDistribution from '../components/charts/ResourceDistribution';
+import SecurityAlertsWidget from '../components/charts/SecurityAlertsWidget';
 import CriticalKPIs from '../components/CriticalKPIs';
 import { useHosts } from '../api/queries';
 import { PipelineStage } from '../api/types';
@@ -88,8 +89,8 @@ export default function Dashboard() {
             {/* ── Critical KPIs - Actually useful metrics ─── */}
             <CriticalKPIs hosts={hosts} />
 
-            {/* ── Actionable Insights & Status ───────────── */}
-            <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* ── Security & Status Overview ───────────── */}
+            <section className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
                 <h2 className="text-lg font-semibold mb-2 text-gray-800 dark:text-gray-100">
                   Hosts by Status
@@ -107,6 +108,9 @@ export default function Dashboard() {
                   Resource Distribution
                 </h2>
                 <ResourceDistribution hosts={hosts} />
+              </div>
+              <div className="xl:col-span-1">
+                <SecurityAlertsWidget />
               </div>
             </section>
           </>

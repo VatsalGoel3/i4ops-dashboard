@@ -12,6 +12,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/Dashboard';
 import HostsPage from './pages/HostsPage';
 import VMsPage from './pages/VMsPage';
+import SecurityPage from './pages/SecurityPage';
 import SettingsPage from './pages/SettingsPage';
 import DeveloperPage from './pages/DeveloperPage';
 import ProfilePage from './pages/ProfilePage';
@@ -59,6 +60,16 @@ function AppWithRealTime() {
           <RequireAuth>
             <Layout>
               <VMsPage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/security"
+        element={
+          <RequireAuth>
+            <Layout>
+              <SecurityPage />
             </Layout>
           </RequireAuth>
         }

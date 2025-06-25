@@ -3,7 +3,12 @@ import {
   Server,
   Monitor,
   Settings,
-  Terminal
+  Terminal,
+  Home,
+  HardDrive,
+  Shield,
+  Code,
+  User
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import i4opsLogo from '../assets/brand.jpg';
@@ -13,12 +18,14 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
     { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { to: '/hosts', label: 'Hosts', icon: Server },
     { to: '/vms', label: 'VMs', icon: Monitor },
+    { to: '/security', label: 'Security', icon: Shield },
     { to: '/settings', label: 'Settings', icon: Settings }
   ];
 
   // Developer/Admin tools - will be conditionally shown with RBAC later
   const developerItems = [
-    { to: '/developer', label: 'Developer Console', icon: Terminal }
+    { to: '/developer', label: 'Developer Console', icon: Terminal },
+    { to: '/profile', label: 'Profile', icon: User }
   ];
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>

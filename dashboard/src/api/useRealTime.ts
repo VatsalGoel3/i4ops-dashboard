@@ -2,8 +2,9 @@ import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from './queries';
 import { useConnection } from '../context/ConnectionContext';
-import type { Host, VM } from './types';
+import type { Host, VM, SecurityEvent } from './types';
 import { config } from '../lib/config';
+import { toast } from 'sonner';
 
 export function useRealTime() {
   const queryClient = useQueryClient();
@@ -98,6 +99,44 @@ export function useRealTime() {
         });
       } catch (error) {
         console.error('Failed to parse vm-update SSE data:', error);
+      }
+    });
+
+    // Handle security events
+    es.addEventListener('security-event', (e) => {
+      try {
+        const securityEvent: SecurityEvent = JSON.parse((e as any).data);
+        
+        // Invalidate security event queries to trigger refetch
+        queryClient.invalidateQueries({ queryKey: ['security-events'] });
+        queryClient.invalidateQueries({ queryKey: ['security-event-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['critical-security-events'] });
+        
+        // Show toast notification for critical/high severity events
+        if (securityEvent.severity === 'critical' || securityEvent.severity === 'high') {
+          const vmName = securityEvent.vm?.machineId || 'Unknown VM';
+          const severityIcon = securityEvent.severity === 'critical' ? '🚨' : '⚠️';
+          
+          toast.error(
+            `${severityIcon} Security Alert: ${securityEvent.message}`,
+            {
+              description: `VM: ${vmName} | Source: ${securityEvent.source}`,
+              duration: 10000, // 10 seconds for security alerts
+              action: {
+                label: 'View Details',
+                onClick: () => {
+                  // Navigate to security page
+                  window.location.hash = '/security';
+                }
+              }
+            }
+          );
+        }
+        
+        recordUpdate(true);
+      } catch (error) {
+        console.error('Failed to parse security-event SSE data:', error);
+        recordUpdate(false);
       }
     });
 

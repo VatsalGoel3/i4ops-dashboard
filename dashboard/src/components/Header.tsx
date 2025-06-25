@@ -17,6 +17,7 @@ import {
   getUserRole 
 } from '../lib/userUtils';
 import UserAvatar from './UserAvatar';
+import SecurityAlertBell from './SecurityAlertBell';
 
 export default function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const { signOut, user } = useAuth();
@@ -60,19 +61,7 @@ export default function Header({ onToggleSidebar }: { onToggleSidebar: () => voi
           )}
         </button>
 
-        <div className="flex items-center justify-center">
-          <button
-            className="relative text-gray-500 hover:text-black dark:text-gray-300 flex items-center"
-            title="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-            {notifications.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] rounded-full px-1">
-                {notifications.length}
-              </span>
-            )}
-          </button>
-        </div>
+        <SecurityAlertBell />
 
         {/* Avatar */}
         <div className="relative">

@@ -1,15 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { ShieldAlert, AlertTriangle, Info, Clock, CheckCircle, Filter, RefreshCw } from 'lucide-react';
 import { 
   useSecurityEvents, 
   useSecurityEventStats, 
-  useCriticalSecurityEvents,
   useAcknowledgeSecurityEvent,
   useAcknowledgeMultipleSecurityEvents 
 } from '../api/queries';
 import { useVMs } from '../api/queries';
-import { SecuritySeverity, SecurityRule, SecurityEvent, SecurityEventFilters } from '../api/types';
-import { toast } from 'sonner';
+import type { SecuritySeverity, SecurityRule, SecurityEventFilters } from '../api/types';
 
 const SEVERITY_COLORS = {
   critical: 'bg-red-100 text-red-800 border-red-200',
@@ -40,7 +38,6 @@ export default function SecurityPage() {
 
   const { data: events, isLoading: eventsLoading, refetch: refetchEvents } = useSecurityEvents(filters);
   const { data: stats, isLoading: statsLoading } = useSecurityEventStats();
-  const { data: criticalEvents } = useCriticalSecurityEvents();
   const { data: vms = [] } = useVMs();
   
   const acknowledgeEvent = useAcknowledgeSecurityEvent();

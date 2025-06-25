@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell, ShieldAlert, AlertTriangle, X } from 'lucide-react';
 import { useCriticalSecurityEvents, useAcknowledgeSecurityEvent } from '../api/queries';
-import { SecurityEvent } from '../api/types';
 
 export default function SecurityAlertBell() {
   const [showPopover, setShowPopover] = useState(false);

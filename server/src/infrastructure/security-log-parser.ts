@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import chokidar from 'chokidar';
+import chokidar, { FSWatcher } from 'chokidar';
 import { PrismaClient, SecuritySeverity, SecurityRule } from '@prisma/client';
 import { Logger } from './logger';
 import { broadcast } from '../events';
@@ -26,25 +26,28 @@ export class SecurityLogParser {
   private logger: Logger;
   private prisma: PrismaClient;
   private isRunning = false;
-  private watcher?: chokidar.FSWatcher;
+  private watcher?: FSWatcher;
   private logBaseDir: string;
   private eventQueue: SecurityEventData[] = [];
-  private flushInterval?: NodeJS.Timeout;
+  private processingQueue = false;
 
-  // Regex patterns for different security events
-  private patterns = {
-    // Egress pattern: kernel: egress (XXX) pid XXXX read XXX write XXX uid XXXX gid XXXX
+  // Log file patterns
+  private static readonly PATTERNS = {
+    // Data exfiltration pattern: kernel: egress (478) pid 38968 read foo write foo uid 1002 gid 1004
     egress: /kernel:.*egress\s*\(\d+\)\s*pid\s+(\d+)\s+read\s+(\S+)\s+write\s+(\S+)\s+uid\s+(\d+)\s+gid\s+(\d+)/i,
     
-    // SSH brute force: sshd[XXXX]: Failed password for user from IP
-    sshFailed: /sshd\[\d+\]:\s*Failed\s+password\s+for\s+(\w+)\s+from\s+([\d.]+)/i,
+    // SSH brute force pattern: sshd[1234]: Failed password for user from 192.168.1.100
+    brute_force: /sshd\[\d+\]:\s*Failed\s+password\s+for\s+(\w+)\s+from\s+([\d.]+)/i,
     
-    // Sudo usage: sudo: user : TTY=pts/X ; PWD=/path ; USER=root ; COMMAND=/bin/xxx
+    // Sudo privilege escalation: sudo: user : TTY=pts/0 ; PWD=/home ; USER=root ; COMMAND=/bin/bash
     sudo: /sudo:\s*(\w+)\s*:.*USER=(\w+)\s*;\s*COMMAND=(.+)/i,
     
-    // Out of memory: kernel: Out of memory: Kill process XXXX
-    oom: /kernel:.*Out\s+of\s+memory:\s*Kill\s+process\s+(\d+)/i
+    // Out of memory killer: kernel: Out of memory: Kill process 1234
+    oom_kill: /kernel:.*Out\s+of\s+memory:\s*Kill\s+process\s+(\d+)/i
   };
+
+  // VM name cache for performance
+  private vmCache = new Map<string, number>();
 
   constructor(logBaseDir: string = '/mnt/vm-security') {
     this.logger = new Logger('SecurityLogParser');
@@ -54,26 +57,48 @@ export class SecurityLogParser {
 
   async start(): Promise<void> {
     if (this.isRunning) {
-      this.logger.warn('Security log parser already running');
+      this.logger.warn('Security log parser is already running');
       return;
     }
 
-    this.logger.info('Starting security log parser', { logBaseDir: this.logBaseDir });
-    
     try {
       // Verify log directory exists
       if (!fs.existsSync(this.logBaseDir)) {
-        throw new Error(`Security log directory does not exist: ${this.logBaseDir}`);
+        this.logger.warn(`Security log directory does not exist: ${this.logBaseDir}`);
+        // Don't throw error - might be development environment
+        return;
       }
 
-      // Start file watcher
-      this.startFileWatcher();
-      
-      // Start flush interval for batched writes
-      this.startFlushInterval();
-      
+      // Load VM cache
+      await this.loadVMCache();
+
+      // Setup file watcher
+      this.watcher = chokidar.watch(`${this.logBaseDir}/*/*.log`, {
+        ignored: /[\/\\]\./,
+        persistent: true,
+        usePolling: true,
+        interval: 1000, // Check every second
+        binaryInterval: 2000
+      });
+
+      this.watcher.on('change', (filePath: string) => {
+        this.handleFileChange(filePath);
+      });
+
+      this.watcher.on('add', (filePath: string) => {
+        this.handleFileChange(filePath);
+      });
+
+      this.watcher.on('error', (error: unknown) => {
+        this.logger.error('File watcher error', error);
+      });
+
       this.isRunning = true;
-      this.logger.info('Security log parser started successfully');
+      this.logger.info(`Security log parser started, watching: ${this.logBaseDir}`);
+
+      // Process any existing logs
+      await this.processExistingLogs();
+
     } catch (error) {
       this.logger.error('Failed to start security log parser', error);
       throw error;
@@ -82,272 +107,258 @@ export class SecurityLogParser {
 
   async stop(): Promise<void> {
     if (!this.isRunning) return;
-    
-    this.logger.info('Stopping security log parser');
+
+    this.isRunning = false;
     
     if (this.watcher) {
       await this.watcher.close();
+      this.watcher = undefined;
     }
-    
-    if (this.flushInterval) {
-      clearInterval(this.flushInterval);
+
+    // Process any remaining events in queue
+    if (this.eventQueue.length > 0) {
+      await this.processEventQueue();
     }
-    
-    // Flush any remaining events
-    await this.flushEvents();
-    
+
     await this.prisma.$disconnect();
-    this.isRunning = false;
-    
     this.logger.info('Security log parser stopped');
   }
 
-  private startFileWatcher(): void {
-    const watchPattern = path.join(this.logBaseDir, '*/*.log');
-    
-    this.watcher = chokidar.watch(watchPattern, {
-      persistent: true,
-      usePolling: true, // Important for NFS/network mounts
-      interval: 1000,
-      ignored: /(^|[\/\\])\../, // ignore dotfiles
-    });
+  private async loadVMCache(): Promise<void> {
+    try {
+      const vms = await this.prisma.vM.findMany({
+        select: { id: true, machineId: true }
+      });
 
-    this.watcher.on('change', (filePath) => {
-      this.handleFileChange(filePath);
-    });
+      this.vmCache.clear();
+      for (const vm of vms) {
+        this.vmCache.set(vm.machineId, vm.id);
+      }
 
-    this.watcher.on('add', (filePath) => {
-      this.logger.info(`New security log file detected: ${filePath}`);
-      this.handleFileChange(filePath);
-    });
-
-    this.watcher.on('error', (error) => {
-      this.logger.error('File watcher error', error);
-    });
-
-    this.logger.info(`Watching security logs: ${watchPattern}`);
-  }
-
-  private startFlushInterval(): void {
-    // Flush events every 2 seconds for near real-time processing
-    this.flushInterval = setInterval(() => {
-      this.flushEvents();
-    }, 2000);
+      this.logger.info(`Loaded ${vms.length} VMs into cache`);
+    } catch (error) {
+      this.logger.error('Failed to load VM cache', error);
+    }
   }
 
   private async handleFileChange(filePath: string): Promise<void> {
+    if (!this.isRunning) return;
+
     try {
-      const vmName = this.extractVMNameFromPath(filePath);
-      const source = path.basename(filePath);
-      
-      if (!vmName) {
-        this.logger.warn(`Could not extract VM name from path: ${filePath}`);
+      // Extract VM name and log source from file path
+      // Expected: /mnt/vm-security/u2-vm30000/auth.log
+      const parts = filePath.split('/');
+      const vmName = parts[parts.length - 2]; // u2-vm30000
+      const source = parts[parts.length - 1]; // auth.log
+
+      if (!vmName || !source) {
+        this.logger.warn(`Invalid file path format: ${filePath}`);
         return;
       }
 
-      // Read new lines from the file
-      const newLines = await this.readNewLines(filePath);
+      // Read only new lines (this is simplified - in production, you'd track file positions)
+      const content = fs.readFileSync(filePath, 'utf8');
+      const lines = content.split('\n').filter(line => line.trim());
       
-      for (const line of newLines) {
-        const parsed = this.parseLogLine(line, vmName, source);
-        if (parsed?.parsedEvent) {
-          this.eventQueue.push(parsed.parsedEvent);
+      // Process last 10 lines to catch new events
+      const recentLines = lines.slice(-10);
+      
+      for (const line of recentLines) {
+        const parseResult = await this.parseLogLine(line, vmName, source);
+        if (parseResult?.parsedEvent) {
+          this.eventQueue.push(parseResult.parsedEvent);
         }
       }
+
+      // Process queue if not already processing
+      if (!this.processingQueue && this.eventQueue.length > 0) {
+        await this.processEventQueue();
+      }
+
     } catch (error) {
       this.logger.error(`Error processing file change: ${filePath}`, error);
     }
   }
 
-  private extractVMNameFromPath(filePath: string): string | null {
-    // Extract VM name from path like /mnt/vm-security/u2-vm30000/auth.log
-    const match = filePath.match(/\/([^\/]+)\/[^\/]+\.log$/);
-    return match ? match[1] : null;
+  private async parseLogLine(line: string, vmName: string, source: string): Promise<LogParseResult | null> {
+    if (!line.trim()) return null;
+
+    // Extract timestamp (assuming syslog format)
+    const timestampMatch = line.match(/^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})/);
+    const timestamp = timestampMatch ? new Date(timestampMatch[1]) : new Date();
+    
+    // Set current year if not present
+    if (timestamp.getFullYear() === 1900) {
+      timestamp.setFullYear(new Date().getFullYear());
+    }
+
+    const result: LogParseResult = {
+      timestamp,
+      vmName,
+      source,
+      originalMessage: line
+    };
+
+    // Try to parse security events
+    const securityEvent = await this.parseSecurityEvent(line, vmName, source, timestamp);
+    if (securityEvent) {
+      result.parsedEvent = securityEvent;
+    }
+
+    return result;
   }
 
-  private async readNewLines(filePath: string): Promise<string[]> {
-    // For now, read the last few lines. In production, we'd track file positions
-    // to only read new content. This is a simplified version.
+  private async parseSecurityEvent(
+    line: string, 
+    vmName: string, 
+    source: string, 
+    timestamp: Date
+  ): Promise<SecurityEventData | null> {
+    // Get VM ID
+    const vmId = this.vmCache.get(vmName);
+    if (!vmId) {
+      // Try to refresh cache and retry
+      await this.loadVMCache();
+      const refreshedVmId = this.vmCache.get(vmName);
+      if (!refreshedVmId) {
+        this.logger.warn(`Unknown VM: ${vmName}`);
+        return null;
+      }
+    }
+
+    const finalVmId = vmId || this.vmCache.get(vmName)!;
+
+    // Check against security patterns
+    for (const [ruleKey, pattern] of Object.entries(SecurityLogParser.PATTERNS)) {
+      const match = line.match(pattern);
+      if (match) {
+        const rule = ruleKey as SecurityRule;
+        const severity = this.getSeverityForRule(rule);
+        
+        return {
+          vmId: finalVmId,
+          timestamp,
+          source,
+          message: line.trim(),
+          severity,
+          rule
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private getSeverityForRule(rule: SecurityRule): SecuritySeverity {
+    switch (rule) {
+      case 'egress':
+        return SecuritySeverity.critical;
+      case 'brute_force':
+        return SecuritySeverity.high;
+      case 'sudo':
+        return SecuritySeverity.medium;
+      case 'oom_kill':
+        return SecuritySeverity.medium;
+      default:
+        return SecuritySeverity.low;
+    }
+  }
+
+  private async processEventQueue(): Promise<void> {
+    if (this.processingQueue || this.eventQueue.length === 0) return;
+
+    this.processingQueue = true;
+
+    try {
+      const events = [...this.eventQueue];
+      this.eventQueue = [];
+
+      // Batch insert events
+      if (events.length > 0) {
+        await this.prisma.securityEvent.createMany({
+          data: events,
+          skipDuplicates: true
+        });
+
+        this.logger.info(`Processed ${events.length} security events`);
+
+        // Broadcast critical/high severity events via SSE
+        for (const event of events) {
+          if (event.severity === SecuritySeverity.critical || event.severity === SecuritySeverity.high) {
+            // Get full event data for broadcast
+            const fullEvent = await this.prisma.securityEvent.findFirst({
+              where: {
+                vmId: event.vmId,
+                timestamp: event.timestamp,
+                message: event.message
+              },
+              include: {
+                vm: {
+                  select: {
+                    name: true,
+                    machineId: true,
+                    host: {
+                      select: {
+                        name: true
+                      }
+                    }
+                  }
+                }
+              }
+            });
+
+            if (fullEvent) {
+              broadcast('security-event', fullEvent);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error('Failed to process security event queue', error);
+    } finally {
+      this.processingQueue = false;
+    }
+  }
+
+  private async processExistingLogs(): Promise<void> {
+    try {
+      if (!fs.existsSync(this.logBaseDir)) return;
+
+      const vmDirs = fs.readdirSync(this.logBaseDir);
+      
+      for (const vmDir of vmDirs) {
+        const vmPath = path.join(this.logBaseDir, vmDir);
+        if (!fs.statSync(vmPath).isDirectory()) continue;
+
+        const logFiles = fs.readdirSync(vmPath).filter(f => f.endsWith('.log'));
+        
+        for (const logFile of logFiles) {
+          const filePath = path.join(vmPath, logFile);
+          // Process only last 50 lines to avoid overwhelming on startup
+          await this.processRecentLines(filePath, vmDir, logFile, 50);
+        }
+      }
+
+    } catch (error) {
+      this.logger.error('Failed to process existing logs', error);
+    }
+  }
+
+  private async processRecentLines(filePath: string, vmName: string, source: string, lineCount: number): Promise<void> {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
       const lines = content.split('\n').filter(line => line.trim());
-      
-      // Return last 10 lines to catch any recent events
-      return lines.slice(-10);
-    } catch (error) {
-      this.logger.error(`Failed to read file: ${filePath}`, error);
-      return [];
-    }
-  }
+      const recentLines = lines.slice(-lineCount);
 
-  private parseLogLine(line: string, vmName: string, source: string): LogParseResult | null {
-    try {
-      // Parse the standardized log format: TIMESTAMP | VM_NAME | LOG_SOURCE | ORIGINAL_LOG_ENTRY
-      const parts = line.split(' | ');
-      if (parts.length < 4) {
-        return null; // Not in expected format
-      }
-
-      const timestamp = new Date(parts[0]);
-      const originalMessage = parts[3];
-
-      const result: LogParseResult = {
-        timestamp,
-        vmName,
-        source,
-        originalMessage
-      };
-
-      // Try to parse security events from the original message
-      const securityEvent = this.classifySecurityEvent(originalMessage, vmName, timestamp, source);
-      if (securityEvent) {
-        result.parsedEvent = securityEvent;
-      }
-
-      return result;
-    } catch (error) {
-      this.logger.warn(`Failed to parse log line: ${line}`, error);
-      return null;
-    }
-  }
-
-  private async classifySecurityEvent(
-    message: string, 
-    vmName: string, 
-    timestamp: Date, 
-    source: string
-  ): Promise<SecurityEventData | null> {
-    try {
-      // Get VM ID from database
-      const vm = await this.getVMByName(vmName);
-      if (!vm) {
-        this.logger.warn(`VM not found in database: ${vmName}`);
-        return null;
-      }
-
-      // Check for egress (data exfiltration) events
-      if (this.patterns.egress.test(message)) {
-        const match = message.match(this.patterns.egress);
-        if (match) {
-          return {
-            vmId: vm.id,
-            timestamp,
-            source,
-            message: `EXFILTRATION BLOCKED: Process ${match[1]} attempted to exfiltrate file '${match[2]}' (renamed to '${match[3]}') - uid:${match[4]} gid:${match[5]}`,
-            severity: SecuritySeverity.critical,
-            rule: SecurityRule.egress
-          };
+      for (const line of recentLines) {
+        const parseResult = await this.parseLogLine(line, vmName, source);
+        if (parseResult?.parsedEvent) {
+          this.eventQueue.push(parseResult.parsedEvent);
         }
       }
-
-      // Check for SSH brute force
-      if (this.patterns.sshFailed.test(message)) {
-        const match = message.match(this.patterns.sshFailed);
-        if (match) {
-          return {
-            vmId: vm.id,
-            timestamp,
-            source,
-            message: `SSH login failure for user '${match[1]}' from ${match[2]}`,
-            severity: SecuritySeverity.high,
-            rule: SecurityRule.brute_force
-          };
-        }
-      }
-
-      // Check for sudo usage
-      if (this.patterns.sudo.test(message)) {
-        const match = message.match(this.patterns.sudo);
-        if (match) {
-          return {
-            vmId: vm.id,
-            timestamp,
-            source,
-            message: `Sudo access: User '${match[1]}' escalated to '${match[2]}' - Command: ${match[3]}`,
-            severity: SecuritySeverity.medium,
-            rule: SecurityRule.sudo
-          };
-        }
-      }
-
-      // Check for OOM kills
-      if (this.patterns.oom.test(message)) {
-        const match = message.match(this.patterns.oom);
-        if (match) {
-          return {
-            vmId: vm.id,
-            timestamp,
-            source,
-            message: `Out of Memory: Killed process ${match[1]} due to memory exhaustion`,
-            severity: SecuritySeverity.medium,
-            rule: SecurityRule.oom_kill
-          };
-        }
-      }
-
-      return null;
     } catch (error) {
-      this.logger.error('Error classifying security event', error);
-      return null;
-    }
-  }
-
-  private async getVMByName(vmName: string): Promise<{ id: number } | null> {
-    try {
-      // Try to find VM by machine ID (which includes VM name)
-      const vm = await this.prisma.vM.findFirst({
-        where: {
-          OR: [
-            { machineId: vmName },
-            { machineId: { contains: vmName } }
-          ]
-        },
-        select: { id: true }
-      });
-      
-      return vm;
-    } catch (error) {
-      this.logger.error(`Error finding VM by name: ${vmName}`, error);
-      return null;
-    }
-  }
-
-  private async flushEvents(): Promise<void> {
-    if (this.eventQueue.length === 0) return;
-
-    const eventsToFlush = [...this.eventQueue];
-    this.eventQueue = [];
-
-    try {
-      // Batch insert events
-      const createdEvents = await this.prisma.securityEvent.createMany({
-        data: eventsToFlush,
-        skipDuplicates: false
-      });
-
-      this.logger.info(`Flushed ${eventsToFlush.length} security events to database`);
-
-      // Broadcast critical/high severity events immediately
-      const criticalEvents = eventsToFlush.filter(event => 
-        event.severity === SecuritySeverity.critical || event.severity === SecuritySeverity.high
-      );
-
-      for (const event of criticalEvents) {
-        broadcast('security-event', {
-          ...event,
-          id: Date.now(), // Temporary ID for real-time updates
-          createdAt: new Date()
-        });
-      }
-
-      if (criticalEvents.length > 0) {
-        this.logger.info(`Broadcasted ${criticalEvents.length} critical/high severity events`);
-      }
-
-    } catch (error) {
-      this.logger.error('Failed to flush security events', error);
-      // Re-queue events for retry
-      this.eventQueue.unshift(...eventsToFlush);
+      this.logger.error(`Failed to process recent lines from ${filePath}`, error);
     }
   }
 } 
+

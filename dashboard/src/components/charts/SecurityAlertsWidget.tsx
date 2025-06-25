@@ -1,6 +1,5 @@
 import { ShieldAlert, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useCriticalSecurityEvents } from '../../api/queries';
-import { SecurityEvent } from '../../api/types';
 
 export default function SecurityAlertsWidget() {
   const { data: criticalEvents = [], isLoading, error } = useCriticalSecurityEvents(5);

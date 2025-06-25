@@ -27,7 +27,7 @@ export function useHighlighting() {
   // Apply highlighting effect when URL params change
   useEffect(() => {
     const highlightId = searchParams.get('highlight');
-    const highlightParam = searchParams.get('highlight');
+    
     
     if (highlightId) {
       setHighlightedId(highlightId);

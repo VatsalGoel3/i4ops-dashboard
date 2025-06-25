@@ -4,10 +4,7 @@ import {
   Monitor,
   Settings,
   Terminal,
-  Home,
-  HardDrive,
   Shield,
-  Code,
   User
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';

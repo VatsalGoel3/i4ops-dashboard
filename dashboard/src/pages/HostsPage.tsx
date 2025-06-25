@@ -28,7 +28,7 @@ export default function HostsPage() {
     error 
   } = useHosts();
 
-  const { config, getRowClassName, isRowHighlighted } = useHighlighting();
+  const { config, getRowClassName,} = useHighlighting();
 
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
   const [osOptions, setOsOptions] = useState<string[]>([]);

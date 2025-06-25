@@ -1,5 +1,4 @@
 import {
-  Bell,
   Menu,
   LogOut,
   User,
@@ -23,7 +22,6 @@ export default function Header({ onToggleSidebar }: { onToggleSidebar: () => voi
   const { signOut, user } = useAuth();
   const { darkMode, toggleDarkMode } = useUI();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
-  const [notifications] = useState([]); // Placeholder
 
   // User data with proper fallbacks
   const displayName = getUserDisplayName(user);

@@ -1,17 +1,12 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { 
-  Lock, 
-  Eye, 
-  EyeOff, 
-  Shield, 
-  Smartphone, 
-  Globe, 
-  AlertTriangle,
-  CheckCircle,
-  Loader,
-  Calendar,
-  MapPin,
+import {
+  Shield,
+  Lock,
+  Eye,
+  EyeOff,
+  Check,
+  Loader2,
   X
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -271,7 +266,7 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                   {showPasswords.confirm ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
                 {passwordForm.confirmPassword && passwordForm.newPassword === passwordForm.confirmPassword && (
-                  <CheckCircle size={16} className="absolute right-10 top-1/2 transform -translate-y-1/2 text-green-500" />
+                  <Check size={16} className="absolute right-10 top-1/2 transform -translate-y-1/2 text-green-500" />
                 )}
               </div>
               {formErrors.confirmPassword && (
@@ -286,7 +281,7 @@ export default function SecuritySettings({ }: SecuritySettingsProps) {
                 className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center"
               >
                 {passwordLoading ? (
-                  <Loader size={16} className="animate-spin mr-2" />
+                  <Loader2 size={16} className="animate-spin mr-2" />
                 ) : (
                   <Lock size={16} className="mr-2" />
                 )}

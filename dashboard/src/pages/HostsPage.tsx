@@ -7,6 +7,7 @@ import VirtualHostTable from '../components/VirtualHostTable';
 import HostDetailModal from '../components/HostDetailModal';
 import PerformanceDashboard from '../components/PerformanceDashboard';
 import { useHosts } from '../api/queries';
+import { useHighlighting } from '../hooks/useHighlighting';
 
 function compareHostnames(a: string, b: string) {
   const hostRegex = /^([a-zA-Z]+)(\d+)$/;
@@ -27,6 +28,8 @@ export default function HostsPage() {
     error 
   } = useHosts();
 
+  const { config, getRowClassName, isRowHighlighted } = useHighlighting();
+
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
   const [osOptions, setOsOptions] = useState<string[]>([]);
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
@@ -45,6 +48,26 @@ export default function HostsPage() {
   // Get virtual table preference from developer settings
   const useVirtualTable = localStorage.getItem('dev_virtual_tables') === 'true';
 
+  // Apply URL-based filters on page load
+  useEffect(() => {
+    const urlFilters: HostFilters = {};
+    
+    // Apply auto-filters from URL
+    if (config.autoFilters.status) {
+      urlFilters.status = config.autoFilters.status;
+    }
+    if (config.autoFilters.pipelineStage) {
+      urlFilters.pipelineStage = config.autoFilters.pipelineStage;
+    }
+    // Handle SSH filter (convert string to boolean-like filter)
+    if (config.autoFilters.ssh === 'false') {
+      // We need to extend HostFilters to support SSH filtering
+      // For now, we'll handle this in the filtering logic
+    }
+    
+    setFilters(urlFilters);
+  }, [config.autoFilters]);
+
   useEffect(() => {
     setOsOptions(Array.from(new Set(allHosts.map((h) => h.os))).sort());
     setStatusOptions(Array.from(new Set(allHosts.map((h) => h.status))).sort());
@@ -60,6 +83,26 @@ export default function HostsPage() {
     if (filters.status) list = list.filter((h) => h.status === filters.status);
     if (filters.vmCount !== undefined)
       list = list.filter((h) => (h.vms?.length ?? 0) === filters.vmCount);
+    
+    // Handle special URL filters
+    if (config.autoFilters.ssh === 'false') {
+      list = list.filter((h) => h.status === 'up' && !h.ssh);
+    }
+    
+    // Handle high-resource highlighting
+    if (config.highlightedId === 'high-resource') {
+      list = list.filter((h) => h.status === 'up' && (h.cpu > 90 || h.ram > 90 || h.disk > 90));
+    }
+    
+    // Handle search term filtering
+    if (config.searchTerm) {
+      const searchLower = config.searchTerm.toLowerCase();
+      list = list.filter((h) => 
+        h.name.toLowerCase().includes(searchLower) ||
+        h.ip.toLowerCase().includes(searchLower) ||
+        h.os.toLowerCase().includes(searchLower)
+      );
+    }
 
     list.sort((a, b) => {
       const aVal = a[sortField];
@@ -112,7 +155,7 @@ export default function HostsPage() {
     setTotal(list.length);
     const startIdx = (page - 1) * pageSize;
     setDisplayedHosts(list.slice(startIdx, startIdx + pageSize));
-  }, [allHosts, filters, sortField, sortOrder, page]);
+  }, [allHosts, filters, sortField, sortOrder, page, config]);
 
   const handleRowClick = (host: Host) => {
     setSelectedHost(host);
@@ -152,9 +195,42 @@ export default function HostsPage() {
   return (
     <>
       <section className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-100">
-          Hosts
-        </h2>
+        <div className="mb-4">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+            Hosts
+          </h2>
+          
+          {/* Context Banner for URL-based navigation */}
+          {(config.autoFilters.status || config.autoFilters.pipelineStage || config.searchTerm || config.highlightedId) && (
+            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-blue-800 dark:text-blue-200">
+                  {config.autoFilters.status && (
+                    <span>Showing hosts with status: <strong>{config.autoFilters.status}</strong></span>
+                  )}
+                  {config.autoFilters.pipelineStage && (
+                    <span>Showing hosts in stage: <strong>{config.autoFilters.pipelineStage}</strong></span>
+                  )}
+                  {config.autoFilters.ssh === 'false' && (
+                    <span>Showing hosts <strong>without SSH access</strong></span>
+                  )}
+                  {config.highlightedId === 'high-resource' && (
+                    <span>Showing hosts with <strong>high resource usage</strong> (CPU/RAM/Disk &gt; 90%)</span>
+                  )}
+                  {config.searchTerm && (
+                    <span>Search results for: <strong>"{config.searchTerm}"</strong></span>
+                  )}
+                </div>
+                <button
+                  onClick={() => window.location.href = '/hosts'}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
+                >
+                  Clear filters
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
           <HostFiltersComponent
@@ -212,6 +288,7 @@ export default function HostsPage() {
                 }
               }}
               onRowClick={handleRowClick}
+              getRowClassName={getRowClassName}
             />
 
             <div className="mt-4 flex justify-between items-center">

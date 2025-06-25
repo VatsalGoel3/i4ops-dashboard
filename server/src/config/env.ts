@@ -9,7 +9,9 @@ const envSchema = z.object({
   TS_OAUTH_CLIENT_ID: z.string().min(1),
   TS_OAUTH_CLIENT_SECRET: z.string().min(1),
   TAILNET: z.string().min(1),
-  DATABASE_URL: z.string().url()
+  DATABASE_URL: z.string().url(),
+  SECURITY_LOG_DIR: z.string().default('/mnt/vm-security'),
+  SECURITY_EVENT_RETENTION_DAYS: z.string().transform(Number).default('7')
 });
 
 function validateEnv() {

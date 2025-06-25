@@ -7,25 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum HostStatus {
-  up
-  down
-}
-
-enum VMStatus {
-  running
-  stopped
-  offline
-}
-
-enum PipelineStage {
-  active
-  installing
-  broken
-  reserved
-  unassigned
-}
-
 model PollHistory {
   id   Int      @id @default(autoincrement())
   time DateTime @default(now())
@@ -34,40 +15,38 @@ model PollHistory {
 }
 
 model Host {
-  id            Int            @id @default(autoincrement())
-  name          String         @unique
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
   ip            String
   os            String
   uptime        Int
-  status        HostStatus     @default(up)
   ssh           Boolean
   cpu           Float
   ram           Float
   disk          Float
-
-  pipelineStage PipelineStage  @default(unassigned)
   assignedTo    String?
   notes         String?
-  updatedAt     DateTime       @default(now()) @updatedAt
-
+  updatedAt     DateTime      @default(now()) @updatedAt
+  status        HostStatus    @default(up)
+  pipelineStage PipelineStage @default(Unassigned)
   vms           VM[]
 }
 
 model VM {
-  id         Int      @id @default(autoincrement())
-  name       String
-  machineId  String   @unique  // remove `?`
-  os         String
-  ip         String
-  cpu        Float
-  ram        Float
-  disk       Float
-  uptime     Int
-  status     VMStatus @default(offline)
-  updatedAt  DateTime @default(now()) @updatedAt
-
-  hostId     Int
-  host       Host     @relation(fields: [hostId], references: [id])
+  id        Int      @id @default(autoincrement())
+  name      String
+  cpu       Float
+  ram       Float
+  disk      Float
+  os        String
+  uptime    Int
+  hostId    Int
+  updatedAt DateTime @default(now()) @updatedAt
+  status    VMStatus @default(offline)
+  machineId String   @unique
+  ip        String
+  host      Host     @relation(fields: [hostId], references: [id])
+  securityEvents SecurityEvent[]
 }
 
 model AuditLog {
@@ -80,4 +59,57 @@ model AuditLog {
   newValue String?
   user     String
   time     DateTime @default(now())
+}
+
+model SecurityEvent {
+  id        Int              @id @default(autoincrement())
+  vmId      Int
+  timestamp DateTime
+  source    String           // auth.log, kern.log, syslog
+  message   String
+  severity  SecuritySeverity
+  rule      SecurityRule
+  ackAt     DateTime?
+  createdAt DateTime         @default(now())
+  
+  vm        VM               @relation(fields: [vmId], references: [id], onDelete: Cascade)
+  
+  @@index([vmId])
+  @@index([timestamp(sort: Desc)])
+  @@index([severity])
+  @@index([ackAt])
+}
+
+enum HostStatus {
+  up
+  down
+}
+
+enum VMStatus {
+  running
+  stopped
+  offline
+}
+
+enum PipelineStage {
+  Active
+  Broken
+  Installing
+  Reserved
+  Unassigned
+}
+
+enum SecuritySeverity {
+  critical
+  high
+  medium
+  low
+}
+
+enum SecurityRule {
+  egress
+  brute_force
+  sudo
+  oom_kill
+  other
 }

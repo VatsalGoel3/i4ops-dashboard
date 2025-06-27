@@ -26,6 +26,22 @@ enum PipelineStage {
   unassigned
 }
 
+enum SecurityEventType {
+  egress_attempt
+  file_access
+  authentication_failure
+  suspicious_behavior
+  kernel_alert
+  system_alert
+}
+
+enum SecurityEventSeverity {
+  low
+  medium
+  high
+  critical
+}
+
 model PollHistory {
   id   Int      @id @default(autoincrement())
   time DateTime @default(now())
@@ -80,4 +96,23 @@ model AuditLog {
   newValue String?
   user     String
   time     DateTime @default(now())
+}
+
+model SecurityEvent {
+  id          Int                   @id @default(autoincrement())
+  vmName      String                // VM name (e.g., "u2-vm30000")
+  hostName    String                // Host name (e.g., "u2")
+  logType     String                // "auth.log", "kern.log", "syslog"
+  eventType   SecurityEventType
+  severity    SecurityEventSeverity @default(medium)
+  timestamp   DateTime
+  rawLine     String                // Original log line
+  parsedData  Json?                 // Structured parsed data
+  sourceFile  String                // Full path to source file
+  createdAt   DateTime              @default(now())
+
+  @@index([vmName])
+  @@index([timestamp])
+  @@index([eventType])
+  @@index([severity])
 }

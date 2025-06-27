@@ -23,17 +23,37 @@ export async function getSecurityEvents(req: Request, res: Response) {
 
     const filters: SecurityEventFilters = {};
     
-    if (vmId) filters.vmId = parseInt(vmId as string);
+    // Validate and parse vmId
+    if (vmId) {
+      const parsedVmId = parseInt(vmId as string);
+      if (isNaN(parsedVmId) || parsedVmId <= 0) {
+        return res.status(400).json({ error: 'Invalid vmId parameter' });
+      }
+      filters.vmId = parsedVmId;
+    }
+    
     if (severity) filters.severity = severity as SecuritySeverity;
     if (rule) filters.rule = rule as SecurityRule;
     if (since) filters.since = new Date(since as string);
     if (until) filters.until = new Date(until as string);
     if (acknowledged !== undefined) filters.acknowledged = acknowledged === 'true';
 
+    // Validate and parse pagination parameters
+    const parsedPage = parseInt(page as string);
+    const parsedLimit = parseInt(limit as string);
+    
+    if (isNaN(parsedPage) || parsedPage < 1) {
+      return res.status(400).json({ error: 'Invalid page parameter' });
+    }
+    
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+      return res.status(400).json({ error: 'Invalid limit parameter' });
+    }
+
     const result = await securityEventService.getEvents(
       filters,
-      parseInt(page as string),
-      Math.min(parseInt(limit as string), 100) // Cap at 100
+      parsedPage,
+      Math.min(parsedLimit, 100) // Cap at 100
     );
 
     res.json(result);
@@ -46,6 +66,12 @@ export async function getSecurityEvents(req: Request, res: Response) {
 export async function getSecurityEventById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
+    
+    // Validate that the ID is a valid number
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid event ID' });
+    }
+
     const event = await securityEventService.getEventById(id);
     
     if (!event) {
@@ -62,6 +88,12 @@ export async function getSecurityEventById(req: Request, res: Response) {
 export async function acknowledgeSecurityEvent(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
+    
+    // Validate that the ID is a valid number
+    if (isNaN(id) || id <= 0) {
+      return res.status(400).json({ error: 'Invalid event ID' });
+    }
+
     const user = (req.headers['x-user-email'] as string) || 'unknown';
     
     const event = await securityEventService.acknowledgeEvent(id, user);
@@ -105,8 +137,15 @@ export async function getSecurityEventStats(req: Request, res: Response) {
 export async function getCriticalEvents(req: Request, res: Response) {
   try {
     const { limit = '10' } = req.query;
+    
+    // Validate and parse limit parameter
+    const parsedLimit = parseInt(limit as string);
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+      return res.status(400).json({ error: 'Invalid limit parameter' });
+    }
+    
     const events = await securityEventService.getRecentCriticalEvents(
-      Math.min(parseInt(limit as string), 50)
+      Math.min(parsedLimit, 50)
     );
     
     res.json(events);
@@ -136,6 +175,74 @@ export async function manualProcessLogs(req: Request, res: Response) {
     res.status(500).json({ 
       success: false,
       error: 'Failed to process logs',
+      details: (error as Error).message 
+    });
+  }
+}
+
+export async function cleanupDuplicateEvents(req: Request, res: Response) {
+  try {
+    const result = await securityEventService.cleanupDuplicateEvents();
+    
+    res.json({
+      success: true,
+      message: `Cleaned up ${result.deletedCount} duplicate security events`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    logger.error('Failed to cleanup duplicate events', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to cleanup duplicate events',
+      details: (error as Error).message 
+    });
+  }
+}
+
+export async function testLogLineParsing(req: Request, res: Response) {
+  try {
+    const { logLine, vmName = 'u2-vm30000', source = 'kern.log' } = req.body;
+    
+    if (!logLine) {
+      return res.status(400).json({ error: 'logLine is required' });
+    }
+
+    const parser = new SecurityLogParser(env.SECURITY_LOG_DIR, false);
+    
+    // Test pattern matching
+    const patterns = {
+      egress: /kernel:.*egress\s*\(\d+\)\s*pid\s+(\d+)\s+read\s+(\([^)]+\)|\S+)\s+write\s+(\S*)\s+uid\s+(\d+)\s+gid\s+(\d+)/i,
+      brute_force: /sshd\[\d+\]:\s*Failed\s+password\s+for\s+(\w+)\s+from\s+([\d.]+)/i,
+      sudo: /sudo:\s*(?:(\w+)\s*:\s*.*|pam_unix\(sudo:session\):\s*session\s+(?:opened|closed)\s+for\s+user\s+(\w+))/i,
+      oom_kill: /kernel:.*Out\s+of\s+memory:\s*Kill\s+process\s+(\d+)/i
+    };
+
+    const results: any = {
+      logLine,
+      vmName,
+      source,
+      patterns: {}
+    };
+
+    // Test each pattern
+    for (const [name, pattern] of Object.entries(patterns)) {
+      const match = logLine.match(pattern);
+      results.patterns[name] = {
+        matched: !!match,
+        groups: match ? match.slice(1) : null,
+        fullMatch: match ? match[0] : null
+      };
+    }
+
+    res.json({
+      success: true,
+      results
+    });
+  } catch (error) {
+    logger.error('Failed to test log line parsing', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to test log line parsing',
       details: (error as Error).message 
     });
   }

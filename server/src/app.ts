@@ -9,11 +9,13 @@ import auditLogRoutes from './routes/auditLogs';
 import healthRoutes from './routes/health.routes';
 import uploadRoutes from './routes/upload.routes';
 import securityEventRoutes from './routes/security-events.routes';
-import { startPollingJob } from './jobs/poll-scheduler';
+import { startPollingJob, stopPollingJob } from './jobs/poll-scheduler';
 import { addClient } from './events';
 import { Logger } from './infrastructure/logger';
+import { HealthMonitor } from './infrastructure/health-monitor';
 
 const logger = new Logger('App');
+const healthMonitor = new HealthMonitor();
 const app = express();
 
 app.use(cors({ 
@@ -53,6 +55,43 @@ app.use('/api/security-events', securityEventRoutes);
 setTimeout(() => {
   startPollingJob();
   logger.info('Polling services started');
+  
+  // Log initial health summary
+  setTimeout(() => {
+    healthMonitor.logHealthSummary();
+  }, 5000);
 }, 1000);
+
+// Graceful shutdown handling
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, starting graceful shutdown...');
+  try {
+    await stopPollingJob();
+    logger.info('Graceful shutdown complete');
+    process.exit(0);
+  } catch (error) {
+    logger.error('Error during graceful shutdown', error);
+    process.exit(1);
+  }
+});
+
+process.on('SIGINT', async () => {
+  logger.info('SIGINT received, starting graceful shutdown...');
+  try {
+    await stopPollingJob();
+    logger.info('Graceful shutdown complete');
+    process.exit(0);
+  } catch (error) {
+    logger.error('Error during graceful shutdown', error);
+    process.exit(1);
+  }
+});
+
+// Periodic health logging
+setInterval(() => {
+  healthMonitor.logHealthSummary().catch(error => {
+    logger.error('Failed to log health summary', error);
+  });
+}, 300000); // Every 5 minutes
 
 export default app;

@@ -228,4 +228,58 @@ export class SecurityEventService {
       throw error;
     }
   }
+
+  async cleanupDuplicateEvents(): Promise<{ deletedCount: number }> {
+    try {
+      // Find duplicate events (same VM, log source and message)
+      const duplicates = await this.prisma.securityEvent.groupBy({
+        by: ['vmId', 'source', 'message'],
+        having: {
+          id: {
+            _count: {
+              gt: 1
+            }
+          }
+        },
+        _count: {
+          id: true
+        }
+      });
+
+      let deletedCount = 0;
+
+      // For each group of duplicates, keep the earliest one and delete the rest
+      for (const duplicate of duplicates) {
+        const events = await this.prisma.securityEvent.findMany({
+          where: {
+            vmId: duplicate.vmId,
+            source: duplicate.source,
+            message: duplicate.message
+          },
+          orderBy: {
+            timestamp: 'asc'
+          }
+        });
+
+        // Keep the first (earliest) event, delete the rest
+        if (events.length > 1) {
+          const idsToDelete = events.slice(1).map(e => e.id);
+          
+          const deleteResult = await this.prisma.securityEvent.deleteMany({
+            where: {
+              id: { in: idsToDelete }
+            }
+          });
+
+          deletedCount += deleteResult.count;
+        }
+      }
+
+      this.logger.info(`Cleaned up ${deletedCount} duplicate security events`);
+      return { deletedCount };
+    } catch (error) {
+      this.logger.error('Failed to cleanup duplicate security events', error);
+      throw error;
+    }
+  }
 } 

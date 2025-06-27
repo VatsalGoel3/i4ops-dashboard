@@ -3,8 +3,9 @@ import { VMSyncService } from '../services/vm-sync-service';
 import { HostSyncService } from '../services/host-sync-service';
 import { SecurityEventService } from '../services/security-event.service';
 import { SecurityLogParser } from '../infrastructure/security-log-parser';
+import { SecurityEventStream } from '../infrastructure/security-event-stream';
 import { Logger } from '../infrastructure/logger';
-import { broadcast } from '../events';
+import { broadcast, closeAllConnections } from '../events';
 import { prisma } from '../infrastructure/database';
 import { env } from '../config/env';
 import fs from 'fs';
@@ -13,10 +14,11 @@ const logger = new Logger('PollScheduler');
 const vmSync = new VMSyncService();
 const hostSync = new HostSyncService();
 const securityEventService = new SecurityEventService();
+const securityStream = new SecurityEventStream();
 
 // Determine if we should use SSH for log parsing
-const isLocal = !fs.existsSync(env.SECURITY_LOG_DIR);
-const securityLogParser = new SecurityLogParser(env.SECURITY_LOG_DIR, isLocal);
+const useSSH = !fs.existsSync(env.SECURITY_LOG_DIR);
+const securityLogParser = new SecurityLogParser(env.SECURITY_LOG_DIR, useSSH, securityStream);
 
 let isVMPolling = false;
 let isHostPolling = false;
@@ -118,5 +120,19 @@ export async function stopPollingJob(): Promise<void> {
     logger.info('Security log parser stopped');
   } catch (error) {
     logger.error('Error stopping security log parser', error);
+  }
+
+  try {
+    securityStream.shutdown();
+    logger.info('Security event stream stopped');
+  } catch (error) {
+    logger.error('Error stopping security event stream', error);
+  }
+
+  try {
+    closeAllConnections();
+    logger.info('SSE connections closed');
+  } catch (error) {
+    logger.error('Error closing SSE connections', error);
   }
 }

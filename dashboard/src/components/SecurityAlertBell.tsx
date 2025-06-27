@@ -1,14 +1,48 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, ShieldAlert, AlertTriangle, X } from 'lucide-react';
+import { Bell, ShieldAlert, AlertTriangle, X, Wifi, WifiOff } from 'lucide-react';
 import { useCriticalSecurityEvents, useAcknowledgeSecurityEvent } from '../api/queries';
+import { useSecurityEventStream } from '../api/useSecurityEventStream';
+import { SecuritySeverity } from '../api/types';
+import type { SecurityEvent } from '../api/types';
 
 export default function SecurityAlertBell() {
   const [showPopover, setShowPopover] = useState(false);
+  const [hasNewEvents, setHasNewEvents] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const bellRef = useRef<HTMLButtonElement>(null);
   
-  const { data: criticalEvents = [], isLoading } = useCriticalSecurityEvents();
+  const { data: criticalEvents = [], isLoading, refetch } = useCriticalSecurityEvents();
   const acknowledgeEvent = useAcknowledgeSecurityEvent();
+  
+  // Real-time security event stream
+  const {
+    events: streamEvents,
+    isConnected,
+    hasError,
+    reconnect
+  } = useSecurityEventStream({
+    filters: {
+      severity: [SecuritySeverity.critical, SecuritySeverity.high]
+    },
+    onEvent: (event: SecurityEvent) => {
+      setHasNewEvents(true);
+      // Refresh the critical events list
+      refetch();
+      
+      // Show browser notification for critical events
+      if (event.severity === SecuritySeverity.critical && 'Notification' in window) {
+        if (Notification.permission === 'granted') {
+          new Notification('Critical Security Alert', {
+            body: `${event.rule} detected on ${event.vm?.name || 'Unknown VM'}`,
+            icon: '/favicon.ico',
+            tag: `security-${event.id}`
+          });
+        } else if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        }
+      }
+    }
+  });
   
   const unacknowledgedEvents = criticalEvents.filter(event => !event.ackAt);
   const hasUnacknowledged = unacknowledgedEvents.length > 0;
@@ -64,7 +98,10 @@ export default function SecurityAlertBell() {
     <div className="relative">
       <button
         ref={bellRef}
-        onClick={() => setShowPopover(!showPopover)}
+        onClick={() => {
+          setShowPopover(!showPopover);
+          setHasNewEvents(false);
+        }}
         className={`relative p-2 rounded-lg transition-colors ${
           hasUnacknowledged 
             ? 'text-red-600 hover:bg-red-50' 
@@ -72,11 +109,28 @@ export default function SecurityAlertBell() {
         }`}
         title={hasUnacknowledged ? `${unacknowledgedEvents.length} security alerts` : 'No security alerts'}
       >
-        <Bell className={`w-5 h-5 ${hasUnacknowledged ? 'animate-pulse' : ''}`} />
+        <Bell className={`w-5 h-5 ${(hasUnacknowledged || hasNewEvents) ? 'animate-pulse' : ''}`} />
+        
+        {/* Connection status indicator */}
+        <div className="absolute -bottom-1 -right-1">
+          {hasError ? (
+            <WifiOff className="w-3 h-3 text-red-500" />
+          ) : isConnected ? (
+            <Wifi className="w-3 h-3 text-green-500" />
+          ) : (
+            <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
+          )}
+        </div>
         
         {hasUnacknowledged && (
           <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
             {unacknowledgedEvents.length > 9 ? '9+' : unacknowledgedEvents.length}
+          </span>
+        )}
+        
+        {hasNewEvents && !hasUnacknowledged && (
+          <span className="absolute -top-1 -right-1 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+            •
           </span>
         )}
       </button>
@@ -89,13 +143,40 @@ export default function SecurityAlertBell() {
           <div className="p-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-900">Security Alerts</h3>
-              <button
-                onClick={() => setShowPopover(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Stream status indicator */}
+                <div className="flex items-center gap-1">
+                  {hasError ? (
+                    <button
+                      onClick={reconnect}
+                      className="text-red-500 hover:text-red-700"
+                      title="Reconnect to security stream"
+                    >
+                      <WifiOff className="w-3 h-3" />
+                    </button>
+                  ) : isConnected ? (
+                    <Wifi className="w-3 h-3 text-green-500" />
+                  ) : (
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full animate-pulse" />
+                  )}
+                </div>
+                
+                <button
+                  onClick={() => setShowPopover(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
+            
+            {/* Stream debug info for development */}
+            {(hasError || !isConnected) && (
+              <div className="mt-2 text-xs text-gray-500">
+                Stream: {isConnected ? 'Connected' : hasError ? 'Error' : 'Connecting...'}
+                {streamEvents.length > 0 && ` • ${streamEvents.length} recent events`}
+              </div>
+            )}
           </div>
 
           <div className="max-h-96 overflow-y-auto">

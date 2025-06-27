@@ -5,6 +5,8 @@ import { NodeSSH } from 'node-ssh';
 import { PrismaClient, SecuritySeverity, SecurityRule } from '@prisma/client';
 import { Logger } from './logger';
 import { broadcast } from '../events';
+import { RetryService } from './retry-service';
+import { SecurityEventStream } from './security-event-stream';
 
 export interface SecurityEventData {
   vmId: number;
@@ -15,53 +17,115 @@ export interface SecurityEventData {
   rule: SecurityRule;
 }
 
-interface LogParseResult {
+interface LogPosition {
+  filePath: string;
+  position: number;
+  lastModified: number;
+  inode?: number;
+}
+
+interface ParsedLogEntry {
   timestamp: Date;
   vmName: string;
   source: string;
   originalMessage: string;
-  parsedEvent?: SecurityEventData;
+  severity?: SecuritySeverity;
+  rule?: SecurityRule;
 }
 
 export class SecurityLogParser {
   private logger: Logger;
   private prisma: PrismaClient;
+  private retry: RetryService;
+  private stream: SecurityEventStream;
   private isRunning = false;
   private watcher?: FSWatcher;
   private logBaseDir: string;
-  private eventQueue: SecurityEventData[] = [];
-  private processingQueue = false;
   private ssh?: NodeSSH;
   private useSSH: boolean;
 
-  // Log file patterns
+  // Log position tracking for efficiency
+  private logPositions = new Map<string, LogPosition>();
+  private positionFile: string;
+
+  // Event processing
+  private eventQueue: SecurityEventData[] = [];
+  private processingQueue = false;
+  private readonly BATCH_SIZE = 50;
+  private readonly QUEUE_FLUSH_INTERVAL = 5000; // 5 seconds
+
+  // VM cache for performance
+  private vmCache = new Map<string, number>();
+  private vmCacheExpiry = 0;
+  private readonly VM_CACHE_TTL = 300000; // 5 minutes
+
+  // Enhanced security patterns with better matching
   private static readonly PATTERNS = {
-    // Data exfiltration pattern: kernel: [16077.878881] egress (521) pid 64338 read customers.csv write  uid 1002 gid 1004
-    // Handle cases where write field might be empty
-    egress: /kernel:.*egress\s*\(\d+\)\s*pid\s+(\d+)\s+read\s+(\S+)\s+write\s+(\S*)\s+uid\s+(\d+)\s+gid\s+(\d+)/i,
+    // SSH brute force: More comprehensive patterns
+    brute_force: [
+      /sshd\[\d+\]:\s*Failed\s+password\s+for\s+(?:invalid\s+user\s+)?(\w+)\s+from\s+([\d.]+)/i,
+      /sshd\[\d+\]:\s*Invalid\s+user\s+(\w+)\s+from\s+([\d.]+)/i,
+      /sshd\[\d+\]:\s*Connection\s+closed\s+by\s+([\d.]+)\s+port\s+\d+\s+\[preauth\]/i
+    ],
     
-    // SSH brute force pattern: sshd[1234]: Failed password for user from 192.168.1.100
-    brute_force: /sshd\[\d+\]:\s*Failed\s+password\s+for\s+(\w+)\s+from\s+([\d.]+)/i,
+    // Data exfiltration: Better egress detection
+    egress: [
+      /kernel:.*egress\s*\(\d+\)\s*pid\s+(\d+)\s+read\s+([^\s]+|\([^)]+\))\s+write\s+([^\s]*)\s+uid\s+(\d+)\s+gid\s+(\d+)/i,
+      /kernel:.*EGRESS.*pid[:\s]+(\d+).*file[:\s]+([^\s]+)/i
+    ],
     
-    // Sudo privilege escalation patterns - handle various sudo log formats
-    sudo: /sudo:\s*(?:(\w+)\s*:\s*.*|pam_unix\(sudo:session\):\s*session\s+(?:opened|closed)\s+for\s+user\s+(\w+))/i,
+    // Privilege escalation: Enhanced sudo detection
+    sudo: [
+      /sudo:\s*(\w+)\s*:\s*command\s+not\s+allowed/i,
+      /sudo:\s*(\w+)\s*:\s*TTY=.*PWD=.*USER=([^\s]+)\s+COMMAND=(.+)/i,
+      /sudo:\s*pam_unix\(sudo:auth\):\s*authentication\s+failure.*user=(\w+)/i
+    ],
     
-    // Out of memory killer: kernel: Out of memory: Kill process 1234
-    oom_kill: /kernel:.*Out\s+of\s+memory:\s*Kill\s+process\s+(\d+)/i
+    // Out of memory killer
+    oom_kill: [
+      /kernel:.*Out\s+of\s+memory:\s*Kill\s+process\s+(\d+)\s*\(([^)]+)\)/i,
+      /kernel:.*oom-kill:.*killed\s+process\s+(\d+)/i
+    ],
+
+    // Additional security patterns
+    suspicious_network: [
+      /kernel:.*blocked\s+connection.*from\s+([\d.]+)/i,
+      /iptables:.*DROP.*SRC=([\d.]+)/i
+    ],
+
+    malware: [
+      /clamav:.*FOUND.*([^\s]+)/i,
+      /rkhunter:.*WARNING.*([^\s]+)/i
+    ]
   };
 
-  // VM name cache for performance
-  private vmCache = new Map<string, number>();
+  // Severity mapping
+  private static readonly SEVERITY_MAP: Record<SecurityRule, SecuritySeverity> = {
+    [SecurityRule.egress]: SecuritySeverity.critical,
+    [SecurityRule.brute_force]: SecuritySeverity.high,
+    [SecurityRule.sudo]: SecuritySeverity.medium,
+    [SecurityRule.oom_kill]: SecuritySeverity.medium,
+    [SecurityRule.other]: SecuritySeverity.low
+  };
 
-  constructor(logBaseDir: string = '/mnt/vm-security', useSSH: boolean = false) {
+  constructor(logBaseDir: string = '/mnt/vm-security', useSSH: boolean = false, stream?: SecurityEventStream) {
     this.logger = new Logger('SecurityLogParser');
     this.prisma = new PrismaClient();
+    this.retry = new RetryService();
+    this.stream = stream || new SecurityEventStream();
     this.logBaseDir = logBaseDir;
     this.useSSH = useSSH;
+    this.positionFile = path.join(process.cwd(), '.log-positions.json');
     
     if (useSSH) {
       this.ssh = new NodeSSH();
     }
+
+    // Load log positions on startup
+    this.loadLogPositions();
+    
+    // Flush queue periodically
+    setInterval(() => this.flushEventQueue(), this.QUEUE_FLUSH_INTERVAL);
   }
 
   async start(): Promise<void> {
@@ -71,6 +135,8 @@ export class SecurityLogParser {
     }
 
     try {
+      this.logger.info('Starting security log parser...');
+
       // Connect via SSH if using remote access
       if (this.useSSH && this.ssh) {
         await this.connectSSH();
@@ -79,46 +145,26 @@ export class SecurityLogParser {
       // Verify log directory exists
       const dirExists = await this.checkLogDirExists();
       if (!dirExists) {
-        this.logger.warn(`Security log directory does not exist: ${this.logBaseDir}`);
-        // Don't throw error - might be development environment
-        return;
+        this.logger.error(`Security log directory does not exist: ${this.logBaseDir}`);
+        throw new Error(`Log directory not found: ${this.logBaseDir}`);
       }
 
       // Load VM cache
-      await this.loadVMCache();
+      await this.refreshVMCache();
 
-      // For SSH mode, we'll use polling instead of file watching
       if (this.useSSH) {
-        this.logger.info('SSH mode: starting periodic log polling');
+        // For SSH mode, use intelligent polling
         this.startSSHPolling();
       } else {
         // Setup file watcher for local mode
-        this.watcher = chokidar.watch(`${this.logBaseDir}/*/*.log`, {
-          ignored: /[\/\\]\./,
-          persistent: true,
-          usePolling: true,
-          interval: 1000, // Check every second
-          binaryInterval: 2000
-        });
-
-        this.watcher.on('change', (filePath: string) => {
-          this.handleFileChange(filePath);
-        });
-
-        this.watcher.on('add', (filePath: string) => {
-          this.handleFileChange(filePath);
-        });
-
-        this.watcher.on('error', (error: unknown) => {
-          this.logger.error('File watcher error', error);
-        });
+        this.setupFileWatcher();
       }
 
       this.isRunning = true;
-      this.logger.info(`Security log parser started, watching: ${this.logBaseDir} (SSH: ${this.useSSH})`);
+      this.logger.info(`Security log parser started successfully (SSH: ${this.useSSH})`);
 
-      // Process any existing logs
-      await this.processExistingLogs();
+      // Process any existing logs that haven't been processed
+      await this.processUnprocessedLogs();
 
     } catch (error) {
       this.logger.error('Failed to start security log parser', error);
@@ -129,6 +175,7 @@ export class SecurityLogParser {
   async stop(): Promise<void> {
     if (!this.isRunning) return;
 
+    this.logger.info('Stopping security log parser...');
     this.isRunning = false;
     
     if (this.watcher) {
@@ -136,10 +183,11 @@ export class SecurityLogParser {
       this.watcher = undefined;
     }
 
-    // Process any remaining events in queue
-    if (this.eventQueue.length > 0) {
-      await this.processEventQueue();
-    }
+    // Process any remaining events
+    await this.flushEventQueue();
+
+    // Save log positions
+    this.saveLogPositions();
 
     // Disconnect SSH if connected
     if (this.ssh) {
@@ -150,7 +198,237 @@ export class SecurityLogParser {
     this.logger.info('Security log parser stopped');
   }
 
-  private async loadVMCache(): Promise<void> {
+  private async connectSSH(): Promise<void> {
+    if (!this.ssh) return;
+    
+    try {
+      await this.ssh.connect({
+        host: process.env.U0_IP || '100.76.195.14',
+        username: process.env.SSH_USER || 'i4ops',
+        password: process.env.SSH_PASSWORD,
+        readyTimeout: 15000,
+      });
+      this.logger.info('SSH connection established for log parsing');
+    } catch (error) {
+      this.logger.error('Failed to connect SSH for log parsing', error);
+      throw error;
+    }
+  }
+
+  private setupFileWatcher(): void {
+    this.watcher = chokidar.watch(`${this.logBaseDir}/*/*.log`, {
+      ignored: /[\/\\]\./,
+      persistent: true,
+      usePolling: false, // Use native file system events
+      ignoreInitial: true, // Don't trigger for existing files
+    });
+
+    this.watcher.on('change', (filePath: string) => {
+      this.handleFileChange(filePath);
+    });
+
+    this.watcher.on('add', (filePath: string) => {
+      this.handleFileChange(filePath);
+    });
+
+    this.watcher.on('error', (error: unknown) => {
+      this.logger.error('File watcher error', error);
+    });
+
+    this.logger.info('File watcher setup complete');
+  }
+
+  private async handleFileChange(filePath: string): Promise<void> {
+    if (!this.isRunning) return;
+
+    try {
+      const stats = fs.statSync(filePath);
+      const position = this.logPositions.get(filePath);
+
+      // Check if file was rotated (inode changed or size decreased)
+      if (position && (stats.ino !== position.inode || stats.size < position.position)) {
+        this.logger.info(`Log rotation detected for ${filePath}`);
+        this.logPositions.set(filePath, {
+          filePath,
+          position: 0,
+          lastModified: stats.mtime.getTime(),
+          inode: stats.ino
+        });
+      }
+
+      await this.processFileFromPosition(filePath);
+
+    } catch (error) {
+      this.logger.error(`Error handling file change: ${filePath}`, error);
+    }
+  }
+
+  private async processFileFromPosition(filePath: string): Promise<void> {
+    const position = this.logPositions.get(filePath) || { 
+      filePath, 
+      position: 0, 
+      lastModified: 0 
+    };
+
+    try {
+      let content: string;
+      
+      if (this.useSSH && this.ssh) {
+        // For SSH, read from position using tail
+        const { stdout } = await this.ssh.execCommand(`tail -c +${position.position + 1} "${filePath}"`);
+        content = stdout;
+      } else {
+        // For local, read from position
+        const fd = fs.openSync(filePath, 'r');
+        const stats = fs.fstatSync(fd);
+        const buffer = Buffer.alloc(stats.size - position.position);
+        fs.readSync(fd, buffer, 0, buffer.length, position.position);
+        fs.closeSync(fd);
+        content = buffer.toString('utf8');
+      }
+
+      if (!content.trim()) return;
+
+      // Parse VM name and source from file path
+      const pathParts = filePath.split('/');
+      const vmName = pathParts[pathParts.length - 2];
+      const source = pathParts[pathParts.length - 1];
+
+      // Process new lines
+      const lines = content.split('\n').filter(line => line.trim());
+      let processedLines = 0;
+
+      for (const line of lines) {
+        const event = await this.parseLogLine(line, vmName, source);
+        if (event) {
+          this.eventQueue.push(event);
+          processedLines++;
+        }
+      }
+
+      // Update position
+      const newPosition = position.position + Buffer.byteLength(content, 'utf8');
+      const stats = fs.statSync(filePath);
+      this.logPositions.set(filePath, {
+        filePath,
+        position: newPosition,
+        lastModified: stats.mtime.getTime(),
+        inode: stats.ino
+      });
+
+      if (processedLines > 0) {
+        this.logger.info(`Processed ${processedLines} new lines from ${filePath}`);
+      }
+
+    } catch (error) {
+      this.logger.error(`Failed to process file ${filePath}`, error);
+    }
+  }
+
+  private async parseLogLine(line: string, vmName: string, source: string): Promise<SecurityEventData | null> {
+    if (!line.trim()) return null;
+
+    // Parse timestamp and extract log content
+    let timestamp: Date;
+    let logContent: string;
+
+    // Try custom format first: TIMESTAMP | VM_NAME | LOG_SOURCE | ORIGINAL_LOG_ENTRY
+    const customFormatMatch = line.match(/^(.+?) \| (.+?) \| (.+?) \| (.+)$/);
+    if (customFormatMatch) {
+      const [, timestampStr, logVmName, logSource, originalMessage] = customFormatMatch;
+      timestamp = new Date(timestampStr);
+      vmName = logVmName; // Use VM name from log
+      source = logSource; // Use source from log
+      logContent = originalMessage;
+    } else {
+      // Fallback to syslog format
+      const syslogMatch = line.match(/^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+(.+)$/);
+      if (syslogMatch) {
+        const [, timestampStr, content] = syslogMatch;
+        timestamp = this.parseSyslogTimestamp(timestampStr);
+        logContent = content;
+      } else {
+        // No recognizable timestamp, use current time
+        timestamp = new Date();
+        logContent = line;
+      }
+    }
+
+    // Validate timestamp
+    if (isNaN(timestamp.getTime()) || timestamp > new Date()) {
+      timestamp = new Date();
+    }
+
+    // Get VM ID with caching
+    const vmId = await this.getVMId(vmName);
+    if (!vmId) {
+      this.logger.debug(`Unknown VM: ${vmName}`);
+      return null;
+    }
+
+    // Check against security patterns
+    for (const [ruleKey, patterns] of Object.entries(SecurityLogParser.PATTERNS)) {
+      for (const pattern of patterns) {
+        const match = logContent.match(pattern);
+        if (match) {
+          const rule = ruleKey as SecurityRule;
+          const severity = SecurityLogParser.SEVERITY_MAP[rule] || SecuritySeverity.low;
+          
+          this.logger.info(`Security event detected: ${rule} in ${vmName} - ${match[0].substring(0, 100)}`);
+          
+          return {
+            vmId,
+            timestamp,
+            source,
+            message: line.trim(),
+            severity,
+            rule
+          };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private parseSyslogTimestamp(timestampStr: string): Date {
+    try {
+      const year = new Date().getFullYear();
+      const fullTimestamp = `${timestampStr} ${year}`;
+      const date = new Date(fullTimestamp);
+      
+      if (isNaN(date.getTime())) {
+        // Try manual parsing
+        const [month, day, time] = timestampStr.split(/\s+/);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const monthIndex = monthNames.indexOf(month);
+        const [hours, minutes, seconds] = time.split(':').map(Number);
+        
+        return new Date(year, monthIndex, parseInt(day), hours, minutes, seconds);
+      }
+      
+      return date;
+    } catch (error) {
+      this.logger.warn(`Failed to parse timestamp: ${timestampStr}`);
+      return new Date();
+    }
+  }
+
+  private async getVMId(vmName: string): Promise<number | null> {
+    // Check cache first
+    if (this.vmCache.has(vmName) && Date.now() < this.vmCacheExpiry) {
+      return this.vmCache.get(vmName) || null;
+    }
+
+    // Refresh cache if expired
+    if (Date.now() >= this.vmCacheExpiry) {
+      await this.refreshVMCache();
+    }
+
+    return this.vmCache.get(vmName) || null;
+  }
+
+  private async refreshVMCache(): Promise<void> {
     try {
       const vms = await this.prisma.vM.findMany({
         select: { id: true, machineId: true, name: true }
@@ -176,218 +454,69 @@ export class SecurityLogParser {
         }
       }
 
-      this.logger.info(`Loaded ${vms.length} VMs into cache with ${this.vmCache.size} mappings`);
-      
-      // Log some cache entries for debugging
-      const cacheEntries = Array.from(this.vmCache.entries()).slice(0, 5);
-      this.logger.debug(`VM Cache sample: ${JSON.stringify(cacheEntries)}`);
+      this.vmCacheExpiry = Date.now() + this.VM_CACHE_TTL;
+      this.logger.debug(`VM cache refreshed with ${vms.length} VMs`);
       
     } catch (error) {
-      this.logger.error('Failed to load VM cache', error);
+      this.logger.error('Failed to refresh VM cache', error);
     }
   }
 
-  private async handleFileChange(filePath: string): Promise<void> {
-    if (!this.isRunning) return;
-
-    try {
-      // Extract VM name and log source from file path
-      // Expected: /mnt/vm-security/u2-vm30000/auth.log
-      const parts = filePath.split('/');
-      const vmName = parts[parts.length - 2]; // u2-vm30000
-      const source = parts[parts.length - 1]; // auth.log
-
-      if (!vmName || !source) {
-        this.logger.warn(`Invalid file path format: ${filePath}`);
-        return;
-      }
-
-      // Read only new lines (this is simplified - in production, you'd track file positions)
-      const content = fs.readFileSync(filePath, 'utf8');
-      const lines = content.split('\n').filter(line => line.trim());
-      
-      // Process last 10 lines to catch new events
-      const recentLines = lines.slice(-10);
-      
-      for (const line of recentLines) {
-        const parseResult = await this.parseLogLine(line, vmName, source);
-        if (parseResult?.parsedEvent) {
-          this.eventQueue.push(parseResult.parsedEvent);
-        }
-      }
-
-      // Process queue if not already processing
-      if (!this.processingQueue && this.eventQueue.length > 0) {
-        await this.processEventQueue();
-      }
-
-    } catch (error) {
-      this.logger.error(`Error processing file change: ${filePath}`, error);
-    }
-  }
-
-  private async parseLogLine(line: string, vmName: string, source: string): Promise<LogParseResult | null> {
-    if (!line.trim()) return null;
-
-    // Handle the custom log format: TIMESTAMP | VM_NAME | LOG_SOURCE | ORIGINAL_LOG_ENTRY
-    const logParts = line.split(' | ');
-    
-    if (logParts.length >= 4) {
-      // Parse custom format
-      const timestampStr = logParts[0];
-      const logVmName = logParts[1];
-      const logSource = logParts[2];
-      const originalMessage = logParts.slice(3).join(' | '); // Rejoin in case message contains pipes
-      
-      // Parse timestamp (format: 2025-06-25 20:46:27)
-      const timestamp = new Date(timestampStr);
-      
-      const result: LogParseResult = {
-        timestamp,
-        vmName: logVmName, // Use VM name from log line
-        source: logSource,
-        originalMessage: line
-      };
-
-      // Try to parse security events from the original message part
-      const securityEvent = await this.parseSecurityEvent(originalMessage, logVmName, logSource, timestamp);
-      if (securityEvent) {
-        result.parsedEvent = securityEvent;
-      }
-
-      return result;
-    } else {
-      // Fallback to original syslog parsing for compatibility
-      const timestampMatch = line.match(/^(\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})/);
-      const timestamp = timestampMatch ? new Date(timestampMatch[1]) : new Date();
-      
-      // Set current year if not present
-      if (timestamp.getFullYear() === 1900) {
-        timestamp.setFullYear(new Date().getFullYear());
-      }
-
-      const result: LogParseResult = {
-        timestamp,
-        vmName,
-        source,
-        originalMessage: line
-      };
-
-      // Try to parse security events
-      const securityEvent = await this.parseSecurityEvent(line, vmName, source, timestamp);
-      if (securityEvent) {
-        result.parsedEvent = securityEvent;
-      }
-
-      return result;
-    }
-  }
-
-  private async parseSecurityEvent(
-    line: string, 
-    vmName: string, 
-    source: string, 
-    timestamp: Date
-  ): Promise<SecurityEventData | null> {
-    // Get VM ID - try multiple name formats
-    let vmId = this.vmCache.get(vmName);
-    
-    if (!vmId) {
-      // Try different VM name variations
-      const variations = [
-        vmName,
-        vmName.replace(/^u\d+-/, ''), // Remove host prefix (u2-vm30000 -> vm30000)
-        vmName.match(/vm(\d+)$/)?.[0], // Extract just vm30000 part
-      ].filter(Boolean);
-      
-      for (const variation of variations) {
-        vmId = this.vmCache.get(variation!);
-        if (vmId) break;
-      }
-    }
-    
-    if (!vmId) {
-      // Try to refresh cache and retry
-      await this.loadVMCache();
-      vmId = this.vmCache.get(vmName);
-      
-      if (!vmId) {
-        this.logger.warn(`Unknown VM: ${vmName}, tried variations: ${JSON.stringify([vmName, vmName.replace(/^u\d+-/, ''), vmName.match(/vm(\d+)$/)?.[0]].filter(Boolean))}`);
-        return null;
-      }
-    }
-
-    // Debug: Log what we're trying to parse
-    this.logger.debug(`Parsing line from ${vmName}/${source}: ${line.substring(0, 100)}...`);
-
-    // Check against security patterns
-    for (const [ruleKey, pattern] of Object.entries(SecurityLogParser.PATTERNS)) {
-      const match = line.match(pattern);
-      if (match) {
-        const rule = ruleKey as SecurityRule;
-        const severity = this.getSeverityForRule(rule);
-        
-        this.logger.info(`Security event detected: ${rule} in ${vmName} (${source}) - Match: ${match[0].substring(0, 100)}...`);
-        
-        return {
-          vmId,
-          timestamp,
-          source,
-          message: line.trim(),
-          severity,
-          rule
-        };
-      } else {
-        // Debug: Log failed pattern attempts for egress and sudo rules
-        if (ruleKey === 'egress' && line.includes('egress')) {
-          this.logger.debug(`Egress pattern failed for: ${line}`);
-        }
-        if (ruleKey === 'sudo' && line.includes('sudo')) {
-          this.logger.debug(`Sudo pattern failed for: ${line}`);
-        }
-      }
-    }
-
-    return null;
-  }
-
-  private getSeverityForRule(rule: SecurityRule): SecuritySeverity {
-    switch (rule) {
-      case 'egress':
-        return SecuritySeverity.critical;
-      case 'brute_force':
-        return SecuritySeverity.high;
-      case 'sudo':
-        return SecuritySeverity.medium;
-      case 'oom_kill':
-        return SecuritySeverity.medium;
-      default:
-        return SecuritySeverity.low;
-    }
-  }
-
-  private async processEventQueue(): Promise<void> {
+  private async flushEventQueue(): Promise<void> {
     if (this.processingQueue || this.eventQueue.length === 0) return;
 
     this.processingQueue = true;
 
     try {
-      const events = [...this.eventQueue];
-      this.eventQueue = [];
-
-      // Batch insert events
-      if (events.length > 0) {
-        await this.prisma.securityEvent.createMany({
-          data: events,
-          skipDuplicates: true
-        });
-
-        this.logger.info(`Processed ${events.length} security events`);
-
-        // Broadcast critical/high severity events via SSE
+      const events = this.eventQueue.splice(0, this.BATCH_SIZE);
+        let insertedCount = 0;
+        
+      // Use transaction for batch insert with proper deduplication
+      await this.prisma.$transaction(async (tx) => {
         for (const event of events) {
-          if (event.severity === SecuritySeverity.critical || event.severity === SecuritySeverity.high) {
-            // Get full event data for broadcast
+          try {
+            // Check for exact duplicates within the last 5 minutes
+            const existingEvent = await tx.securityEvent.findFirst({
+              where: {
+                vmId: event.vmId,
+                source: event.source,
+                message: event.message,
+                timestamp: {
+                  gte: new Date(event.timestamp.getTime() - 300000), // 5 minutes
+                  lte: new Date(event.timestamp.getTime() + 300000)
+                }
+              }
+            });
+
+            if (!existingEvent) {
+              await tx.securityEvent.create({ data: event });
+              insertedCount++;
+            }
+          } catch (error) {
+            this.logger.warn(`Failed to insert security event`, error);
+          }
+        }
+      });
+
+      if (insertedCount > 0) {
+        this.logger.info(`Inserted ${insertedCount} new security events`);
+
+        // Broadcast critical/high severity events
+        await this.broadcastCriticalEvents(events.filter(e => 
+          e.severity === SecuritySeverity.critical || e.severity === SecuritySeverity.high
+        ));
+      }
+
+    } catch (error) {
+      this.logger.error('Failed to flush event queue', error);
+    } finally {
+      this.processingQueue = false;
+    }
+  }
+
+  private async broadcastCriticalEvents(events: SecurityEventData[]): Promise<void> {
+        for (const event of events) {
+      try {
             const fullEvent = await this.prisma.securityEvent.findFirst({
               where: {
                 vmId: event.vmId,
@@ -399,47 +528,167 @@ export class SecurityLogParser {
                   select: {
                     name: true,
                     machineId: true,
-                    host: {
-                      select: {
-                        name: true
-                      }
-                    }
+                host: { select: { name: true } }
                   }
                 }
               }
             });
 
             if (fullEvent) {
+          // Use both old and new broadcast systems for compatibility
               broadcast('security-event', fullEvent);
-            }
-          }
+          this.stream.broadcastSecurityEvent(fullEvent);
         }
+      } catch (error) {
+        this.logger.warn('Failed to broadcast security event', error);
       }
-    } catch (error) {
-      this.logger.error('Failed to process security event queue', error);
-    } finally {
-      this.processingQueue = false;
     }
   }
 
-  private async processExistingLogs(): Promise<void> {
+  private loadLogPositions(): void {
     try {
-      const dirExists = await this.checkLogDirExists();
-      if (!dirExists) return;
+      if (fs.existsSync(this.positionFile)) {
+        const data = fs.readFileSync(this.positionFile, 'utf8');
+        const positions = JSON.parse(data);
+        
+        for (const [filePath, position] of Object.entries(positions as Record<string, LogPosition>)) {
+          this.logPositions.set(filePath, position);
+        }
+        
+        this.logger.info(`Loaded ${this.logPositions.size} log positions`);
+      }
+    } catch (error) {
+      this.logger.warn('Failed to load log positions', error);
+    }
+  }
+
+  private saveLogPositions(): void {
+    try {
+      const positions: Record<string, LogPosition> = {};
+      for (const [filePath, position] of this.logPositions.entries()) {
+        positions[filePath] = position;
+      }
+      
+      fs.writeFileSync(this.positionFile, JSON.stringify(positions, null, 2));
+      this.logger.debug('Log positions saved');
+    } catch (error) {
+      this.logger.warn('Failed to save log positions', error);
+    }
+  }
+
+  private async checkLogDirExists(): Promise<boolean> {
+    try {
+      if (this.useSSH && this.ssh) {
+        const { stdout } = await this.ssh.execCommand(`test -d "${this.logBaseDir}" && echo "exists" || echo "not found"`);
+        return stdout.trim() === 'exists';
+      } else {
+        return fs.existsSync(this.logBaseDir);
+      }
+    } catch (error) {
+      this.logger.error('Failed to check log directory', error);
+      return false;
+    }
+  }
+
+  private startSSHPolling(): void {
+    // Intelligent polling - start with short intervals, back off if no changes
+    let pollInterval = 10000; // Start with 10 seconds
+    const maxInterval = 300000; // Max 5 minutes
+    const minInterval = 5000; // Min 5 seconds
+    let consecutiveEmptyPolls = 0;
+
+    const poll = async () => {
+      if (!this.isRunning) return;
+
+      try {
+        const changes = await this.pollForChanges();
+        
+        if (changes > 0) {
+          // Reset to fast polling if we found changes
+          pollInterval = minInterval;
+          consecutiveEmptyPolls = 0;
+        } else {
+          consecutiveEmptyPolls++;
+          // Back off polling frequency if no changes
+          if (consecutiveEmptyPolls >= 3) {
+            pollInterval = Math.min(pollInterval * 1.5, maxInterval);
+          }
+        }
+
+      } catch (error) {
+        this.logger.error('SSH polling error', error);
+        pollInterval = Math.min(pollInterval * 2, maxInterval); // Back off on errors
+      }
+
+      // Schedule next poll
+      setTimeout(poll, pollInterval);
+    };
+
+    // Start polling
+    poll();
+    this.logger.info('SSH polling started with intelligent intervals');
+  }
+
+  private async pollForChanges(): Promise<number> {
+    if (!this.ssh) return 0;
+
+    let totalChanges = 0;
+
+    try {
+      // Get list of log files with their modification times
+      const { stdout } = await this.ssh.execCommand(`find "${this.logBaseDir}" -name "*.log" -exec stat -c "%Y %s %i %n" {} \\;`);
+      
+      const files = stdout.split('\n').filter(line => line.trim());
+      
+      for (const line of files) {
+        const [mtime, size, inode, filePath] = line.trim().split(' ', 4);
+        if (!filePath) continue;
+
+        const lastModified = parseInt(mtime) * 1000;
+        const fileSize = parseInt(size);
+        const fileInode = parseInt(inode);
+
+        const position = this.logPositions.get(filePath);
+
+        // Check if file has changed
+        if (!position || position.lastModified < lastModified || position.inode !== fileInode) {
+          await this.processFileFromPosition(filePath);
+          totalChanges++;
+        }
+      }
+
+    } catch (error) {
+      this.logger.error('Failed to poll for changes', error);
+    }
+
+    return totalChanges;
+  }
+
+  private async processUnprocessedLogs(): Promise<void> {
+    try {
+      this.logger.info('Processing unprocessed logs...');
 
       const vmDirs = await this.getVMDirectories();
+      let totalProcessed = 0;
       
       for (const vmDir of vmDirs) {
         const logFiles = await this.getLogFiles(vmDir);
         
         for (const logFile of logFiles) {
-          // Process only last 50 lines to avoid overwhelming on startup
-          await this.processRecentLines(vmDir, logFile, 50);
+          const filePath = this.useSSH ? 
+            `${this.logBaseDir}/${vmDir}/${logFile}` : 
+            path.join(this.logBaseDir, vmDir, logFile);
+
+          // Process file from last known position
+          await this.processFileFromPosition(filePath);
+          totalProcessed++;
         }
       }
 
+      this.logger.info(`Processed ${totalProcessed} log files during startup`);
+
     } catch (error) {
-      this.logger.error('Failed to process existing logs', error);
+      this.logger.error('Failed to process unprocessed logs', error);
     }
   }
 
@@ -477,87 +726,27 @@ export class SecurityLogParser {
     }
   }
 
-  private async processRecentLines(vmName: string, source: string, lineCount: number): Promise<void> {
-    try {
-      const content = await this.readLogFile(vmName, source);
-      if (!content) return;
-
-      const lines = content.split('\n').filter(line => line.trim());
-      const recentLines = lines.slice(-lineCount);
-
-      for (const line of recentLines) {
-        const parseResult = await this.parseLogLine(line, vmName, source);
-        if (parseResult?.parsedEvent) {
-          this.eventQueue.push(parseResult.parsedEvent);
-        }
-      }
-    } catch (error) {
-      this.logger.error(`Failed to process recent lines from ${vmName}/${source}`, error);
-    }
-  }
-
-  private async readLogFile(vmName: string, source: string): Promise<string | null> {
-    try {
-      if (this.useSSH && this.ssh) {
-        const filePath = `${this.logBaseDir}/${vmName}/${source}`;
-        const { stdout } = await this.ssh.execCommand(`cat "${filePath}"`);
-        return stdout;
-      } else {
-        const filePath = path.join(this.logBaseDir, vmName, source);
-        return fs.readFileSync(filePath, 'utf8');
-      }
-    } catch (error) {
-      this.logger.error(`Failed to read log file ${vmName}/${source}`, error);
-      return null;
-    }
-  }
-
+  // Public API methods
   async manualProcessLogs(): Promise<{ processed: number; events: number }> {
     let totalProcessed = 0;
-    let totalEvents = 0;
+    const eventsBefore = this.eventQueue.length;
     
     try {
-      // Connect via SSH if needed
       if (this.useSSH && this.ssh) {
         await this.connectSSH();
       }
 
-      const dirExists = await this.checkLogDirExists();
-      if (!dirExists) {
-        this.logger.warn(`Log directory does not exist: ${this.logBaseDir}`);
-        return { processed: 0, events: 0 };
-      }
-
-      // Ensure VM cache is loaded
-      await this.loadVMCache();
-
-      const vmDirs = await this.getVMDirectories();
-      this.logger.info(`Found ${vmDirs.length} VM directories`);
+      await this.refreshVMCache();
+      await this.processUnprocessedLogs();
       
-      for (const vmDir of vmDirs) {
-        const logFiles = await this.getLogFiles(vmDir);
-        this.logger.info(`Processing ${logFiles.length} log files for VM: ${vmDir}`);
-        
-        for (const logFile of logFiles) {
-          const beforeCount = this.eventQueue.length;
-          
-          // Process last 50 lines
-          await this.processRecentLines(vmDir, logFile, 50);
-          
-          const addedEvents = this.eventQueue.length - beforeCount;
-          this.logger.info(`Processed ${vmDir}/${logFile}: added ${addedEvents} events`);
-          totalProcessed++;
-        }
-      }
+      // Flush any queued events
+      await this.flushEventQueue();
 
-      // Process any queued events
-      if (this.eventQueue.length > 0) {
-        totalEvents = this.eventQueue.length;
-        await this.processEventQueue();
-      }
+      const eventsAfter = this.eventQueue.length;
+      const eventsProcessed = Math.max(0, eventsBefore - eventsAfter);
 
-      this.logger.info(`Manual processing complete: ${totalProcessed} files, ${totalEvents} events`);
-      return { processed: totalProcessed, events: totalEvents };
+      this.logger.info(`Manual processing complete: ${totalProcessed} files processed, ${eventsProcessed} events generated`);
+      return { processed: totalProcessed, events: eventsProcessed };
       
     } catch (error) {
       this.logger.error('Failed to manually process logs', error);
@@ -565,49 +754,16 @@ export class SecurityLogParser {
     }
   }
 
-  private async connectSSH(): Promise<void> {
-    if (!this.ssh) return;
-    
-    try {
-      await this.ssh.connect({
-        host: process.env.U0_IP || '100.76.195.14',
-        username: process.env.SSH_USER || 'i4ops',
-        password: process.env.SSH_PASSWORD,
-        readyTimeout: 10000,
-      });
-      this.logger.info('SSH connection established for log parsing');
-    } catch (error) {
-      this.logger.error('Failed to connect SSH for log parsing', error);
-      throw error;
-    }
-  }
-
-  private async checkLogDirExists(): Promise<boolean> {
-    try {
-      if (this.useSSH && this.ssh) {
-        const { stdout } = await this.ssh.execCommand(`ls -d "${this.logBaseDir}" 2>/dev/null || echo "not found"`);
-        return stdout.trim() !== 'not found';
-      } else {
-        return fs.existsSync(this.logBaseDir);
-      }
-    } catch (error) {
-      this.logger.error('Failed to check log directory', error);
-      return false;
-    }
-  }
-
-  private startSSHPolling(): void {
-    // Poll every 30 seconds for new log entries
-    setInterval(async () => {
-      if (this.isRunning) {
-        await this.processExistingLogs();
-      }
-    }, 30000);
-    
-    // Initial processing
-    setTimeout(() => {
-      this.processExistingLogs();
-    }, 2000);
+  getStats(): Record<string, any> {
+    return {
+      isRunning: this.isRunning,
+      useSSH: this.useSSH,
+      queueSize: this.eventQueue.length,
+      processingQueue: this.processingQueue,
+      logPositions: this.logPositions.size,
+      vmCacheSize: this.vmCache.size,
+      vmCacheExpiry: new Date(this.vmCacheExpiry).toISOString()
+    };
   }
 } 
 

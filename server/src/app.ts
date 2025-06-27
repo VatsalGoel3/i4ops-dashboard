@@ -8,7 +8,6 @@ import pollHistoryRouter from './routes/api/poll-history';
 import auditLogRoutes from './routes/auditLogs';
 import healthRoutes from './routes/health.routes';
 import uploadRoutes from './routes/upload.routes';
-import securityEventRoutes from './routes/security-events.routes';
 import { startPollingJob, stopPollingJob } from './jobs/poll-scheduler';
 import { addClient } from './events';
 import { Logger } from './infrastructure/logger';
@@ -49,7 +48,6 @@ app.use('/api', pollHistoryRouter);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api', healthRoutes);
 app.use('/api/upload', uploadRoutes);
-app.use('/api/security-events', securityEventRoutes);
 
 // Start polling only after routes are set up
 setTimeout(() => {

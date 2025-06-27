@@ -37,14 +37,6 @@ export class HealthMonitor {
         const latency = Date.now() - start;
 
         // Check recent activity
-        const recentEvents = await prisma.securityEvent.count({
-          where: {
-            createdAt: {
-              gte: new Date(Date.now() - 300000) // Last 5 minutes
-            }
-          }
-        });
-
         const recentVMUpdates = await prisma.vM.count({
           where: {
             updatedAt: {
@@ -60,7 +52,6 @@ export class HealthMonitor {
           timestamp: Date.now(),
           metrics: {
             latency,
-            recentSecurityEvents: recentEvents,
             recentVMUpdates
           }
         };

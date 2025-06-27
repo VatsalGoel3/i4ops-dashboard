@@ -1,34 +1,9 @@
 import { Router } from 'express';
 import { HealthMonitor } from '../infrastructure/health-monitor';
 import { getConnectedClients } from '../events';
-import { securityStream } from './security-events.routes';
 
 const router = Router();
 const healthMonitor = new HealthMonitor();
-
-// Add security log parser health check
-healthMonitor.addHealthCheck('security-parser', async () => {
-  // This would be injected from the polling scheduler
-  return {
-    service: 'security-parser',
-    status: 'healthy', // TODO: Get actual status from parser
-    message: 'Security log parser running',
-    timestamp: Date.now()
-  };
-});
-
-// Add security event stream health check
-healthMonitor.addHealthCheck('security-stream', async () => {
-  const stats = securityStream.getStats();
-  
-  return {
-    service: 'security-stream',
-    status: 'healthy',
-    message: `Security event stream active with ${stats.connectedClients} clients`,
-    timestamp: Date.now(),
-    metrics: stats
-  };
-});
 
 router.get('/health', async (req, res) => {
   try {

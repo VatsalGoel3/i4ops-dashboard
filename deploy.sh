@@ -26,10 +26,10 @@ REMOTE_USER=${4:-"i4ops"}
 REMOTE_PATH="/home/$REMOTE_USER/i4ops-dashboard"
 
 # Function to print colored output
-print_info() { echo -e "${BLUE}ℹ️  $1${NC}"; }
-print_success() { echo -e "${GREEN}✅ $1${NC}"; }
-print_warning() { echo -e "${YELLOW}⚠️  $1${NC}"; }
-print_error() { echo -e "${RED}❌ $1${NC}"; }
+print_info() { echo -e "${BLUE}INFO: $1${NC}"; }
+print_success() { echo -e "${GREEN}SUCCESS: $1${NC}"; }
+print_warning() { echo -e "${YELLOW}WARNING: $1${NC}"; }
+print_error() { echo -e "${RED}ERROR: $1${NC}"; }
 
 print_info "Starting i4ops Dashboard deployment"
 print_info "Environment: $ENVIRONMENT"
@@ -181,7 +181,7 @@ if [ "$DEPLOYMENT_TYPE" = "docker" ]; then
             # Clean up
             rm /tmp/i4ops-deployment.tar.gz
             
-            echo "✅ Remote deployment completed"
+            echo "SUCCESS: Remote deployment completed"
 EOF
         
         # Clean up local files
@@ -260,7 +260,7 @@ elif [ "$DEPLOYMENT_TYPE" = "manual" ]; then
             # Clean up
             rm /tmp/frontend-dist.tar.gz /tmp/backend-dist.tar.gz
             
-            echo "✅ Manual deployment completed"
+            echo "SUCCESS: Manual deployment completed"
 EOF
     fi
     
@@ -293,15 +293,15 @@ else
     print_warning "Frontend health check failed - service may still be starting"
 fi
 
-print_success "🎉 Deployment completed successfully!"
+print_success "Deployment completed successfully!"
 echo ""
-print_info "📋 Next steps:"
+print_info "Next steps:"
 echo "   1. Verify all services are running: docker-compose ps (for Docker) or pm2 status (for manual)"
 echo "   2. Check logs: docker-compose logs (for Docker) or pm2 logs (for manual)"
 echo "   3. Access dashboard: http://$TARGET_HOST:8888"
 echo "   4. Test API: curl http://$TARGET_HOST:4000/api/health"
 echo ""
-print_info "🔧 For production, consider:"
+print_info "For production, consider:"
 echo "   1. Setting up SSL certificates"
 echo "   2. Configuring a reverse proxy (nginx)"
 echo "   3. Setting up monitoring and alerting"

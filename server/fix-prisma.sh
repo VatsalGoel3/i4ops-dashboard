@@ -3,7 +3,7 @@
 # Fix Prisma Client Generation Issues
 # Run this script from the server directory if you encounter Prisma errors
 
-echo "🔧 Fixing Prisma client generation issues..."
+echo "Fixing Prisma client generation issues..."
 
 # Clean up old generated client
 echo "Cleaning old Prisma client..."
@@ -27,10 +27,10 @@ npx prisma generate
 # Verify generation
 echo "Verifying Prisma client..."
 if [ -d "node_modules/.prisma/client" ]; then
-    echo "✅ Prisma client generated successfully!"
+    echo "Prisma client generated successfully!"
 else
-    echo "❌ Prisma client generation failed!"
+    echo "Prisma client generation failed!"
     exit 1
 fi
 
-echo "🎉 Prisma issues should be resolved. Try building again." 
+echo "Prisma issues should be resolved. Try building again." 

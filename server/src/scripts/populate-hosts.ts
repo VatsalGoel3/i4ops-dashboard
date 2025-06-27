@@ -59,7 +59,7 @@ async function fetchTailscaleDevices(token: string): Promise<TailscaleDevice[]> 
 }
 
 async function populateHosts() {
-  console.log('🔄 Fetching devices from Tailscale...');
+  console.log('Fetching devices from Tailscale...');
   const token = await getOAuthAccessToken();
   const devices = await fetchTailscaleDevices(token);
 
@@ -116,22 +116,22 @@ async function populateHosts() {
     }
   }
 
-  console.log(`\n✅ Host population complete:`);
-  console.log(`   📦 Created: ${created.length} hosts`);
+  console.log(`\nHost population complete:`);
+  console.log(`   Created: ${created.length} hosts`);
   created.forEach(host => console.log(`      + ${host}`));
   
-  console.log(`   🔄 Updated: ${updated.length} hosts`);
+  console.log(`   Updated: ${updated.length} hosts`);
   updated.forEach(host => console.log(`      → ${host}`));
 
   // Show final host count
   const totalHosts = await prisma.host.count();
-  console.log(`\n📊 Total hosts in database: ${totalHosts}`);
+  console.log(`\nTotal hosts in database: ${totalHosts}`);
 }
 
 if (require.main === module) {
   populateHosts()
     .catch(err => {
-      console.error('❌ Error populating hosts:', err);
+      console.error('Error populating hosts:', err);
       process.exit(1);
     })
     .finally(() => prisma.$disconnect());

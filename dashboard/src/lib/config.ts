@@ -68,7 +68,7 @@ if (!config.supabase.url || !config.supabase.anonKey) {
 
 // Debug logging in development
 if (config.app.isDevelopment) {
-  console.log('🔧 App Configuration:', {
+  console.log('App Configuration:', {
     apiBaseUrl: config.api.baseUrl,
     environment: import.meta.env.MODE,
     supabaseUrl: config.supabase.url,

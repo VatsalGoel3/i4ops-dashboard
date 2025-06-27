@@ -16,7 +16,7 @@ function validateEnv() {
   const result = envSchema.safeParse(process.env);
   
   if (!result.success) {
-    console.error('❌ Environment validation failed:');
+    console.error('Environment validation failed:');
     console.error(result.error.errors);
     process.exit(1);
   }

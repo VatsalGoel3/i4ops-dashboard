@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/vt003/Desktop/i4ops-dashboard/agents/agent.py", line 3, in <module>
-    from flask_cors import CORS
-ModuleNotFoundError: No module named 'flask_cors'

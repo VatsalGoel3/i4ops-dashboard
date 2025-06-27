@@ -6,7 +6,7 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 async function createDefaultVMs() {
-  console.log('🔄 Creating default VM entries for all hosts...');
+  console.log('Creating default VM entries for all hosts...');
   
   // Get all hosts
   const hosts = await prisma.host.findMany();
@@ -48,22 +48,22 @@ async function createDefaultVMs() {
     created.push(`${host.name}-${defaultVMName}`);
   }
 
-  console.log(`\n✅ Default VM creation complete:`);
-  console.log(`   📦 Created: ${created.length} VMs`);
+  console.log(`\nDefault VM creation complete:`);
+  console.log(`   Created: ${created.length} VMs`);
   created.forEach(vm => console.log(`      + ${vm}`));
   
-  console.log(`   ⏭️  Skipped: ${skipped.length} VMs (already exist)`);
+  console.log(`   Skipped: ${skipped.length} VMs (already exist)`);
   skipped.forEach(vm => console.log(`      - ${vm}`));
 
   // Show final VM count
   const totalVMs = await prisma.vM.count();
-  console.log(`\n📊 Total VMs in database: ${totalVMs}`);
+  console.log(`\nTotal VMs in database: ${totalVMs}`);
 }
 
 if (require.main === module) {
   createDefaultVMs()
     .catch(err => {
-      console.error('❌ Error creating default VMs:', err);
+      console.error('Error creating default VMs:', err);
       process.exit(1);
     })
     .finally(() => prisma.$disconnect());

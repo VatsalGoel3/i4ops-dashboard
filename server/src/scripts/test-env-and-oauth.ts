@@ -13,7 +13,7 @@ async function main() {
   console.log('TAILNET:', TAILNET);
 
   if (!CLIENT_ID || !CLIENT_SECRET || !TAILNET) {
-    console.error('❌ One or more required env vars are missing.');
+    console.error('One or more required env vars are missing.');
     process.exit(1);
   }
 
@@ -33,7 +33,7 @@ async function main() {
 
     if (!tokenRes.ok) {
       const err = await tokenRes.text();
-      throw new Error(`❌ Token fetch failed: ${tokenRes.status} - ${err}`);
+      throw new Error(`Token fetch failed: ${tokenRes.status} - ${err}`);
     }
 
     const { access_token } = await tokenRes.json() as { access_token: string };
@@ -47,14 +47,14 @@ async function main() {
 
     if (!devRes.ok) {
       const err = await devRes.text();
-      throw new Error(`❌ Device fetch failed: ${devRes.status} - ${err}`);
+      throw new Error(`Device fetch failed: ${devRes.status} - ${err}`);
     }
 
     const { devices } = await devRes.json() as { devices: any[] };
           console.log(`Got ${devices.length} devices from Tailscale.`);
 
   } catch (err: any) {
-    console.error('❌ Test failed:', err.message);
+    console.error('Test failed:', err.message);
     process.exit(1);
   }
 }

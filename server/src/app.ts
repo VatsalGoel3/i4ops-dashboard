@@ -5,10 +5,12 @@ import { env } from './config/env';
 import hostRoutes from './routes/host.routes';
 import vmRoutes from './routes/vm.routes';
 import pollHistoryRouter from './routes/api/poll-history';
+import securityEventsRouter from './routes/api/security-events';
 import auditLogRoutes from './routes/auditLogs';
 import healthRoutes from './routes/health.routes';
 import uploadRoutes from './routes/upload.routes';
 import { startPollingJob, stopPollingJob } from './jobs/poll-scheduler';
+import { startSecurityJob, stopSecurityJob } from './jobs/security-scheduler';
 import { addClient } from './events';
 import { Logger } from './infrastructure/logger';
 import { HealthMonitor } from './infrastructure/health-monitor';
@@ -45,14 +47,16 @@ app.get('/api/events', (req, res) => {
 app.use('/api/hosts', hostRoutes);
 app.use('/api/vms', vmRoutes);
 app.use('/api', pollHistoryRouter);
+app.use('/api/security-events', securityEventsRouter);
 app.use('/api/audit-logs', auditLogRoutes);
 app.use('/api', healthRoutes);
 app.use('/api/upload', uploadRoutes);
 
-// Start polling only after routes are set up
+// Start polling and security jobs after routes are set up
 setTimeout(() => {
   startPollingJob();
-  logger.info('Polling services started');
+  startSecurityJob();
+  logger.info('Polling and security services started');
   
   // Log initial health summary
   setTimeout(() => {
@@ -65,6 +69,7 @@ process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, starting graceful shutdown...');
   try {
     await stopPollingJob();
+    stopSecurityJob();
     logger.info('Graceful shutdown complete');
     process.exit(0);
   } catch (error) {
@@ -77,6 +82,7 @@ process.on('SIGINT', async () => {
   logger.info('SIGINT received, starting graceful shutdown...');
   try {
     await stopPollingJob();
+    stopSecurityJob();
     logger.info('Graceful shutdown complete');
     process.exit(0);
   } catch (error) {

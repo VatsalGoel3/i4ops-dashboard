@@ -1,27 +1,54 @@
-import { z } from 'zod';
+import dotenv from 'dotenv';
 
-const envSchema = z.object({
-  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().transform(Number).default('4000'),
-  SSH_USER: z.string().min(1),
-  SSH_PASSWORD: z.string().min(1),
-  U0_IP: z.string().ip().default('100.76.195.14'),
-  TS_OAUTH_CLIENT_ID: z.string().min(1),
-  TS_OAUTH_CLIENT_SECRET: z.string().min(1),
-  TAILNET: z.string().min(1),
-  DATABASE_URL: z.string().url()
-});
+dotenv.config();
+
+export const env = {
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  PORT: parseInt(process.env.PORT || '4000'),
+  DATABASE_URL: process.env.DATABASE_URL!,
+  
+  // SSH Configuration
+  SSH_USERNAME: process.env.SSH_USERNAME || 'i4ops',
+  SSH_PASSWORD: process.env.SSH_PASSWORD!,
+  SSH_TIMEOUT: parseInt(process.env.SSH_TIMEOUT || '30') * 1000, // Convert to milliseconds
+  
+  // u0 Log Collection
+  U0_HOST: process.env.U0_HOST || 'u0',
+  U0_IP: process.env.U0_IP || '100.76.195.14',
+  LOG_SYNC_INTERVAL: parseInt(process.env.LOG_SYNC_INTERVAL || '60') * 1000, // Convert to milliseconds
+  LOG_BASE_PATH: process.env.LOG_BASE_PATH || '/mnt/vm-security',
+  
+  // Tailscale OAuth
+  TS_OAUTH_CLIENT_ID: process.env.TS_OAUTH_CLIENT_ID,
+  TS_OAUTH_CLIENT_SECRET: process.env.TS_OAUTH_CLIENT_SECRET,
+  TAILNET: process.env.TAILNET,
+  
+  // Supabase
+  SUPABASE_URL: process.env.SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+};
 
 function validateEnv() {
-  const result = envSchema.safeParse(process.env);
+  const required = ['DATABASE_URL', 'SSH_PASSWORD'];
   
-  if (!result.success) {
-    console.error('❌ Environment validation failed:');
-    console.error(result.error.errors);
-    process.exit(1);
+  for (const key of required) {
+    if (!process.env[key]) {
+      throw new Error(`Missing required environment variable: ${key}`);
+    }
   }
   
-  return result.data;
+  // Validate numeric values
+  if (isNaN(env.PORT)) {
+    throw new Error('PORT must be a valid number');
+  }
+  
+  if (isNaN(env.SSH_TIMEOUT)) {
+    throw new Error('SSH_TIMEOUT must be a valid number');
+  }
+  
+  if (isNaN(env.LOG_SYNC_INTERVAL)) {
+    throw new Error('LOG_SYNC_INTERVAL must be a valid number');
+  }
 }
 
-export const env = validateEnv(); 
+validateEnv(); 

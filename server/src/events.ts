@@ -1,5 +1,6 @@
 import { Response, Request } from 'express';
 import { Logger } from './infrastructure/logger';
+import { PrismaClient } from '@prisma/client';
 
 type SSEClient = {
   id: number;
@@ -9,6 +10,7 @@ type SSEClient = {
 
 const clients: SSEClient[] = [];
 const logger = new Logger('Events');
+const prisma = new PrismaClient();
 
 export function addClient(req: Request, res: Response): number {
   res.writeHead(200, {
@@ -87,4 +89,92 @@ export function closeAllConnections(): void {
     }
   }
   clients.length = 0;
+}
+
+/**
+ * Broadcast security event updates to all connected clients
+ */
+export async function broadcastSecurityUpdate(): Promise<void> {
+  try {
+    // Get recent critical security events for immediate notification
+    const criticalEvents = await prisma.securityEvent.findMany({
+      where: {
+        severity: { in: ['critical', 'high'] },
+        ackAt: null, // Only unacknowledged events
+        createdAt: {
+          gte: new Date(Date.now() - 5 * 60 * 1000) // Last 5 minutes
+        }
+      },
+      include: {
+        vm: {
+          include: {
+            host: { select: { name: true } }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    });
+
+    // Get overall security stats
+    const [stats, totalEvents] = await Promise.all([
+      prisma.securityEvent.groupBy({
+        by: ['severity'],
+        where: {
+          createdAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
+          }
+        },
+        _count: true
+      }),
+      prisma.securityEvent.count({
+        where: {
+          ackAt: null // Unacknowledged
+        }
+      })
+    ]);
+
+    const securityStats = {
+      total: totalEvents,
+      critical: stats.find(s => s.severity === 'critical')?._count || 0,
+      high: stats.find(s => s.severity === 'high')?._count || 0,
+      medium: stats.find(s => s.severity === 'medium')?._count || 0,
+      low: stats.find(s => s.severity === 'low')?._count || 0,
+      unacknowledged: totalEvents
+    };
+
+    // Format critical events for broadcast
+    const formattedCriticalEvents = criticalEvents.map(event => ({
+      id: event.id,
+      vmId: event.vmId,
+      timestamp: event.timestamp.toISOString(),
+      source: event.source,
+      message: event.message,
+      severity: event.severity,
+      rule: event.rule,
+      ackAt: event.ackAt?.toISOString() || null,
+      createdAt: event.createdAt.toISOString(),
+      vm: event.vm ? {
+        name: event.vm.name,
+        machineId: event.vm.machineId,
+        host: { name: event.vm.host?.name }
+      } : null
+    }));
+
+    // Broadcast security events update
+    broadcast('security-events-update', {
+      stats: securityStats,
+      criticalEvents: formattedCriticalEvents,
+      timestamp: new Date().toISOString()
+    });
+
+    // Individual critical event notifications
+    for (const event of formattedCriticalEvents) {
+      broadcast('security-event', event);
+    }
+
+    logger.info(`Broadcasted security update: ${criticalEvents.length} critical events, ${totalEvents} total unacknowledged`);
+  } catch (error) {
+    logger.error('Failed to broadcast security update:', error);
+  }
 }

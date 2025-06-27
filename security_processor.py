@@ -135,28 +135,55 @@ class SecurityProcessor:
             return 1  # Default VM ID for testing
         
         try:
-            # First, ensure host exists
+            # Map VM names to realistic host info
+            vm_host_mapping = {
+                'u2-vm30000': {'host': 'u0-hypervisor', 'ip': '10.1.0.2'},
+                'u8-vm30000': {'host': 'u0-hypervisor', 'ip': '10.1.0.8'},
+                'u3': {'host': 'u0-hypervisor', 'ip': '10.1.0.3'},
+                'u4': {'host': 'u0-hypervisor', 'ip': '10.1.0.4'},
+                'u5': {'host': 'u0-hypervisor', 'ip': '10.1.0.5'},
+                'u6': {'host': 'u0-hypervisor', 'ip': '10.1.0.6'},
+                'u7': {'host': 'u0-hypervisor', 'ip': '10.1.0.7'},
+                'u9': {'host': 'u0-hypervisor', 'ip': '10.1.0.9'},
+                'u10': {'host': 'u0-hypervisor', 'ip': '10.1.0.10'},
+                'u11': {'host': 'u0-hypervisor', 'ip': '10.1.0.11'},
+                'u12': {'host': 'u0-hypervisor', 'ip': '10.1.0.12'},
+            }
+            
+            vm_info = vm_host_mapping.get(vm_name, {'host': 'u0-hypervisor', 'ip': '10.1.0.100'})
+            
+            # Ensure host exists
             host_id = await self.db_pool.fetchval("""
-                INSERT INTO "Host" (name, ip, os, uptime, ssh, cpu, ram, disk, "updatedAt")
-                VALUES ($1, '10.1.0.1', 'Ubuntu', 0, true, 0.0, 0.0, 0.0, NOW())
+                INSERT INTO "Host" (name, ip, os, uptime, ssh, cpu, ram, disk, status, "pipelineStage", "updatedAt")
+                VALUES ($1, '100.76.195.14', 'Ubuntu 22.04', 0, true, 0.0, 0.0, 0.0, 'up', 'Active', NOW())
                 ON CONFLICT (name) DO UPDATE SET "updatedAt" = NOW()
                 RETURNING id
-            """, "default-host")
+            """, vm_info['host'])
             
-            # Then ensure VM exists
+            # Ensure VM exists
             vm_id = await self.db_pool.fetchval("""
-                INSERT INTO "VM" (name, cpu, ram, disk, os, uptime, "hostId", "machineId", ip, "updatedAt")
-                VALUES ($1, 0.0, 0.0, 0.0, 'Ubuntu', 0, $2, $1, '10.1.0.100', NOW())
+                INSERT INTO "VM" (name, cpu, ram, disk, os, uptime, "hostId", "machineId", ip, status, "updatedAt")
+                VALUES ($1, 0.0, 0.0, 0.0, 'Ubuntu 22.04', 0, $2, $1, $3, 'running', NOW())
                 ON CONFLICT ("machineId") DO UPDATE SET "updatedAt" = NOW()
                 RETURNING id
-            """, vm_name, host_id)
+            """, vm_name, host_id, vm_info['ip'])
             
             self.vm_cache[vm_name] = vm_id
-            logger.info(f"VM {vm_name} has ID {vm_id}")
+            logger.info(f"VM {vm_name} mapped to ID {vm_id} on host {vm_info['host']}")
             return vm_id
             
         except Exception as e:
             logger.error(f"Failed to ensure VM exists: {e}")
+            # Try to find existing VM
+            try:
+                vm_id = await self.db_pool.fetchval("""
+                    SELECT id FROM "VM" WHERE "machineId" = $1 LIMIT 1
+                """, vm_name)
+                if vm_id:
+                    self.vm_cache[vm_name] = vm_id
+                    return vm_id
+            except:
+                pass
             return 1
     
     def parse_log_line(self, line: str) -> Optional[SecurityEvent]:
@@ -164,17 +191,30 @@ class SecurityProcessor:
         if not line.strip():
             return None
         
+        # Check for environment variable overrides (for log sync service)
+        vm_name_override = os.getenv('VM_NAME_OVERRIDE')
+        log_source_override = os.getenv('LOG_SOURCE_OVERRIDE')
+        
         # Parse the custom log format: TIMESTAMP | VM_NAME | LOG_SOURCE | ORIGINAL_LOG_ENTRY
-        parts = line.strip().split(' | ', 3)
-        if len(parts) != 4:
-            return None
-        
-        timestamp_str, vm_name, source, original_message = parts
-        
-        try:
-            timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
-        except ValueError:
+        # Or handle raw log lines when overrides are provided
+        if vm_name_override and log_source_override:
+            # Raw log line - format it ourselves
             timestamp = datetime.now()
+            vm_name = vm_name_override
+            source = log_source_override
+            original_message = line.strip()
+        else:
+            # Standard formatted log line
+            parts = line.strip().split(' | ', 3)
+            if len(parts) != 4:
+                return None
+            
+            timestamp_str, vm_name, source, original_message = parts
+            
+            try:
+                timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                timestamp = datetime.now()
         
         # Check against all security patterns
         for rule, patterns in self.patterns.items():

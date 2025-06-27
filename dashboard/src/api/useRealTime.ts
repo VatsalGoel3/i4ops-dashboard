@@ -102,7 +102,24 @@ export function useRealTime() {
       }
     });
 
-    // Handle security events
+    // Handle security events update (batch update)
+    es.addEventListener('security-events-update', (e) => {
+      try {
+        const updateData = JSON.parse((e as any).data);
+        
+        // Invalidate security event queries to trigger refetch
+        queryClient.invalidateQueries({ queryKey: ['security-events'] });
+        queryClient.invalidateQueries({ queryKey: ['security-event-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['critical-security-events'] });
+        
+        recordUpdate(true);
+      } catch (error) {
+        console.error('Failed to parse security-events-update SSE data:', error);
+        recordUpdate(false);
+      }
+    });
+
+    // Handle individual security events
     es.addEventListener('security-event', (e) => {
       try {
         const securityEvent: SecurityEvent = JSON.parse((e as any).data);
@@ -114,19 +131,25 @@ export function useRealTime() {
         
         // Show toast notification for critical/high severity events
         if (securityEvent.severity === 'critical' || securityEvent.severity === 'high') {
-          const vmName = securityEvent.vm?.machineId || 'Unknown VM';
+          const vmName = securityEvent.vm?.machineId || securityEvent.vm?.name || 'Unknown VM';
+          const hostName = securityEvent.vm?.host?.name || 'Unknown Host';
           const severityIcon = securityEvent.severity === 'critical' ? '🚨' : '⚠️';
           
+          // Extract meaningful message from the log
+          const messageParts = securityEvent.message.split(' | ');
+          const logMessage = messageParts.length > 3 ? messageParts[3] : securityEvent.message;
+          const shortMessage = logMessage.substring(0, 100) + (logMessage.length > 100 ? '...' : '');
+          
           toast.error(
-            `${severityIcon} Security Alert: ${securityEvent.message}`,
+            `${severityIcon} ${securityEvent.severity.toUpperCase()} Security Alert`,
             {
-              description: `VM: ${vmName} | Source: ${securityEvent.source}`,
-              duration: 10000, // 10 seconds for security alerts
+              description: `${shortMessage}\nVM: ${vmName} (${hostName})`,
+              duration: 15000, // 15 seconds for security alerts
               action: {
-                label: 'View Details',
+                label: 'View Security',
                 onClick: () => {
                   // Navigate to security page
-                  window.location.hash = '/security';
+                  window.location.href = '/security';
                 }
               }
             }

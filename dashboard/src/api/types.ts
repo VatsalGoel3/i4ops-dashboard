@@ -38,6 +38,8 @@ export interface Host {
   disk: number;
   pipelineStage: PipelineStage;
   assignedTo?: string | null;
+  assignedAt?: string | null;    // ISO string when assignment was made
+  assignedUntil?: string | null; // ISO string when assignment expires
   notes?: string | null;
   updatedAt: string;
   vms: VM[];

@@ -47,6 +47,8 @@ model Host {
 
   pipelineStage PipelineStage  @default(unassigned)
   assignedTo    String?
+  assignedAt    DateTime?      // When the assignment was made
+  assignedUntil DateTime?      // When the assignment expires
   notes         String?
   updatedAt     DateTime       @default(now()) @updatedAt
 

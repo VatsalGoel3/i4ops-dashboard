@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Server,
   Monitor,
+  Shield,
   Settings,
   Terminal
 } from 'lucide-react';
@@ -13,6 +14,7 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
     { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { to: '/hosts', label: 'Hosts', icon: Server },
     { to: '/vms', label: 'VMs', icon: Monitor },
+    { to: '/security-events', label: 'Security Events', icon: Shield },
     { to: '/settings', label: 'Settings', icon: Settings }
   ];
 

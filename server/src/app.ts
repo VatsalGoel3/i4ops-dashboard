@@ -6,6 +6,7 @@ import hostRoutes from './routes/host.routes';
 import vmRoutes from './routes/vm.routes';
 import pollHistoryRouter from './routes/api/poll-history';
 import auditLogRoutes from './routes/auditLogs';
+import securityEventsRoutes from './routes/security-events.routes';
 import healthRoutes from './routes/health.routes';
 import uploadRoutes from './routes/upload.routes';
 import { startPollingJob } from './jobs/poll-scheduler';
@@ -44,6 +45,7 @@ app.use('/api/hosts', hostRoutes);
 app.use('/api/vms', vmRoutes);
 app.use('/api', pollHistoryRouter);
 app.use('/api/audit-logs', auditLogRoutes);
+app.use('/api/security-events', securityEventsRoutes);
 app.use('/api', healthRoutes);
 app.use('/api/upload', uploadRoutes);
 

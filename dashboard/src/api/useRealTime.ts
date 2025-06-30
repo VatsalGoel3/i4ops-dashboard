@@ -67,6 +67,34 @@ export function useRealTime() {
       }
     });
 
+    // Handle security events update
+    es.addEventListener('security-events-update', (e) => {
+      try {
+        const startTime = Date.now();
+        const updateData: { count: number } = JSON.parse((e as any).data);
+        
+        // Invalidate security events queries to trigger refetch
+        queryClient.invalidateQueries({ 
+          queryKey: ['security-events']
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ['security-events-stats']
+        });
+        queryClient.invalidateQueries({ 
+          queryKey: ['security-events-recent']
+        });
+
+        // Record successful update with latency
+        const latency = Date.now() - startTime;
+        recordUpdate(true, latency);
+        
+        console.log(`Security events updated: ${updateData.count} new events`);
+      } catch (error) {
+        console.error('Failed to parse security-events-update SSE data:', error);
+        recordUpdate(false);
+      }
+    });
+
     // Handle single host update
     es.addEventListener('host-update', (e) => {
       try {

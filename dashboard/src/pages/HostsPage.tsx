@@ -28,7 +28,14 @@ export default function HostsPage() {
     error 
   } = useHosts();
 
-  const { config, getRowClassName, isRowHighlighted } = useHighlighting();
+  const { 
+    autoFilters, 
+    getRowClassName, 
+    isRowHighlighted,
+    isExpiredAssignmentHighlighted,
+    getExpiredAssignmentRowClassName,
+    searchTerm 
+  } = useHighlighting();
 
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
   const [osOptions, setOsOptions] = useState<string[]>([]);
@@ -53,20 +60,20 @@ export default function HostsPage() {
     const urlFilters: HostFilters = {};
     
     // Apply auto-filters from URL
-    if (config.autoFilters.status) {
-      urlFilters.status = config.autoFilters.status;
+    if (autoFilters.status) {
+      urlFilters.status = autoFilters.status;
     }
-    if (config.autoFilters.pipelineStage) {
-      urlFilters.pipelineStage = config.autoFilters.pipelineStage;
+    if (autoFilters.pipelineStage) {
+      urlFilters.pipelineStage = autoFilters.pipelineStage;
     }
     // Handle SSH filter (convert string to boolean-like filter)
-    if (config.autoFilters.ssh === 'false') {
+    if (autoFilters.ssh === 'false') {
       // We need to extend HostFilters to support SSH filtering
       // For now, we'll handle this in the filtering logic
     }
     
     setFilters(urlFilters);
-  }, [config.autoFilters]);
+  }, [autoFilters]);
 
   useEffect(() => {
     setOsOptions(Array.from(new Set(allHosts.map((h) => h.os))).sort());
@@ -85,22 +92,26 @@ export default function HostsPage() {
       list = list.filter((h) => (h.vms?.length ?? 0) === filters.vmCount);
     
     // Handle special URL filters
-    if (config.autoFilters.ssh === 'false') {
+    if (autoFilters.ssh === 'false') {
       list = list.filter((h) => h.status === 'up' && !h.ssh);
     }
     
     // Handle high-resource highlighting
-    if (config.highlightedId === 'high-resource') {
-      list = list.filter((h) => h.status === 'up' && (h.cpu > 90 || h.ram > 90 || h.disk > 90));
+    if (isExpiredAssignmentHighlighted()) {
+      list = list.filter((h) => {
+        if (!h.assignedUntil || !h.assignedTo) return false;
+        return new Date(h.assignedUntil) < new Date();
+      });
     }
     
     // Handle search term filtering
-    if (config.searchTerm) {
-      const searchLower = config.searchTerm.toLowerCase();
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
       list = list.filter((h) => 
         h.name.toLowerCase().includes(searchLower) ||
         h.ip.toLowerCase().includes(searchLower) ||
-        h.os.toLowerCase().includes(searchLower)
+        h.os.toLowerCase().includes(searchLower) ||
+        (h.assignedTo && h.assignedTo.toLowerCase().includes(searchLower))
       );
     }
 
@@ -155,7 +166,7 @@ export default function HostsPage() {
     setTotal(list.length);
     const startIdx = (page - 1) * pageSize;
     setDisplayedHosts(list.slice(startIdx, startIdx + pageSize));
-  }, [allHosts, filters, sortField, sortOrder, page, config]);
+  }, [allHosts, filters, sortField, sortOrder, page, autoFilters, isExpiredAssignmentHighlighted, searchTerm]);
 
   const handleRowClick = (host: Host) => {
     setSelectedHost(host);
@@ -168,6 +179,21 @@ export default function HostsPage() {
 
   const handleRefresh = () => {
     refetch();
+  };
+
+  // Enhanced row className function that combines regular highlighting with expired assignment highlighting
+  const getEnhancedRowClassName = (host: Host, baseClassName: string = '') => {
+    let className = baseClassName;
+    
+    // Apply expired assignment highlighting if active
+    if (isExpiredAssignmentHighlighted()) {
+      className = getExpiredAssignmentRowClassName(host, className);
+    }
+    
+    // Apply regular row highlighting
+    className = getRowClassName(host.id, className);
+    
+    return className;
   };
 
   const start = (page - 1) * pageSize + 1;
@@ -199,120 +225,69 @@ export default function HostsPage() {
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
             Hosts
           </h2>
-          
-          {/* Context Banner for URL-based navigation */}
-          {(config.autoFilters.status || config.autoFilters.pipelineStage || config.searchTerm || config.highlightedId) && (
-            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-blue-800 dark:text-blue-200">
-                  {config.autoFilters.status && (
-                    <span>Showing hosts with status: <strong>{config.autoFilters.status}</strong></span>
-                  )}
-                  {config.autoFilters.pipelineStage && (
-                    <span>Showing hosts in stage: <strong>{config.autoFilters.pipelineStage}</strong></span>
-                  )}
-                  {config.autoFilters.ssh === 'false' && (
-                    <span>Showing hosts <strong>without SSH access</strong></span>
-                  )}
-                  {config.highlightedId === 'high-resource' && (
-                    <span>Showing hosts with <strong>high resource usage</strong> (CPU/RAM/Disk &gt; 90%)</span>
-                  )}
-                  {config.searchTerm && (
-                    <span>Search results for: <strong>"{config.searchTerm}"</strong></span>
-                  )}
-                </div>
-                <button
-                  onClick={() => window.location.href = '/hosts'}
-                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
-                >
-                  Clear filters
-                </button>
-              </div>
-            </div>
-          )}
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {isLoading ? 'Loading...' : `${start}-${end} of ${total} hosts`}
+          </p>
         </div>
 
-        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <div className="mb-4 flex flex-wrap items-center gap-4">
           <HostFiltersComponent
             filters={filters}
             osOptions={osOptions}
             statusOptions={statusOptions}
             vmCountOptions={vmCountOptions}
-            onChange={(f) => {
-              setPage(1);
-              setFilters(f);
-            }}
+            onChange={setFilters}
           />
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleRefresh}
-              disabled={isLoading || isRefetching}
-              className={`px-4 py-2 rounded-lg text-white flex items-center gap-2 ${
-                isLoading || isRefetching
-                  ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 hover:bg-indigo-700'
-              }`}
-              title="Refresh data from database"
-            >
-              <RefreshCw size={16} className={(isLoading || isRefetching) ? 'animate-spin' : ''} />
-              {isLoading ? 'Loading...' : isRefetching ? 'Refreshing...' : 'Refresh'}
-            </button>
-          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefetching}
+            className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white rounded-lg text-sm flex items-center gap-2"
+          >
+            <RefreshCw size={14} className={isRefetching ? 'animate-spin' : ''} />
+            {isRefetching ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
 
-        {isLoading ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">Loading hosts...</p>
-          </div>
-        ) : useVirtualTable ? (
+        {useVirtualTable ? (
           <VirtualHostTable
             filters={filters}
             onRowClick={handleRowClick}
             height={600}
           />
         ) : (
-          <>
-            <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-              Showing {start}–{end} of {total} hosts (Legacy Mode)
-            </p>
-            <HostTable
-              hosts={displayedHosts}
-              sortField={sortField}
-              sortOrder={sortOrder}
-              onSortChange={(field) => {
-                if (field === sortField) {
-                  setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
-                } else {
-                  setSortField(field);
-                  setSortOrder('asc');
-                }
-              }}
-              onRowClick={handleRowClick}
-              getRowClassName={getRowClassName}
-            />
+          <HostTable
+            hosts={displayedHosts}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSortChange={setSortField}
+            onRowClick={handleRowClick}
+            getRowClassName={getEnhancedRowClassName}
+          />
+        )}
 
-            <div className="mt-4 flex justify-between items-center">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Page {page} of {Math.ceil(total / pageSize)}
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
-                >
-                  Prev
-                </button>
-                <button
-                  disabled={page * pageSize >= total}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg disabled:opacity-50"
-                >
-                  Next
-                </button>
-              </div>
+        {/* Pagination */}
+        {!useVirtualTable && total > pageSize && (
+          <div className="mt-4 flex justify-between items-center">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Page {page} of {Math.ceil(total / pageSize)}
             </div>
-          </>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 rounded text-sm"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage(p => Math.min(Math.ceil(total / pageSize), p + 1))}
+                disabled={page >= Math.ceil(total / pageSize)}
+                className="px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 rounded text-sm"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         )}
       </section>
 
@@ -324,12 +299,11 @@ export default function HostsPage() {
         />
       )}
 
-      {localStorage.getItem('dev_performance_monitor') === 'true' && (
-        <PerformanceDashboard 
-          isVirtual={useVirtualTable}
-          itemCount={useVirtualTable ? allHosts.length : displayedHosts.length}
-        />
-      )}
+      <PerformanceDashboard
+        isVirtual={useVirtualTable}
+        itemCount={displayedHosts.length}
+        isVisible={true}
+      />
     </>
   );
 }

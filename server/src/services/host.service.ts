@@ -45,8 +45,10 @@ export async function createHostService(data: any) {
       cpu: data.cpu,
       ram: data.ram,
       disk: data.disk,
-      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.Unassigned,
+      pipelineStage: data.pipelineStage as PipelineStage || PipelineStage.unassigned,
       assignedTo: data.assignedTo,
+      assignedAt: data.assignedAt,
+      assignedUntil: data.assignedUntil,
       notes: data.notes
     }
   });
@@ -58,6 +60,15 @@ export async function updateHostService(id: number, data: any) {
     status: data.status as HostStatus,
     pipelineStage: data.pipelineStage as PipelineStage
   };
+  
+  // Handle scheduling fields
+  if (data.assignedAt !== undefined) {
+    updatedData.assignedAt = data.assignedAt;
+  }
+  if (data.assignedUntil !== undefined) {
+    updatedData.assignedUntil = data.assignedUntil;
+  }
+  
   return prisma.host.update({
     where: { id },
     data: updatedData

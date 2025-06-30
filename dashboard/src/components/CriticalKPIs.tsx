@@ -24,6 +24,14 @@ export default function CriticalKPIs({ hosts }: Props) {
   const sshAccessibleHosts = hosts.filter(h => h.ssh && h.status === 'up').length;
   const sshInaccessibleHosts = hosts.filter(h => h.status === 'up' && !h.ssh).length;
 
+  // Scheduling calculations
+  const assignedHosts = hosts.filter(h => h.assignedTo).length;
+  const expiredAssignments = hosts.filter(h => {
+    if (!h.assignedUntil || !h.assignedTo) return false;
+    return new Date(h.assignedUntil) < new Date();
+  }).length;
+  const activeAssignments = assignedHosts - expiredAssignments;
+
   // Smart navigation functions with context
   const navigateToHostsWithIssues = () => {
     const params = new URLSearchParams();
@@ -68,34 +76,52 @@ export default function CriticalKPIs({ hosts }: Props) {
     navigate(`/hosts?${params.toString()}`);
   };
 
+  const navigateToExpiredAssignments = () => {
+    const params = new URLSearchParams();
+    params.set('highlight', 'expired-assignments');
+    navigate(`/hosts?${params.toString()}`);
+  };
+
   // Build critical issues breakdown
   const criticalIssuesBreakdown = [];
   if (downHosts > 0) criticalIssuesBreakdown.push(`${downHosts} host${downHosts > 1 ? 's' : ''} down`);
   if (highResourceHosts > 0) criticalIssuesBreakdown.push(`${highResourceHosts} host${highResourceHosts > 1 ? 's' : ''} high resource`);
   if (brokenHosts > 0) criticalIssuesBreakdown.push(`${brokenHosts} broken pipeline${brokenHosts > 1 ? 's' : ''}`);
   if (downVMs > 0) criticalIssuesBreakdown.push(`${downVMs} VM${downVMs > 1 ? 's' : ''} offline`);
+  if (expiredAssignments > 0) criticalIssuesBreakdown.push(`${expiredAssignments} expired assignment${expiredAssignments > 1 ? 's' : ''}`);
 
-  const totalCriticalIssues = downHosts + highResourceHosts + brokenHosts + downVMs;
+  const totalCriticalIssues = downHosts + highResourceHosts + brokenHosts + downVMs + expiredAssignments;
 
   // Smart navigation for critical issues
   const getCriticalIssuesNavigation = () => {
     const hasHostIssues = downHosts > 0 || highResourceHosts > 0 || brokenHosts > 0;
     const hasVMIssues = downVMs > 0;
+    const hasExpiredAssignments = expiredAssignments > 0;
     
-    if (hasVMIssues && !hasHostIssues) {
+    if (hasExpiredAssignments && !hasHostIssues && !hasVMIssues) {
+      return {
+        action: navigateToExpiredAssignments,
+        hint: 'Click to view expired assignments →'
+      };
+    } else if (hasVMIssues && !hasHostIssues && !hasExpiredAssignments) {
       return {
         action: navigateToVMsWithIssues,
         hint: 'Click to view offline VMs →'
       };
-    } else if (hasHostIssues && !hasVMIssues) {
+    } else if (hasHostIssues && !hasVMIssues && !hasExpiredAssignments) {
       return {
         action: navigateToHostsWithIssues,
         hint: 'Click to view problem hosts →'
       };
-    } else if (hasHostIssues && hasVMIssues) {
+    } else if (hasHostIssues && hasVMIssues && !hasExpiredAssignments) {
       return {
         action: navigateToHostsWithIssues,
         hint: 'Click to view critical hosts →'
+      };
+    } else if (hasExpiredAssignments) {
+      return {
+        action: navigateToExpiredAssignments,
+        hint: 'Click to view expired assignments →'
       };
     }
     
@@ -124,16 +150,16 @@ export default function CriticalKPIs({ hosts }: Props) {
       actionHint: unassignedHosts > 0 ? 'Click to view unassigned hosts →' : null
     },
     { 
-      label: 'SSH Access', 
-      value: `${sshAccessibleHosts}/${totalHosts}`,
-      critical: sshInaccessibleHosts > 0 || downHosts > 0,
-      subtitle: downHosts > 0 
-        ? `${downHosts} down, ${sshInaccessibleHosts} no SSH`
-        : sshInaccessibleHosts > 0 
-          ? `${sshInaccessibleHosts} hosts without SSH`
-          : 'All hosts accessible',
-      action: navigateToSSHIssues,
-      actionHint: (sshInaccessibleHosts > 0 || downHosts > 0) ? 'Click to investigate SSH issues →' : null
+      label: 'Assignments', 
+      value: `${activeAssignments}/${assignedHosts}`,
+      critical: expiredAssignments > 0,
+      subtitle: expiredAssignments > 0 
+        ? `${expiredAssignments} expired, ${activeAssignments} active`
+        : assignedHosts > 0 
+          ? `${assignedHosts} active assignments`
+          : 'No assignments',
+      action: navigateToExpiredAssignments,
+      actionHint: expiredAssignments > 0 ? 'Click to view expired assignments →' : null
     }
   ];
 

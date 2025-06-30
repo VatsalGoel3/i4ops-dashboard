@@ -13,6 +13,8 @@ export const hostSchema = z.object({
   disk: z.number().nonnegative(),
   pipelineStage: z.nativeEnum(PipelineStage).optional(),
   assignedTo: z.string().optional(),
+  assignedAt: z.string().datetime().optional(),
+  assignedUntil: z.string().datetime().optional(),
   notes: z.string().optional()
 });
 

@@ -31,7 +31,6 @@ export default function HostsPage() {
   const { 
     autoFilters, 
     getRowClassName, 
-    isRowHighlighted,
     isExpiredAssignmentHighlighted,
     getExpiredAssignmentRowClassName,
     searchTerm 
@@ -44,7 +43,7 @@ export default function HostsPage() {
 
   const [filters, setFilters] = useState<HostFilters>({});
   const [sortField, setSortField] = useState<keyof Host>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortOrder] = useState<'asc' | 'desc'>('asc');
   const [page, setPage] = useState(1);
   const pageSize = 15;
   const [total, setTotal] = useState(0);
@@ -196,6 +195,13 @@ export default function HostsPage() {
     return className;
   };
 
+  // Map id to host for getRowClassName prop
+  const getRowClassNameForTable = (id: string | number, baseClassName?: string) => {
+    const host = displayedHosts.find(h => h.id === id);
+    if (!host) return baseClassName || '';
+    return getEnhancedRowClassName(host, baseClassName || '');
+  };
+
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
 
@@ -261,7 +267,7 @@ export default function HostsPage() {
             sortOrder={sortOrder}
             onSortChange={setSortField}
             onRowClick={handleRowClick}
-            getRowClassName={getEnhancedRowClassName}
+            getRowClassName={getRowClassNameForTable}
           />
         )}
 

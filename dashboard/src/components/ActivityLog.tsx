@@ -3,7 +3,6 @@ import type { User } from '@supabase/supabase-js';
 import { 
   Activity, 
   Calendar, 
-  MapPin, 
   Monitor, 
   User as UserIcon,
   LogIn,

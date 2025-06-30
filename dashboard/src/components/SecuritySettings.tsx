@@ -5,13 +5,8 @@ import {
   Eye, 
   EyeOff, 
   Shield, 
-  Smartphone, 
-  Globe, 
-  AlertTriangle,
   CheckCircle,
   Loader,
-  Calendar,
-  MapPin,
   X
 } from 'lucide-react';
 import { toast } from 'sonner';

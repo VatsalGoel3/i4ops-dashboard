@@ -17,13 +17,6 @@ export default function CriticalKPIs({ hosts }: Props) {
   
   const unassignedHosts = hosts.filter(h => h.pipelineStage === PipelineStage.unassigned).length;
   
-  // SSH connectivity calculations
-  const totalHosts = hosts.length;
-  const upHosts = hosts.filter(h => h.status === 'up').length;
-  console.log(`Currently tracking ${upHosts} up hosts out of ${hosts.length} total`); // TODO: Use this data in UI
-  const sshAccessibleHosts = hosts.filter(h => h.ssh && h.status === 'up').length;
-  const sshInaccessibleHosts = hosts.filter(h => h.status === 'up' && !h.ssh).length;
-
   // Scheduling calculations
   const assignedHosts = hosts.filter(h => h.assignedTo).length;
   const expiredAssignments = hosts.filter(h => {
@@ -61,18 +54,6 @@ export default function CriticalKPIs({ hosts }: Props) {
     const params = new URLSearchParams();
     params.set('pipelineStage', 'unassigned');
     params.set('highlight', 'unassigned');
-    navigate(`/hosts?${params.toString()}`);
-  };
-
-  const navigateToSSHIssues = () => {
-    const params = new URLSearchParams();
-    if (downHosts > 0) {
-      params.set('status', 'down');
-      params.set('highlight', 'ssh-issues');
-    } else if (sshInaccessibleHosts > 0) {
-      params.set('ssh', 'false');
-      params.set('highlight', 'ssh-issues');
-    }
     navigate(`/hosts?${params.toString()}`);
   };
 

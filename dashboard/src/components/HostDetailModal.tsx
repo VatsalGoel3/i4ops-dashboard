@@ -1,4 +1,4 @@
-import { X, Calendar, Clock, User, AlertTriangle } from 'lucide-react';
+import { X, Calendar, Clock, User } from 'lucide-react';
 import type { Host } from '../api/types';
 import { PipelineStage } from '../api/types';
 import {

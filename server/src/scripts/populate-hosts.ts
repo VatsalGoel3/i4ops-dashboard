@@ -107,7 +107,7 @@ async function populateHosts() {
           cpu: 0,
           ram: 0,
           disk: 0,
-          pipelineStage: PipelineStage.Unassigned,
+          pipelineStage: PipelineStage.unassigned,
           assignedTo: null,
           notes: null
         }

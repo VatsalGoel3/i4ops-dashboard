@@ -33,7 +33,8 @@ export default function HostsPage() {
     getRowClassName, 
     isExpiredAssignmentHighlighted,
     getExpiredAssignmentRowClassName,
-    searchTerm 
+    searchTerm,
+    highlightedId 
   } = useHighlighting();
 
   const [displayedHosts, setDisplayedHosts] = useState<Host[]>([]);
@@ -95,8 +96,8 @@ export default function HostsPage() {
       list = list.filter((h) => h.status === 'up' && !h.ssh);
     }
     
-    // Handle high-resource highlighting
-    if (isExpiredAssignmentHighlighted()) {
+    // Handle expired assignment highlighting
+    if (highlightedId === 'expired-assignments') {
       list = list.filter((h) => {
         if (!h.assignedUntil || !h.assignedTo) return false;
         return new Date(h.assignedUntil) < new Date();
@@ -165,7 +166,7 @@ export default function HostsPage() {
     setTotal(list.length);
     const startIdx = (page - 1) * pageSize;
     setDisplayedHosts(list.slice(startIdx, startIdx + pageSize));
-  }, [allHosts, filters, sortField, sortOrder, page, autoFilters, isExpiredAssignmentHighlighted, searchTerm]);
+  }, [allHosts, filters, sortField, sortOrder, page, autoFilters, highlightedId, searchTerm]);
 
   const handleRowClick = (host: Host) => {
     setSelectedHost(host);
@@ -185,7 +186,7 @@ export default function HostsPage() {
     let className = baseClassName;
     
     // Apply expired assignment highlighting if active
-    if (isExpiredAssignmentHighlighted()) {
+    if (highlightedId === 'expired-assignments') {
       className = getExpiredAssignmentRowClassName(host, className);
     }
     

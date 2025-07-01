@@ -81,10 +81,14 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
         updates.assignedAt = new Date().toISOString();
         updates.assignedUntil = expiration.toISOString();
       }
-    } else if (!assignedTo) {
-      // Clear assignment if no one is assigned
-      updates.assignedAt = null;
-      updates.assignedUntil = null;
+    } else if (assignedTo) {
+      // Someone is assigned but no scheduling - set assignedAt to now, no expiration
+      updates.assignedAt = new Date().toISOString();
+      // Don't include assignedUntil (no expiration)
+    } else {
+      // No one assigned - clear assignment fields
+      updates.assignedTo = null;
+      // Don't include assignedAt and assignedUntil (they will be null in database)
     }
     
     updateHostMutation.mutate(

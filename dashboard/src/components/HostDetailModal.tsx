@@ -33,7 +33,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
   const [notes, setNotes] = useState<string>(host.notes || '');
   
   // Scheduling state
-  const [showScheduling, setShowScheduling] = useState(false);
+  const [assignmentMode, setAssignmentMode] = useState<'now' | 'schedule'>('now');
   const [assignmentDate, setAssignmentDate] = useState<string>('');
   const [assignmentTime, setAssignmentTime] = useState<string>('15:00'); // Default to 3 PM
   const [assignmentDuration, setAssignmentDuration] = useState<string>('4'); // Default 4 hours
@@ -75,17 +75,25 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
   const handleSave = async () => {
     const updates: any = { pipelineStage, assignedTo, notes };
     
-    // Handle scheduling
-    if (showScheduling && assignmentDate && assignmentTime) {
-      const expiration = getAssignmentExpiration();
-      if (expiration) {
+    // Handle assignment logic
+    if (assignedTo) {
+      if (assignmentMode === 'schedule' && assignmentDate && assignmentTime) {
+        // Scheduled assignment with expiration
+        const expiration = getAssignmentExpiration();
+        if (expiration) {
+          updates.assignedAt = new Date().toISOString();
+          updates.assignedUntil = expiration.toISOString();
+        }
+      } else {
+        // Immediate assignment (no expiration)
         updates.assignedAt = new Date().toISOString();
-        updates.assignedUntil = expiration.toISOString();
+        // Don't include assignedUntil (no expiration)
       }
-    } else if (assignedTo) {
-      // Someone is assigned but no scheduling - set assignedAt to now, no expiration
-      updates.assignedAt = new Date().toISOString();
-      // Don't include assignedUntil (no expiration)
+      
+      // Auto-update pipeline stage when assigning
+      if (pipelineStage === PipelineStage.unassigned) {
+        updates.pipelineStage = PipelineStage.active;
+      }
     } else {
       // No one assigned - clear assignment fields
       updates.assignedTo = null;
@@ -122,7 +130,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
     setPipelineStage(PipelineStage.unassigned);
     setAssignedTo('');
     setNotes('');
-    setShowScheduling(false);
+    setAssignmentMode('now');
     setAssignmentDate('');
     setAssignmentTime('15:00');
     setAssignmentDuration('4');
@@ -259,24 +267,38 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
                 />
               </div>
 
-              {/* Scheduling Toggle */}
+              {/* Assignment Mode Selection */}
               {assignedTo && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="enableScheduling"
-                    checked={showScheduling}
-                    onChange={(e) => setShowScheduling(e.target.checked)}
-                    className="rounded"
-                  />
-                  <label htmlFor="enableScheduling" className="text-sm font-medium">
-                    Schedule Assignment Expiration
-                  </label>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="assignmentMode"
+                        value="now"
+                        checked={assignmentMode === 'now'}
+                        onChange={(e) => setAssignmentMode(e.target.value as 'now' | 'schedule')}
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium">Assign Now (No Expiration)</span>
+                    </label>
+                    <label className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="assignmentMode"
+                        value="schedule"
+                        checked={assignmentMode === 'schedule'}
+                        onChange={(e) => setAssignmentMode(e.target.value as 'now' | 'schedule')}
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium">Schedule with Expiration</span>
+                    </label>
+                  </div>
                 </div>
               )}
 
               {/* Scheduling Options */}
-              {showScheduling && assignedTo && (
+              {assignmentMode === 'schedule' && assignedTo && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg space-y-3">
                   <h5 className="text-sm font-medium text-blue-800 dark:text-blue-300 flex items-center gap-2">
                     <Calendar size={14} />
@@ -285,7 +307,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
                   
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-medium mb-1">Start Date</label>
+                      <label className="block text-xs font-medium mb-1">Assignment Start Date</label>
                       <input
                         type="date"
                         className="border rounded p-2 w-full text-sm bg-white dark:bg-gray-700 dark:text-gray-100"
@@ -296,7 +318,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
                     </div>
                     
                     <div>
-                      <label className="block text-xs font-medium mb-1">Start Time</label>
+                      <label className="block text-xs font-medium mb-1">Assignment Start Time</label>
                       <input
                         type="time"
                         className="border rounded p-2 w-full text-sm bg-white dark:bg-gray-700 dark:text-gray-100"
@@ -307,7 +329,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium mb-1">Duration</label>
+                    <label className="block text-xs font-medium mb-1">Assignment Duration</label>
                     <select
                       className="border rounded p-2 w-full text-sm bg-white dark:bg-gray-700 dark:text-gray-100"
                       value={assignmentDuration}
@@ -359,14 +381,19 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
                   updateHostMutation.isPending ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
                 }`}
               >
-                {updateHostMutation.isPending ? 'Saving…' : 'Save Assignment'}
+                {updateHostMutation.isPending 
+                  ? 'Saving…' 
+                  : assignmentMode === 'schedule' 
+                    ? 'Assign & Schedule' 
+                    : 'Assign Now'
+                }
               </button>
               <button
                 onClick={handleReset}
                 className="px-4 py-2 rounded text-sm font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
-                title="Reset all fields to default values"
+                title="Clear all fields"
               >
-                Reset to Default
+                Clear Form
               </button>
             </div>
             <button

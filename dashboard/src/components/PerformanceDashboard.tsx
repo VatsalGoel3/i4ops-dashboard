@@ -6,12 +6,14 @@ interface Props {
   isVirtual: boolean;
   itemCount: number;
   isVisible?: boolean;
+  onClose?: () => void;
 }
 
 export default function PerformanceDashboard({ 
   isVirtual, 
   itemCount, 
-  isVisible = false 
+  isVisible = false,
+  onClose 
 }: Props) {
   const { stats } = usePerformanceMonitor(isVirtual);
   const tableMetrics = useTablePerformance(itemCount, isVirtual);
@@ -43,12 +45,24 @@ export default function PerformanceDashboard({
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
           Performance Metrics
         </h3>
-        <button
-          onClick={() => setIsExpanded(false)}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-        >
-          ✕
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            title="Minimize"
+          >
+            −
+          </button>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+              title="Close"
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Current Mode Indicator */}

@@ -31,7 +31,6 @@ export default function HostsPage() {
   const { 
     autoFilters, 
     getRowClassName, 
-    isExpiredAssignmentHighlighted,
     getExpiredAssignmentRowClassName,
     searchTerm,
     highlightedId 
@@ -51,6 +50,7 @@ export default function HostsPage() {
 
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(true);
   
   // Get virtual table preference from developer settings
   const useVirtualTable = localStorage.getItem('dev_virtual_tables') === 'true';
@@ -306,11 +306,14 @@ export default function HostsPage() {
         />
       )}
 
-      <PerformanceDashboard
-        isVirtual={useVirtualTable}
-        itemCount={displayedHosts.length}
-        isVisible={true}
-      />
+      {showPerformanceDashboard && (
+        <PerformanceDashboard
+          isVirtual={useVirtualTable}
+          itemCount={displayedHosts.length}
+          isVisible={true}
+          onClose={() => setShowPerformanceDashboard(false)}
+        />
+      )}
     </>
   );
 }

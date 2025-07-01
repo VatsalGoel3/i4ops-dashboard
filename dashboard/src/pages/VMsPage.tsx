@@ -26,7 +26,7 @@ export default function VMsPage() {
   const [page, setPage] = useState(1);
   const pageSize = 15;
   const [total, setTotal] = useState(0);
-  const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(true);
+  const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(false);
   
   // Toggle for virtual table
   // Get virtual table preference from developer settings

@@ -50,7 +50,7 @@ export default function HostsPage() {
 
   const [selectedHost, setSelectedHost] = useState<Host | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(true);
+  const [showPerformanceDashboard, setShowPerformanceDashboard] = useState(false);
   
   // Get virtual table preference from developer settings
   const useVirtualTable = localStorage.getItem('dev_virtual_tables') === 'true';

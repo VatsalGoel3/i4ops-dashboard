@@ -37,6 +37,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
   const [assignmentDate, setAssignmentDate] = useState<string>('');
   const [assignmentTime, setAssignmentTime] = useState<string>('15:00'); // Default to 3 PM
   const [assignmentDuration, setAssignmentDuration] = useState<string>('4'); // Default 4 hours
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   const updateHostMutation = useUpdateHost();
 
@@ -103,7 +104,21 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
   };
 
   const handleReset = () => {
+    setShowResetConfirm(true);
+  };
+
+  const confirmReset = () => {
     // Reset all fields to default values
+    const updates: any = {
+      pipelineStage: PipelineStage.unassigned,
+      assignedTo: null,
+      notes: '',
+      // Explicitly set these to null to clear them
+      assignedAt: null,
+      assignedUntil: null
+    };
+
+    // Update the local state
     setPipelineStage(PipelineStage.unassigned);
     setAssignedTo('');
     setNotes('');
@@ -111,6 +126,23 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
     setAssignmentDate('');
     setAssignmentTime('15:00');
     setAssignmentDuration('4');
+
+    // Automatically save the changes
+    updateHostMutation.mutate(
+      { hostId: host.id, updates },
+      {
+        onSuccess: (updatedHost) => {
+          onSave(updatedHost);
+          onClose();
+        },
+      }
+    );
+
+    setShowResetConfirm(false);
+  };
+
+  const cancelReset = () => {
+    setShowResetConfirm(false);
   };
 
   return (
@@ -364,6 +396,39 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
           </div>
         )}
       </div>
+
+      {/* Reset Confirmation Dialog */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Reset to Default
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Are you sure you want to reset all fields to default values? This will clear the assignment and scheduling.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelReset}
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmReset}
+                disabled={updateHostMutation.isPending}
+                className={`px-4 py-2 rounded font-medium ${
+                  updateHostMutation.isPending 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-red-600 hover:bg-red-700 text-white'
+                }`}
+              >
+                {updateHostMutation.isPending ? 'Resetting...' : 'Reset'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

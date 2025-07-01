@@ -15,6 +15,7 @@ import VMsPage from './pages/VMsPage';
 import SettingsPage from './pages/SettingsPage';
 import DeveloperPage from './pages/DeveloperPage';
 import ProfilePage from './pages/ProfilePage';
+import AIChatPage from './pages/AIChatPage';
 
 function AppWithRealTime() {
   // Enable real-time updates globally
@@ -89,6 +90,16 @@ function AppWithRealTime() {
           <RequireAuth>
             <Layout>
               <ProfilePage />
+            </Layout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/ai-chat"
+        element={
+          <RequireAuth>
+            <Layout>
+              <AIChatPage />
             </Layout>
           </RequireAuth>
         }

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useAuth } from '../context/AuthContext';
 import { useHosts } from '../api/queries';
 import SettingsSection from '../components/SettingsSection';
-import { getUserDisplayName, getUserRole } from '../lib/userUtils';
+import { getUserDisplayName } from '../lib/userUtils';
 
 export default function SettingsPage() {
   const { signOut, user } = useAuth();
@@ -15,7 +15,6 @@ export default function SettingsPage() {
   
   // Get proper user data
   const displayName = getUserDisplayName(user);
-  const userRole = getUserRole(user);
 
   useEffect(() => {
     fetch('/version.txt')

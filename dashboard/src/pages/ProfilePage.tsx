@@ -283,7 +283,6 @@ export default function ProfilePage() {
           onClose={() => setShowAvatarUpload(false)}
           onSuccess={() => {
             setShowAvatarUpload(false);
-            // TODO: Refresh user data
           }}
         />
       )}

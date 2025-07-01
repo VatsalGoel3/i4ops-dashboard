@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
 interface HighlightConfig {
@@ -10,92 +10,89 @@ interface HighlightConfig {
 
 export function useHighlighting() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [highlightedId, setHighlightedId] = useState<string | null>(null);
-  const [isHighlighting, setIsHighlighting] = useState(false);
+  const [highlightConfig, setHighlightConfig] = useState<HighlightConfig>({
+    highlightedId: null,
+    highlightType: null,
+    autoFilters: {},
+    searchTerm: null,
+  });
 
-  const config: HighlightConfig = useMemo(() => ({
-    highlightedId: searchParams.get('highlight'),
-    highlightType: searchParams.get('highlightType'),
-    searchTerm: searchParams.get('search'),
-    autoFilters: {
-      status: searchParams.get('status') || '',
-      pipelineStage: searchParams.get('pipelineStage') || '',
-      ssh: searchParams.get('ssh') || '',
-    }
-  }), [searchParams]);
-
-  // Apply highlighting effect when URL params change
   useEffect(() => {
-    const highlightId = searchParams.get('highlight');
-    const highlightParam = searchParams.get('highlight');
-    
-    if (highlightId) {
-      setHighlightedId(highlightId);
-      setIsHighlighting(true);
+    const highlightedId = searchParams.get('highlight');
+    const highlightType = searchParams.get('highlightType');
+    const searchTerm = searchParams.get('search');
 
-      // Scroll to the highlighted element after a brief delay
-      const timer = setTimeout(() => {
-        const element = document.querySelector(`[data-row-id="${highlightId}"]`);
-        if (element) {
-          element.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
-          });
-        }
-      }, 500);
+    // Extract auto-filters from URL params
+    const autoFilters: Record<string, string> = {};
+    const filterKeys = ['status', 'pipelineStage', 'os', 'ssh'];
+    filterKeys.forEach(key => {
+      const value = searchParams.get(key);
+      if (value) autoFilters[key] = value;
+    });
 
-      // Remove highlighting after 3 seconds
-      const clearTimer = setTimeout(() => {
-        setIsHighlighting(false);
-        // Keep the ID but remove the visual effect
-        setTimeout(() => {
-          setHighlightedId(null);
-          // Clean up URL params
-          const newParams = new URLSearchParams(searchParams);
-          newParams.delete('highlight');
-          newParams.delete('highlightType');
-          if (!newParams.get('search')) {
-            newParams.delete('search');
-          }
-          setSearchParams(newParams, { replace: true });
-        }, 300);
-      }, 3000);
-
-      return () => {
-        clearTimeout(timer);
-        clearTimeout(clearTimer);
-      };
-    }
-  }, [searchParams, setSearchParams]);
+    setHighlightConfig({
+      highlightedId,
+      highlightType,
+      autoFilters,
+      searchTerm,
+    });
+  }, [searchParams]);
 
   const isRowHighlighted = (id: string | number) => {
-    return highlightedId === id.toString() && isHighlighting;
+    return highlightConfig.highlightedId === id.toString();
   };
 
   const getRowClassName = (id: string | number, baseClassName: string = '') => {
-    const highlighted = isRowHighlighted(id);
-    return `${baseClassName} ${
-      highlighted 
-        ? 'ring-2 ring-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 transition-all duration-300 animate-pulse' 
-        : ''
-    }`.trim();
+    const isHighlighted = isRowHighlighted(id);
+    
+    if (isHighlighted) {
+      return `${baseClassName} bg-yellow-100 dark:bg-yellow-900/30 border-l-4 border-yellow-500`;
+    }
+    
+    return baseClassName;
   };
 
   const clearHighlighting = () => {
-    setHighlightedId(null);
-    setIsHighlighting(false);
     const newParams = new URLSearchParams(searchParams);
     newParams.delete('highlight');
     newParams.delete('highlightType');
-    setSearchParams(newParams, { replace: true });
+    setSearchParams(newParams);
+  };
+
+  const setHighlighting = (id: string | number, type?: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('highlight', id.toString());
+    if (type) {
+      newParams.set('highlightType', type);
+    }
+    setSearchParams(newParams);
+  };
+
+  const isExpiredAssignmentHighlighted = () => {
+    return highlightConfig.highlightedId === 'expired-assignments';
+  };
+
+  const getExpiredAssignmentRowClassName = (host: any, baseClassName: string = '') => {
+    if (!isExpiredAssignmentHighlighted()) return baseClassName;
+    
+    // Check if this host has an expired assignment
+    if (host.assignedUntil && host.assignedTo) {
+      const isExpired = new Date(host.assignedUntil) < new Date();
+      if (isExpired) {
+        return `${baseClassName} bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500`;
+      }
+    }
+    
+    return baseClassName;
   };
 
   return {
-    config,
+    ...highlightConfig,
     isRowHighlighted,
     getRowClassName,
     clearHighlighting,
-    highlightedId,
-    isHighlighting
+    setHighlighting,
+    isExpiredAssignmentHighlighted,
+    getExpiredAssignmentRowClassName,
   };
 } 

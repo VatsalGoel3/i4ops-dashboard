@@ -1,4 +1,5 @@
 import type { Host } from '../api/types';
+import { Clock, User, AlertTriangle } from 'lucide-react';
 
 function capitalize(s: string) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -24,6 +25,26 @@ export default function HostTable({
   const SortIcon = (field: keyof Host) =>
     sortField === field ? (sortOrder === 'asc' ? '▲' : '▼') : '';
 
+  // Check if assignment is expired
+  const isAssignmentExpired = (host: Host) => {
+    if (!host.assignedUntil) return false;
+    return new Date(host.assignedUntil) < new Date();
+  };
+
+  // Format assignment duration for display
+  const formatAssignmentDuration = (until: string) => {
+    const now = new Date();
+    const untilDate = new Date(until);
+    const diffMs = untilDate.getTime() - now.getTime();
+    const diffHours = Math.ceil(diffMs / (1000 * 60 * 60));
+    
+    if (diffHours < 1) return 'Expires soon';
+    if (diffHours < 24) return `${diffHours}h`;
+    
+    const diffDays = Math.ceil(diffHours / 24);
+    return `${diffDays}d`;
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full border-collapse">
@@ -45,7 +66,7 @@ export default function HostTable({
               Status {SortIcon('status')}
             </th>
             <th className="text-left px-4 py-2 text-sm cursor-pointer" onClick={() => onSortChange('assignedTo')}>
-              Assigned {SortIcon('assignedTo')}
+              Assignment {SortIcon('assignedTo')}
             </th>
             <th className="text-left px-4 py-2 text-sm cursor-pointer" onClick={() => onSortChange('pipelineStage')}>
               Stage {SortIcon('pipelineStage')}
@@ -93,7 +114,33 @@ export default function HostTable({
                 {capitalize(host.status)}
               </td>
               <td className="px-4 py-2 text-sm">
-                {host.assignedTo ? capitalize(host.assignedTo) : '-'}
+                {host.assignedTo ? (
+                  <div className="flex items-center gap-2">
+                    <User size={12} className="text-gray-500" />
+                    <span className="font-medium">{host.assignedTo}</span>
+                    {host.assignedUntil && (
+                      <div className="flex items-center gap-1">
+                        {isAssignmentExpired(host) ? (
+                          <AlertTriangle size={10} className="text-red-500" />
+                        ) : (
+                          <Clock size={10} className="text-blue-500" />
+                        )}
+                        <span className={`text-xs ${
+                          isAssignmentExpired(host) 
+                            ? 'text-red-600 dark:text-red-400' 
+                            : 'text-blue-600 dark:text-blue-400'
+                        }`}>
+                          {isAssignmentExpired(host) 
+                            ? 'Expired' 
+                            : formatAssignmentDuration(host.assignedUntil)
+                          }
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-gray-400">-</span>
+                )}
               </td>
               <td className="px-4 py-2 text-sm">
                 <span className="inline-block rounded px-2 py-0.5 text-xs bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200">

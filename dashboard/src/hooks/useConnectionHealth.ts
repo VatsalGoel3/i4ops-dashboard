@@ -68,8 +68,6 @@ export function useConnectionHealth(retryConfig: Partial<RetryConfig> = {}) {
     }
 
     const delay = calculateDelay(retryCount);
-    console.log(`Scheduling retry ${retryCount + 1} in ${delay}ms`);
-    
     setConnecting();
     
     retryTimeoutRef.current = setTimeout(async () => {
@@ -77,7 +75,6 @@ export function useConnectionHealth(retryConfig: Partial<RetryConfig> = {}) {
       
       if (isHealthy) {
         setConnected();
-        console.log('Connection restored');
       } else {
         // Will trigger another retry due to state change
         setDisconnected('Health check failed');

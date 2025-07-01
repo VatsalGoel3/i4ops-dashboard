@@ -98,6 +98,17 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
     );
   };
 
+  const handleReset = () => {
+    // Reset all fields to default values
+    setPipelineStage(PipelineStage.unassigned);
+    setAssignedTo('');
+    setNotes('');
+    setShowScheduling(false);
+    setAssignmentDate('');
+    setAssignmentTime('15:00');
+    setAssignmentDuration('4');
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl shadow-lg max-h-[90vh] overflow-y-auto relative">
@@ -304,15 +315,24 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
 
         <div className="sticky bottom-0 bg-white dark:bg-gray-800 pt-4 pb-4 border-t mt-6">
           <div className="flex justify-between items-center">
-            <button
-              onClick={handleSave}
-              disabled={updateHostMutation.isPending}
-              className={`px-6 py-2 rounded text-white text-sm font-medium ${
-                updateHostMutation.isPending ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
-              }`}
-            >
-              {updateHostMutation.isPending ? 'Saving…' : 'Save Assignment'}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSave}
+                disabled={updateHostMutation.isPending}
+                className={`px-6 py-2 rounded text-white text-sm font-medium ${
+                  updateHostMutation.isPending ? 'bg-gray-400' : 'bg-green-600 hover:bg-green-700'
+                }`}
+              >
+                {updateHostMutation.isPending ? 'Saving…' : 'Save Assignment'}
+              </button>
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 rounded text-sm font-medium bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
+                title="Reset all fields to default values"
+              >
+                Reset to Default
+              </button>
+            </div>
             <button
               onClick={onClose}
               className="text-sm underline text-gray-500 dark:text-gray-400"

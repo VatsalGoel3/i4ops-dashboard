@@ -280,7 +280,7 @@ export default function HostDetailModal({ host, onClose, onSave }: Props) {
                         onChange={(e) => setAssignmentMode(e.target.value as 'now' | 'schedule')}
                         className="rounded"
                       />
-                      <span className="text-sm font-medium">Assign Now (No Expiration)</span>
+                      <span className="text-sm font-medium">Assign Now</span>
                     </label>
                     <label className="flex items-center gap-2">
                       <input

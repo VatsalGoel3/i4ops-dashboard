@@ -11,9 +11,10 @@ const hostSync = new HostSyncService();
 
 let isVMPolling = false;
 let isHostPolling = false;
+let vmPollTimeout: NodeJS.Timeout | null = null;
 
 export function startPollingJob(): void {
-  logger.info('Starting polling services');
+  logger.info('Starting optimized polling services');
 
   // Initial runs with delay
   setTimeout(() => {
@@ -21,26 +22,65 @@ export function startPollingJob(): void {
     pollHosts();
   }, 3000);
 
-  // Schedule VM polling every 2 minutes
-  cron.schedule('*/2 * * * *', pollVMs);
+  // Setup file watcher for real-time updates (when running locally)
+  setupFileWatcherTrigger();
+
+  // Schedule VM polling every 30 seconds (reduced from 2 minutes)
+  // Note: node-cron doesn't support seconds, so we use setInterval for sub-minute intervals
+  setInterval(pollVMs, 30 * 1000); // Every 30 seconds
   
-  // Schedule host polling every 30 minutes  
-  cron.schedule('*/30 * * * *', pollHosts);
+  // Schedule host polling every 15 minutes (reduced from 30 minutes)
+  cron.schedule('*/15 * * * *', pollHosts);
   
-  logger.info('Polling scheduled successfully');
+  logger.info('Optimized polling scheduled: VMs every 30s, Hosts every 15min');
+}
+
+function setupFileWatcherTrigger(): void {
+  try {
+    // Access the telemetry service from vm sync service
+    const telemetryService = vmSync.getTelemetryService();
+    
+    if (telemetryService) {
+      telemetryService.on('fileChanged', (filePath: string) => {
+        logger.debug(`File watcher triggered VM poll due to: ${filePath}`);
+        
+        // Debounce rapid file changes
+        if (vmPollTimeout) {
+          clearTimeout(vmPollTimeout);
+        }
+        
+        vmPollTimeout = setTimeout(() => {
+          pollVMs();
+        }, 2000); // 2 second debounce
+      });
+      
+      logger.info('File watcher trigger setup for real-time VM updates');
+    }
+  } catch (error) {
+    logger.warn('Could not setup file watcher trigger', error);
+  }
 }
 
 async function pollVMs(): Promise<void> {
   if (isVMPolling) {
-    logger.warn('VM polling already in progress, skipping');
+    logger.debug('VM polling already in progress, skipping');
     return;
   }
 
   isVMPolling = true;
+  const startTime = Date.now();
   
   try {
     const result = await vmSync.syncVMs();
-    logger.info('VM polling complete', result);
+    const duration = Date.now() - startTime;
+    
+    // Broadcast VM updates immediately after sync
+    const vms = await prisma.vM.findMany({ 
+      include: { host: { select: { id: true, name: true } } } 
+    });
+    broadcast('vms-update', vms);
+    
+    logger.info(`VM polling complete in ${duration}ms`, result);
   } catch (error) {
     logger.error('VM polling failed', error);
   } finally {
@@ -55,9 +95,11 @@ async function pollHosts(): Promise<void> {
   }
 
   isHostPolling = true;
+  const startTime = Date.now();
   
   try {
     const result = await hostSync.syncHosts();
+    const duration = Date.now() - startTime;
     
     // Broadcast updates
     const hosts = await prisma.host.findMany({ include: { vms: true } });
@@ -68,7 +110,7 @@ async function pollHosts(): Promise<void> {
     });
     broadcast('vms-update', vms);
     
-    logger.info('Host polling complete', result);
+    logger.info(`Host polling complete in ${duration}ms`, result);
   } catch (error) {
     logger.error('Host polling failed', error);
   } finally {

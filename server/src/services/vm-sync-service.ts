@@ -13,6 +13,11 @@ export class VMSyncService {
     this.logger = new Logger('VMSyncService');
   }
 
+  // Expose telemetry service for file watcher integration
+  getTelemetryService(): TelemetryService {
+    return this.telemetry;
+  }
+
   async syncVMs(): Promise<{ synced: number; errors: number }> {
     const startTime = Date.now();
     let synced = 0;

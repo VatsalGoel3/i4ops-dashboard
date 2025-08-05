@@ -83,3 +83,123 @@ model AuditLog {
   user     String
   time     DateTime @default(now())
 }
+
+// New models for User/Machine Management
+enum UserStatus {
+  active
+  inactive
+  suspended
+}
+
+enum ProjectStatus {
+  active
+  inactive
+  archived
+}
+
+model Environment {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // e.g., "u1", "u10", etc.
+  displayName String   // e.g., "Environment U1"
+  hostname    String?  // Tailscale hostname
+  ip          String?  // Tailscale IP
+  status      String   @default("unknown")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  projects    Project[]
+  users       ProjectUser[]
+}
+
+model Project {
+  id            Int           @id @default(autoincrement())
+  name          String        // Project shortname
+  displayName   String        // Pretty name
+  description   String?
+  projectId     String?       // External project ID
+  bizId         String?       // Business ID
+  status        ProjectStatus @default(active)
+  environmentId Int
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  environment   Environment   @relation(fields: [environmentId], references: [id])
+  users         ProjectUser[]
+  managers      ProjectManager[]
+  pathWhitelists PathWhitelist[]
+
+  @@unique([name, environmentId])
+}
+
+model ProjectUser {
+  id            Int        @id @default(autoincrement())
+  username      String
+  name          String
+  email         String
+  status        UserStatus @default(active)
+  vncDisplay    Int?       // VNC display number (calculated from seed)
+  vncPort       Int?       // VNC RFB port (calculated from seed)
+  webPort       Int?       // Web access port (vncPort + 8443)
+  homeDirectory String?
+  environmentId Int
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  environment   Environment @relation(fields: [environmentId], references: [id])
+  projects      Project[]
+  serviceStatus UserServiceStatus[]
+
+  @@unique([username, environmentId])
+}
+
+model ProjectManager {
+  id            Int        @id @default(autoincrement())
+  username      String
+  name          String
+  email         String
+  projectId     Int
+  managerId     String?    // External manager ID
+  passwordHash  String?    // Hashed password (for read-only, this will be null)
+  status        UserStatus @default(active)
+  environmentId Int
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  project       Project    @relation(fields: [projectId], references: [id])
+
+  @@unique([username, projectId])
+}
+
+model PathWhitelist {
+  id        Int      @id @default(autoincrement())
+  name      String
+  sources   String[] // Array of source paths
+  targetHost String?
+  targetPath String?
+  projectId Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  project   Project  @relation(fields: [projectId], references: [id])
+}
+
+model UserServiceStatus {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  service   String   // e.g., "vnc", "nginx", "home_directory"
+  status    String   // e.g., "running", "stopped", "error"
+  lastCheck DateTime @default(now())
+  errorMsg  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      ProjectUser @relation(fields: [userId], references: [id])
+
+  @@unique([userId, service])
+}

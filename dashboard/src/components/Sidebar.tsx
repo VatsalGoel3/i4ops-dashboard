@@ -3,7 +3,8 @@ import {
   Server,
   Monitor,
   Settings,
-  Terminal
+  Terminal,
+  Users
 } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import i4opsLogo from '../assets/brand.jpg';
@@ -13,6 +14,7 @@ export default function Sidebar({ collapsed }: { collapsed: boolean }) {
     { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
     { to: '/hosts', label: 'Hosts', icon: Server },
     { to: '/vms', label: 'VMs', icon: Monitor },
+    { to: '/users', label: 'User Management', icon: Users },
     { to: '/settings', label: 'Settings', icon: Settings }
   ];
 

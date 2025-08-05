@@ -1,6 +1,7 @@
 import React from 'react';
-import { X, ExternalLink, Copy, Calendar, Mail, User, Server, FolderOpen } from 'lucide-react';
+import { X, ExternalLink, Copy, Calendar, Mail, User, Server, FolderOpen, Activity, AlertTriangle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { useUserServiceHealth } from '../../api/useUserManagement';
 import type { ProjectUserWithRelations } from '../../api/types';
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export default function UserDetailModal({ user, onClose }: Props) {
+  const { data: serviceHealth, isLoading: isLoadingHealth } = useUserServiceHealth(user.id);
+  
   const generateAccessUrls = () => {
     if (!user.vncDisplay) return null;
     

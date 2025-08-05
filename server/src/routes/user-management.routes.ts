@@ -7,7 +7,10 @@ import {
   getAllProjects,
   getUserAccess,
   getStatistics,
-  searchUserManagement
+  searchUserManagement,
+  getServiceHealth,
+  getServiceHealthSummary,
+  getUserServiceHealth
 } from '../controllers/user-management.controller';
 
 const router = Router();
@@ -27,5 +30,10 @@ router.get('/projects', getAllProjects);
 // Statistics and search
 router.get('/statistics', getStatistics);
 router.get('/search', searchUserManagement);
+
+// Service health monitoring
+router.get('/service-health', getServiceHealth);
+router.get('/service-health/summary', getServiceHealthSummary);
+router.get('/users/:id/service-health', getUserServiceHealth);
 
 export default router; 

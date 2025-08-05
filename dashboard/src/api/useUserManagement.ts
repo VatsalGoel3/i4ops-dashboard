@@ -9,7 +9,9 @@ import type {
   UserManagementStatistics,
   SearchResult,
   UserFilters,
-  ProjectFilters
+  ProjectFilters,
+  UserServiceHealth,
+  ServiceHealthSummary
 } from './types';
 
 const API_BASE = config.api.baseUrl;
@@ -184,5 +186,43 @@ export function useUserManagementSearch(query: string, limit: number = 20, enabl
     queryFn: () => userManagementApi.search(query, limit),
     enabled: enabled && query.length >= 2,
     staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+// Service Health Hooks
+export function useServiceHealth() {
+  return useQuery({
+    queryKey: ['user-management', 'service-health'],
+    queryFn: async (): Promise<UserServiceHealth[]> => {
+      const response = await axios.get<ApiResponse<UserServiceHealth[]>>(`${API_BASE}/user-management/service-health`);
+      return response.data.data;
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: 2 * 60 * 1000, // Refresh every 2 minutes
+  });
+}
+
+export function useServiceHealthSummary() {
+  return useQuery({
+    queryKey: ['user-management', 'service-health', 'summary'],
+    queryFn: async (): Promise<ServiceHealthSummary> => {
+      const response = await axios.get<ApiResponse<ServiceHealthSummary>>(`${API_BASE}/user-management/service-health/summary`);
+      return response.data.data;
+    },
+    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: 2 * 60 * 1000, // Refresh every 2 minutes
+  });
+}
+
+export function useUserServiceHealth(userId: number, enabled: boolean = true) {
+  return useQuery({
+    queryKey: ['user-management', 'users', userId, 'service-health'],
+    queryFn: async (): Promise<UserServiceHealth> => {
+      const response = await axios.get<ApiResponse<UserServiceHealth>>(`${API_BASE}/user-management/users/${userId}/service-health`);
+      return response.data.data;
+    },
+    enabled: enabled && !!userId,
+    staleTime: 30 * 1000, // 30 seconds
+    refetchInterval: 60 * 1000, // Refresh every minute for individual user
   });
 } 

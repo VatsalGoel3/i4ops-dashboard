@@ -204,3 +204,34 @@ export interface SearchResult {
   subtitle: string;
   data: any;
 }
+
+// Service Health Monitoring Types
+export interface ServiceCheck {
+  service: string;
+  status: 'running' | 'stopped' | 'error' | 'unknown';
+  errorMsg?: string;
+  lastCheck: string;
+}
+
+export interface UserServiceHealth {
+  userId: number;
+  username: string;
+  environment: string;
+  hostname?: string;
+  ip?: string;
+  services: ServiceCheck[];
+  overallStatus: 'healthy' | 'degraded' | 'critical' | 'unknown';
+}
+
+export interface ServiceHealthSummary {
+  totalUsers: number;
+  healthyUsers: number;
+  degradedUsers: number;
+  criticalUsers: number;
+  unknownUsers: number;
+  serviceStats: Record<string, {
+    running: number;
+    stopped: number;
+    error: number;
+  }>;
+}

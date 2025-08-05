@@ -1,8 +1,14 @@
 import { Request, Response } from 'express';
-import { userManagementService } from '../services/user-management.service';
+import { UserManagementService } from '../services/user-management.service';
+import { ServiceMonitorService } from '../services/service-monitor.service';
+import { 
+  UserFiltersSchema, 
+  ProjectFiltersSchema
+} from '../schemas/user-management.schema';
 import { Logger } from '../infrastructure/logger';
-import { UserFiltersSchema, ProjectFiltersSchema } from '../schemas/user-management.schema';
 
+const userManagementService = new UserManagementService();
+const serviceMonitorService = new ServiceMonitorService();
 const logger = new Logger('UserManagementController');
 
 /**
@@ -301,3 +307,95 @@ export async function searchUserManagement(req: Request, res: Response) {
     });
   }
 } 
+
+/**
+ * Get service health status for all users
+ */
+export const getServiceHealth = async (req: Request, res: Response) => {
+  try {
+    logger.info('Fetching service health status');
+    const healthData = await serviceMonitorService.checkAllUserServices();
+    
+    res.json({
+      success: true,
+      data: healthData,
+      message: 'Service health data retrieved successfully'
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Error fetching service health:', errorMessage);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch service health status',
+      details: errorMessage
+    });
+  }
+};
+
+/**
+ * Get service health summary statistics
+ */
+export const getServiceHealthSummary = async (req: Request, res: Response) => {
+  try {
+    logger.info('Fetching service health summary');
+    const summary = await serviceMonitorService.getServiceHealthSummary();
+    
+    res.json({
+      success: true,
+      data: summary,
+      message: 'Service health summary retrieved successfully'
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Error fetching service health summary:', errorMessage);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch service health summary',
+      details: errorMessage
+    });
+  }
+};
+
+/**
+ * Get service health for a specific user
+ */
+export const getUserServiceHealth = async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid user ID provided'
+      });
+    }
+
+    logger.info(`Fetching service health for user ID: ${userId}`);
+    
+    // Get user data first
+    const user = await userManagementService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Check services for this specific user
+    const healthData = await serviceMonitorService.checkUserServices(user);
+    
+    res.json({
+      success: true,
+      data: healthData,
+      message: 'User service health retrieved successfully'
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    logger.error('Error fetching user service health:', errorMessage);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch user service health',
+      details: errorMessage
+    });
+  }
+}; 

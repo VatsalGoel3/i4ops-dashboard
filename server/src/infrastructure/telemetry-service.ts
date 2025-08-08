@@ -144,9 +144,9 @@ export class TelemetryService extends EventEmitter {
   private async getFilesRemote(): Promise<string[]> {
     await this.connect();
     
-    const { stdout } = await this.ssh.execCommand('ls /mnt/vm-telemetry-json/*.json 2>/dev/null || echo "no files"');
-    
-    if (stdout === "no files" || !stdout) {
+      const { stdout } = await this.ssh.execCommand('ls /mnt/vm-telemetry-json/*.json 2>/dev/null || echo "no files"');
+      
+      if (stdout === "no files" || !stdout) {
       this.logger.warn('No remote telemetry files found');
       return [];
     }
@@ -194,7 +194,7 @@ export class TelemetryService extends EventEmitter {
           const stats = this.useLocalFS ?
             await this.getFileStatsLocal(file) :
             await this.getFileStatsRemote(file);
-
+          
           // Check if file is too old based on modification time
           if (now - stats.modTime > staleThresholdMs) {
             this.logger.debug(`Skipping stale file ${file} (modified ${Math.round((now - stats.modTime) / 60000)} minutes ago)`);
@@ -250,7 +250,7 @@ export class TelemetryService extends EventEmitter {
       const files = this.useLocalFS ? 
         await this.getFilesLocal() : 
         await this.getFilesRemote();
-
+      
       if (files.length === 0) {
         this.logger.warn('No telemetry files found for VM discovery');
         return [];
@@ -268,7 +268,7 @@ export class TelemetryService extends EventEmitter {
           const stats = this.useLocalFS ?
             await this.getFileStatsLocal(file) :
             await this.getFileStatsRemote(file);
-
+          
           // Allow files up to 24 hours old for VM discovery
           if (now - stats.modTime > discoveryThresholdMs) {
             this.logger.debug(`Skipping very old file ${file} (${Math.round((now - stats.modTime) / (60000 * 60))} hours old)`);
@@ -316,8 +316,8 @@ export class TelemetryService extends EventEmitter {
       this.logger.info('File watcher closed');
     }
     if (this.isConnected) {
-      this.ssh.dispose();
-      this.isConnected = false;
+    this.ssh.dispose();
+    this.isConnected = false;
     }
   }
 } 
